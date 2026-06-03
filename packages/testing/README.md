@@ -13,10 +13,15 @@ tests can advance time deterministically.
 
 `FakePinpad` supports `press()` and async `waitKey()`.
 `FakeBarcodeReader` supports `scan()` and async `read()`.
+`FakeCardReader` supports card insertion, eject, retain, cancel, and status.
+`FakeCashDispenser` records dispense requests and supports reject, retract, cancel, and status.
+`FakePrinter` records print/cut calls and supports cancel/status.
 
-Both fakes record calls and expose `cancelled`, allowing tests to verify source cleanup.
+Device fakes record calls and expose cancellation state, allowing tests to verify source cleanup and
+recovery behavior.
 
 ## Test App
 
-`createTestKioskApp` wires headless UI, fake devices, `VirtualClock`, and `DefaultTimeoutService`
-into `FlowEngine`, so standard step builders can be tested without real UI or hardware.
+`createTestKioskApp` wires headless UI, fake devices, `VirtualClock`, `DefaultTimeoutService`,
+`InMemoryTransactionResourceRegistry`, and `DefaultRecoveryManager` into `FlowEngine`, so standard
+step builders and recovery paths can be tested without real UI or hardware.

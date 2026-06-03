@@ -4,6 +4,11 @@ This document records native capabilities required by Tripley Acctron but not ye
 
 V1 uses existing native SDK capabilities only.
 
+Milestone 7 adds TypeScript framework contracts, fake devices, and recovery behavior for ATM devices.
+The current `E:\code\rust\tripley-native` IDL aggregate imports runtime, filesystem, archive, TCP,
+WebSocket, SQLite, and system services only, so the ATM device calls below still need native IDL
+support before a real device adapter can be implemented.
+
 ## Future IDL Requests
 
 - Pinpad key mode, secure PIN entry, cancel, and key events.

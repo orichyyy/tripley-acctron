@@ -14,3 +14,7 @@
 - Added async fake pinpad/barcode input support for headless interaction tests.
 - Added Standard Step Kit builders for text input, choice, confirm, host request skeleton, and wait
   device skeleton.
+- Added card reader, cash dispenser, printer, status, lease, and recovery contracts.
+- Added transaction resource registry and default recovery manager.
+- Added flow recovery hooks for unhandled step errors and normal flow completion.
+- Expanded testing fake devices and test app recovery wiring.

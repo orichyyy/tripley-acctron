@@ -4,6 +4,8 @@ export * from "./input-sources";
 export * from "./interaction-result";
 export * from "./interaction-runtime";
 export * from "./raw-step";
+export * from "./recovery-manager";
+export * from "./resource-registry";
 export * from "./choice-step";
 export * from "./confirm-step";
 export * from "./skeleton-steps";

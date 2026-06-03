@@ -17,8 +17,19 @@ parse results.
 
 ## Device Contracts
 
-`PinpadDevice` now exposes `waitKey()` plus `cancel()`.
-`BarcodeReaderDevice` now exposes `read()` plus `cancel()`.
+`DeviceManager` exposes optional ports for pinpad, barcode reader, card reader, cash dispenser, and
+printer. Device contracts include operation cancellation and optional status checks.
+
+`DeviceLease<TDevice>` and `ClaimableDevice<TDevice>` define the future exclusive-access shape for
+hardware sessions.
 
 Real native support still depends on the generated `@tripley-kit/native` client and is tracked in
 `docs/native-required-capabilities.md`.
+
+## Recovery Contracts
+
+`TransactionResourceRegistry` lets steps register resources that need cleanup on normal end, cancel,
+timeout, unhandled errors, or device failure.
+
+`RecoveryManager` coordinates transaction recovery and is exposed on `StepContext` alongside the
+resource registry.

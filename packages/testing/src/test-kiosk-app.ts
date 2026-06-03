@@ -4,10 +4,18 @@ import type {
   FlowDefinition,
   KioskPlugin,
   Logger,
+  RecoveryManager,
   StepHandler,
   TimeoutService,
+  TransactionResourceRegistry,
 } from "@tripley-acctron/contracts";
-import { DefaultTimeoutService, FlowEngine, StepRegistry } from "@tripley-acctron/flow-engine";
+import {
+  DefaultRecoveryManager,
+  DefaultTimeoutService,
+  FlowEngine,
+  InMemoryTransactionResourceRegistry,
+  StepRegistry,
+} from "@tripley-acctron/flow-engine";
 import { InMemoryLogger } from "@tripley-acctron/observability";
 import { createKioskApp } from "@tripley-acctron/runtime-core";
 import { createFakeDevices } from "./fake-devices";
@@ -22,6 +30,8 @@ export interface TestKioskAppOptions {
   devices?: DeviceManager;
   clock?: Clock;
   timeoutService?: TimeoutService;
+  resources?: TransactionResourceRegistry;
+  recovery?: RecoveryManager;
 }
 
 export function createTestKioskApp(options: TestKioskAppOptions = {}) {
@@ -30,6 +40,15 @@ export function createTestKioskApp(options: TestKioskAppOptions = {}) {
   const devices = options.devices ?? createFakeDevices();
   const clock = options.clock ?? new VirtualClock();
   const timeoutService = options.timeoutService ?? new DefaultTimeoutService({ clock, ui });
+  const resources = options.resources ?? new InMemoryTransactionResourceRegistry(logger);
+  const recovery =
+    options.recovery ??
+    new DefaultRecoveryManager({
+      resources,
+      logger,
+      devices,
+      ui,
+    });
   const appOptions = {
     role: "headlessTest",
     logger,
@@ -42,14 +61,18 @@ export function createTestKioskApp(options: TestKioskAppOptions = {}) {
     steps: StepRegistry.fromRecord(options.steps ?? {}),
     ui,
     logger,
+    resources,
+    recovery,
     context: {
       events: app.events,
       commands: app.commands,
       queries: app.queries,
       devices,
       timeoutService,
+      resources,
+      recovery,
       logger,
     },
   });
-  return { app, flow, ui, devices, clock, timeoutService, logger };
+  return { app, flow, ui, devices, clock, timeoutService, resources, recovery, logger };
 }

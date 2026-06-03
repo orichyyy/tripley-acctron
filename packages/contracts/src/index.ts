@@ -5,5 +5,6 @@ export * from "./interaction";
 export * from "./native";
 export * from "./observability";
 export * from "./plugin";
+export * from "./recovery";
 export * from "./timeout";
 export * from "./ui";

@@ -9,6 +9,7 @@ export type KioskErrorCode =
   | "flow.stepMissing"
   | "interaction.sourceMissing"
   | "interaction.runtime"
+  | "recovery.failed"
   | "scope.disposed"
   | "native.unavailable";
 

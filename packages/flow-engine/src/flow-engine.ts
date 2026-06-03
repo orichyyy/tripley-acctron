@@ -3,8 +3,10 @@ import {
   type FlowDefinition,
   type FlowRunResult,
   type Logger,
+  type RecoveryManager,
   type StepContext,
   type StepResult,
+  type TransactionResourceRegistry,
   type UiPort,
 } from "@tripley-acctron/contracts";
 import { compileFlow, type CompiledFlow } from "./compiler";
@@ -17,6 +19,8 @@ export interface FlowEngineOptions {
   context: Omit<StepContext, "flowId" | "nodeId" | "scope" | "next" | "end">;
   ui?: UiPort;
   logger: Logger;
+  recovery?: RecoveryManager;
+  resources?: TransactionResourceRegistry;
 }
 
 export class FlowEngine {
@@ -39,6 +43,7 @@ export class FlowEngine {
       }
 
       if (node.type === "end") {
+        await this.recover("normalEnd");
         return { flowId, endName: node.name };
       }
 
@@ -52,10 +57,18 @@ export class FlowEngine {
       }
 
       const scope = new StepScopeImpl(this.options.context.events);
-      const result = await this.executeAction(flow.id, node.id, node.action, node.config, scope);
+      let result: StepResult;
+      try {
+        result = await this.executeAction(flow.id, node.id, node.action, node.config, scope);
+      } catch (error) {
+        await scope.dispose();
+        await this.recover("unhandledError", error);
+        throw error;
+      }
       await scope.dispose();
 
       if (result.type === "end") {
+        await this.recover("normalEnd");
         return { flowId, endName: result.name };
       }
 
@@ -82,6 +95,12 @@ export class FlowEngine {
     if (this.options.ui) {
       Object.assign(ctx, { ui: this.options.ui });
     }
+    if (this.options.resources) {
+      Object.assign(ctx, { resources: this.options.resources });
+    }
+    if (this.options.recovery) {
+      Object.assign(ctx, { recovery: this.options.recovery });
+    }
 
     try {
       return await step(ctx, config);
@@ -106,5 +125,19 @@ export class FlowEngine {
       throw new KioskError("flow.compile", `Flow ${flowId} was not registered.`);
     }
     return flow;
+  }
+
+  private async recover(reason: "normalEnd" | "unhandledError", error?: unknown): Promise<void> {
+    const recovery = this.options.recovery ?? this.options.context.recovery;
+    if (recovery) {
+      await recovery.recover({ reason, error });
+      return;
+    }
+
+    const resources = this.options.resources ?? this.options.context.resources;
+    if (resources) {
+      await resources.recover(reason);
+      await resources.clear();
+    }
   }
 }

@@ -25,3 +25,12 @@ around `InteractionRuntime`.
 
 `defineHostRequestStep` and `defineWaitDeviceStep` are callback-based skeletons for later HostGateway
 and expanded device contracts.
+
+## Recovery
+
+`InMemoryTransactionResourceRegistry` stores transaction resources and recovers active resources in
+reverse registration order.
+
+`DefaultRecoveryManager` shows a recovering screen, cancels pending device operations, runs resource
+recovery, and clears transaction resources. `FlowEngine` invokes recovery for unhandled step errors
+and normal flow completion.

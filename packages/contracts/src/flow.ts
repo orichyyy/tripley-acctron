@@ -11,6 +11,7 @@ import type { Logger } from "./observability";
 import type { TimeoutService } from "./timeout";
 import type { UiPort } from "./ui";
 import type { DeviceManager } from "./native";
+import type { RecoveryManager, TransactionResourceRegistry } from "./recovery";
 
 export interface FlowDefinition {
   id: string;
@@ -85,6 +86,8 @@ export interface StepContext {
   readonly ui?: UiPort;
   readonly devices?: DeviceManager;
   readonly timeoutService?: TimeoutService;
+  readonly resources?: TransactionResourceRegistry;
+  readonly recovery?: RecoveryManager;
   readonly logger: Logger;
   next(route: string): StepResult;
   end(name: string): StepResult;

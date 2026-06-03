@@ -1,7 +1,7 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { InMemoryCommandBus, InMemoryEventBus, InMemoryQueryBus } from "@tripley-acctron/event-bus";
 import { InMemoryLogger } from "@tripley-acctron/observability";
-import type { KioskEvents } from "@tripley-acctron/contracts";
+import type { KioskEvents, RecoveryManager } from "@tripley-acctron/contracts";
 import { compileFlow } from "./compiler";
 import { FlowEngine } from "./flow-engine";
 import { StepRegistry } from "./step-registry";
@@ -63,5 +63,118 @@ describe("flow engine", () => {
 
     expect(cleaned).toBe(true);
     expect(scope.signal.aborted).toBe(true);
+  });
+
+  test("unhandled step errors trigger recovery", async () => {
+    const logger = new InMemoryLogger();
+    const error = new Error("boom");
+    const recovery: RecoveryManager = {
+      recover: vi.fn(async () => {}),
+    };
+    const engine = new FlowEngine({
+      logger,
+      recovery,
+      flows: [
+        {
+          id: "demo",
+          version: "1",
+          nodes: [
+            { id: "start", type: "start" },
+            { id: "fail", type: "action", action: "fail" },
+            { id: "done", type: "end", name: "Done" },
+          ],
+          edges: [
+            { id: "e1", from: "start", to: "fail" },
+            { id: "e2", from: "fail", to: "done" },
+          ],
+        },
+      ],
+      steps: StepRegistry.fromRecord({
+        fail: () => {
+          throw error;
+        },
+      }),
+      context: {
+        events: new InMemoryEventBus<KioskEvents>(),
+        commands: new InMemoryCommandBus(),
+        queries: new InMemoryQueryBus(),
+        logger,
+      },
+    });
+
+    await expect(engine.run("demo")).rejects.toBe(error);
+    expect(recovery.recover).toHaveBeenCalledWith({ reason: "unhandledError", error });
+  });
+
+  test("normal flow end triggers normalEnd recovery", async () => {
+    const logger = new InMemoryLogger();
+    const recovery: RecoveryManager = {
+      recover: vi.fn(async () => {}),
+    };
+    const engine = new FlowEngine({
+      logger,
+      recovery,
+      flows: [
+        {
+          id: "demo",
+          version: "1",
+          nodes: [
+            { id: "start", type: "start" },
+            { id: "finish", type: "action", action: "finish" },
+          ],
+          edges: [{ id: "e1", from: "start", to: "finish" }],
+        },
+      ],
+      steps: StepRegistry.fromRecord({
+        finish: (ctx) => ctx.end("Done"),
+      }),
+      context: {
+        events: new InMemoryEventBus<KioskEvents>(),
+        commands: new InMemoryCommandBus(),
+        queries: new InMemoryQueryBus(),
+        logger,
+      },
+    });
+
+    await expect(engine.run("demo")).resolves.toEqual({ flowId: "demo", endName: "Done" });
+    expect(recovery.recover).toHaveBeenCalledWith({ reason: "normalEnd", error: undefined });
+  });
+
+  test("graph end nodes trigger normalEnd recovery", async () => {
+    const logger = new InMemoryLogger();
+    const recovery: RecoveryManager = {
+      recover: vi.fn(async () => {}),
+    };
+    const engine = new FlowEngine({
+      logger,
+      recovery,
+      flows: [
+        {
+          id: "demo",
+          version: "1",
+          nodes: [
+            { id: "start", type: "start" },
+            { id: "input", type: "action", action: "input" },
+            { id: "done", type: "end", name: "Done" },
+          ],
+          edges: [
+            { id: "e1", from: "start", to: "input" },
+            { id: "e2", from: "input", to: "done", route: "ok" },
+          ],
+        },
+      ],
+      steps: StepRegistry.fromRecord({
+        input: (ctx) => ctx.next("ok"),
+      }),
+      context: {
+        events: new InMemoryEventBus<KioskEvents>(),
+        commands: new InMemoryCommandBus(),
+        queries: new InMemoryQueryBus(),
+        logger,
+      },
+    });
+
+    await expect(engine.run("demo")).resolves.toEqual({ flowId: "demo", endName: "Done" });
+    expect(recovery.recover).toHaveBeenCalledWith({ reason: "normalEnd", error: undefined });
   });
 });
