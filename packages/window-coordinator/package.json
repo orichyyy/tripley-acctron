@@ -1,0 +1,16 @@
+{
+  "name": "@tripley-acctron/window-coordinator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsup --config ../../tsup.config.ts"
+  },
+  "dependencies": {
+    "@tripley-acctron/contracts": "workspace:*",
+    "@tripley-acctron/runtime-core": "workspace:*"
+  }
+}

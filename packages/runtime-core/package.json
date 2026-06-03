@@ -1,0 +1,21 @@
+{
+  "name": "@tripley-acctron/runtime-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsup --config ../../tsup.config.ts"
+  },
+  "dependencies": {
+    "@tripley-acctron/contracts": "workspace:*",
+    "@tripley-acctron/observability": "workspace:*",
+    "@tripley-acctron/plugin-system": "workspace:*",
+    "@tripley-kit/logger": "catalog:"
+  },
+  "devDependencies": {
+    "@tripley-acctron/testing": "workspace:*"
+  }
+}

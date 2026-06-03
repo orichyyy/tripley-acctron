@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "paths": {
+      "@tripley-acctron/accessibility": ["./packages/accessibility/src/index.ts"],
+      "@tripley-acctron/contracts": ["./packages/contracts/src/index.ts"],
+      "@tripley-acctron/event-bus": ["./packages/event-bus/src/index.ts"],
+      "@tripley-acctron/flow-engine": ["./packages/flow-engine/src/index.ts"],
+      "@tripley-acctron/host": ["./packages/host/src/index.ts"],
+      "@tripley-acctron/observability": ["./packages/observability/src/index.ts"],
+      "@tripley-acctron/plugin-system": ["./packages/plugin-system/src/index.ts"],
+      "@tripley-acctron/runtime-core": ["./packages/runtime-core/src/index.ts"],
+      "@tripley-acctron/testing": ["./packages/testing/src/index.ts"],
+      "@tripley-acctron/window-coordinator": ["./packages/window-coordinator/src/index.ts"]
+    }
+  },
+  "include": ["apps/**/*.ts", "packages/**/*.ts", "vitest.config.ts"]
+}
