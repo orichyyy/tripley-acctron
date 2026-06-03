@@ -4,9 +4,22 @@ packages:
 
 catalog:
   '@biomejs/biome': 2.4.16
+  '@radix-ui/react-slot': 1.2.4
+  '@tailwindcss/vite': 4.1.17
+  '@types/node': 24.10.2
+  '@types/react': 19.2.7
+  '@types/react-dom': 19.2.3
   '@tripley-kit/logger': 1.2.7
   '@tripley-kit/native': 1.2.0
+  '@vitejs/plugin-react': 5.1.2
+  class-variance-authority: 0.7.1
+  clsx: 2.1.1
+  lucide-react: 0.562.0
+  react: 19.2.3
+  react-dom: 19.2.3
+  tailwind-merge: 3.4.0
+  tailwindcss: 4.1.17
   tsup: 8.5.1
   typescript: 6.0.3
+  vite: 7.3.0
   vitest: 4.1.8
-

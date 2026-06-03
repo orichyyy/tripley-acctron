@@ -11,8 +11,17 @@
       "@tripley-acctron/plugin-system": ["./packages/plugin-system/src/index.ts"],
       "@tripley-acctron/runtime-core": ["./packages/runtime-core/src/index.ts"],
       "@tripley-acctron/testing": ["./packages/testing/src/index.ts"],
-      "@tripley-acctron/window-coordinator": ["./packages/window-coordinator/src/index.ts"]
+      "@tripley-acctron/window-coordinator": ["./packages/window-coordinator/src/index.ts"],
+      "@tripley-acctron/native": ["./packages/native/src/index.ts"],
+      "@tripley-acctron/react-ui": ["./packages/react-ui/src/index.ts"],
+      "@/*": ["./apps/demo-kiosk/src/*"]
     }
   },
-  "include": ["apps/**/*.ts", "packages/**/*.ts", "vitest.config.ts"]
+  "include": [
+    "apps/**/*.ts",
+    "apps/**/*.tsx",
+    "packages/**/*.ts",
+    "packages/**/*.tsx",
+    "vitest.config.ts"
+  ]
 }
