@@ -1,19 +1,35 @@
-import type { FlowDefinition, KioskPlugin, Logger, StepHandler } from "@tripley-acctron/contracts";
-import { FlowEngine, StepRegistry } from "@tripley-acctron/flow-engine";
+import type {
+  Clock,
+  DeviceManager,
+  FlowDefinition,
+  KioskPlugin,
+  Logger,
+  StepHandler,
+  TimeoutService,
+} from "@tripley-acctron/contracts";
+import { DefaultTimeoutService, FlowEngine, StepRegistry } from "@tripley-acctron/flow-engine";
 import { InMemoryLogger } from "@tripley-acctron/observability";
 import { createKioskApp } from "@tripley-acctron/runtime-core";
+import { createFakeDevices } from "./fake-devices";
 import { HeadlessUiAdapter } from "./headless-ui-adapter";
+import { VirtualClock } from "./virtual-clock";
 
 export interface TestKioskAppOptions {
   flows?: FlowDefinition[];
   steps?: Record<string, StepHandler>;
   plugins?: KioskPlugin[];
   logger?: Logger;
+  devices?: DeviceManager;
+  clock?: Clock;
+  timeoutService?: TimeoutService;
 }
 
 export function createTestKioskApp(options: TestKioskAppOptions = {}) {
   const logger = options.logger ?? new InMemoryLogger();
   const ui = new HeadlessUiAdapter();
+  const devices = options.devices ?? createFakeDevices();
+  const clock = options.clock ?? new VirtualClock();
+  const timeoutService = options.timeoutService ?? new DefaultTimeoutService({ clock, ui });
   const appOptions = {
     role: "headlessTest",
     logger,
@@ -30,8 +46,10 @@ export function createTestKioskApp(options: TestKioskAppOptions = {}) {
       events: app.events,
       commands: app.commands,
       queries: app.queries,
+      devices,
+      timeoutService,
       logger,
     },
   });
-  return { app, flow, ui, logger };
+  return { app, flow, ui, devices, clock, timeoutService, logger };
 }

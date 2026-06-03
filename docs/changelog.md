@@ -10,3 +10,7 @@
 - Added `@tripley-kit/native` adapter package.
 - Added Vite React demo shell using Tailwind and shadcn-style components.
 - Added timeout contracts, `SystemClock`, `DefaultTimeoutService`, and cancellable `VirtualClock`.
+- Added interaction contracts, `InputSources`, and `InteractionRuntime`.
+- Added async fake pinpad/barcode input support for headless interaction tests.
+- Added Standard Step Kit builders for text input, choice, confirm, host request skeleton, and wait
+  device skeleton.

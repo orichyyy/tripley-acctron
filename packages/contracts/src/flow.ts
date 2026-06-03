@@ -8,7 +8,9 @@ import type {
   TypedQueryBus,
 } from "./bus";
 import type { Logger } from "./observability";
+import type { TimeoutService } from "./timeout";
 import type { UiPort } from "./ui";
+import type { DeviceManager } from "./native";
 
 export interface FlowDefinition {
   id: string;
@@ -81,6 +83,8 @@ export interface StepContext {
   readonly commands: TypedCommandBus<KioskCommands>;
   readonly queries: TypedQueryBus<KioskQueries>;
   readonly ui?: UiPort;
+  readonly devices?: DeviceManager;
+  readonly timeoutService?: TimeoutService;
   readonly logger: Logger;
   next(route: string): StepResult;
   end(name: string): StepResult;

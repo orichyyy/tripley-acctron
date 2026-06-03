@@ -1,6 +1,7 @@
 export * from "./bus";
 export * from "./errors";
 export * from "./flow";
+export * from "./interaction";
 export * from "./native";
 export * from "./observability";
 export * from "./plugin";

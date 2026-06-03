@@ -7,6 +7,8 @@ export type KioskErrorCode =
   | "plugin.dependencyMissing"
   | "flow.compile"
   | "flow.stepMissing"
+  | "interaction.sourceMissing"
+  | "interaction.runtime"
   | "scope.disposed"
   | "native.unavailable";
 
