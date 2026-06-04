@@ -16,6 +16,8 @@ export type KioskErrorCode =
   | "recipe.routeMissing"
   | "recovery.failed"
   | "scope.disposed"
+  | "transaction.cancelled"
+  | "transaction.running"
   | "native.unavailable"
   | "window.nativeUnsupported"
   | "window.notFound";

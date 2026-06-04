@@ -2,4 +2,16 @@
 
 Runtime composition entrypoint for kiosk applications.
 
-Update this document when app startup, shutdown, plugin composition, or role behavior changes.
+`createKioskApp` wires service registry, lifecycle registry, plugins, and typed event/command/query
+buses.
+
+`registerTransactionLifecycle` installs transaction commands and queries:
+
+- `transaction.start`: runs a flow through a `FlowRunner` and returns lifecycle status.
+- `transaction.cancel`: aborts the active flow and waits for cleanup.
+- `transaction.reset`: cancels any active flow, clears transaction data, closes dialogs, and returns
+  to idle.
+- `transaction.status`: returns the current lifecycle snapshot.
+
+Update this document when app startup, shutdown, plugin composition, transaction lifecycle, or role
+behavior changes.

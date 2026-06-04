@@ -9,9 +9,11 @@ Vite React ATM demo for Tripley Acctron.
 - `ReactUiAdapter` and `UiRuntimeStore` for framework UI contracts.
 - `apps/atm-basic` flow and Recipe-based steps.
 - fake devices, scenario host, transaction data, audit, recovery, TTS, voice guide, and windows.
+- `transaction.start`, `transaction.reset`, and `transaction.status` command/query handlers from
+  `@tripley-acctron/runtime-core`.
 
 React components render screens and emit UI actions only. Validation, routing, transaction writes,
-host calls, timeout, audit, and recovery stay in the framework runtime.
+host calls, timeout, audit, recovery, and transaction lifecycle stay in the framework runtime.
 
 ## Screens
 

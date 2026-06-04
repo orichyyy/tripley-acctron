@@ -6,11 +6,15 @@ import {
   StaticAudioAssetResolver,
 } from "@tripley-acctron/accessibility";
 import type {
-  FlowRunResult,
   HostGateway,
   HostRequest,
   HostResponse,
   HostSendOptions,
+  KioskCommands,
+  KioskQueries,
+  TransactionLifecycleStatus,
+  TypedCommandBus,
+  TypedQueryBus,
 } from "@tripley-acctron/contracts";
 import {
   DefaultRecoveryManager,
@@ -27,15 +31,17 @@ import {
   InMemoryLogger,
 } from "@tripley-acctron/observability";
 import { ReactUiAdapter, UiRuntimeStore } from "@tripley-acctron/react-ui";
-import { createKioskApp } from "@tripley-acctron/runtime-core";
+import { createKioskApp, registerTransactionLifecycle } from "@tripley-acctron/runtime-core";
 import { InMemoryTransactionDataStore, createFakeDevices } from "@tripley-acctron/testing";
 import { HeadlessWindowManager } from "@tripley-acctron/window-coordinator";
 import { resultStateFor, type DemoScreens, type HostScenario } from "./screens";
 
 export interface DemoKioskRuntime {
   store: UiRuntimeStore;
-  start(scenario: HostScenario): Promise<FlowRunResult>;
-  reset(scenario: HostScenario): Promise<void>;
+  commands: TypedCommandBus<KioskCommands>;
+  queries: TypedQueryBus<KioskQueries>;
+  start(scenario: HostScenario): Promise<TransactionLifecycleStatus>;
+  reset(scenario: HostScenario): Promise<TransactionLifecycleStatus>;
   emitAction<K extends keyof DemoScreens>(screen: K, action: DemoScreens[K]["actions"]): void;
 }
 
@@ -87,26 +93,62 @@ export function createDemoKioskRuntime(): DemoKioskRuntime {
       host,
     },
   });
+  registerTransactionLifecycle({
+    commands: app.commands,
+    queries: app.queries,
+    flow,
+    logger,
+    transaction,
+    ui,
+    hooks: {
+      beforeStart(request) {
+        transaction.clear();
+        host.setScenario(scenarioFromMetadata(request.metadata));
+        return ui.show("demo.processing", {});
+      },
+      afterComplete(status) {
+        const endName = status.result?.endName ?? "Failed";
+        return ui.show("demo.result", resultStateFor(endName, transaction.get("accountNo")));
+      },
+      afterFailed(status) {
+        return ui.show("demo.result", {
+          endName: "Failed",
+          tone: "danger",
+          title: "Transaction failed",
+          message: status.errorMessage ?? "The transaction could not be completed.",
+        });
+      },
+      afterCancelled(_status) {
+        return ui.show("demo.result", resultStateFor("Cancelled", transaction.get("accountNo")));
+      },
+      afterReset(request) {
+        return ui.show("demo.welcome", { scenario: scenarioFromMetadata(request.metadata) });
+      },
+    },
+  });
 
   return {
     store,
+    commands: app.commands,
+    queries: app.queries,
     async reset(scenario) {
-      transaction.clear();
-      await ui.closeDialog();
-      await ui.show("demo.welcome", { scenario });
+      return await app.commands.execute("transaction.reset", { metadata: { scenario } });
     },
     async start(scenario) {
-      transaction.clear();
-      host.setScenario(scenario);
-      await ui.show("demo.processing", {});
-      const result = await flow.run("atm-basic");
-      await ui.show("demo.result", resultStateFor(result.endName, transaction.get("accountNo")));
-      return result;
+      return await app.commands.execute("transaction.start", {
+        flowId: "atm-basic",
+        metadata: { scenario },
+      });
     },
     emitAction(screen, action) {
       store.emitAction(String(screen), action);
     },
   };
+}
+
+function scenarioFromMetadata(metadata: Record<string, unknown> | undefined): HostScenario {
+  const scenario = metadata?.scenario;
+  return scenario === "declined" || scenario === "failed" ? scenario : "approved";
 }
 
 class ScenarioHostGateway implements HostGateway {

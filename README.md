@@ -9,7 +9,8 @@ in separate packages.
 - `@tripley-acctron/contracts`: public interfaces and shared types.
 - `@tripley-acctron/event-bus`: typed event, command, and query buses.
 - `@tripley-acctron/plugin-system`: service registry, lifecycle, and plugin runtime.
-- `@tripley-acctron/runtime-core`: `createKioskApp` runtime composition.
+- `@tripley-acctron/runtime-core`: `createKioskApp` runtime composition and transaction lifecycle
+  command controller.
 - `@tripley-acctron/flow-engine`: flow compiler, step scope, timeout, interaction runtime, standard
   step builders, step policy, audit integration, and transaction recovery.
 - `@tripley-acctron/host`: Host Gateway runtime, JSON codec, and canonical message mapper.
@@ -32,7 +33,8 @@ pnpm --filter @tripley-acctron/demo-kiosk run dev
 ```
 
 The demo app runs the Recipe-based ATM flow in the browser with fake devices, fake host scenarios,
-React UI actions, audit, transaction data, recovery, and the standard step policy runtime.
+React UI actions, audit, transaction data, recovery, transaction lifecycle commands, and the
+standard step policy runtime.
 
 ## Native Policy
 

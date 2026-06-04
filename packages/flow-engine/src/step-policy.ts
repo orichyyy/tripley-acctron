@@ -35,7 +35,7 @@ export function promptPolicyFromDefinition(definition: {
 export function createInteractionRuntime(ctx: StepContext) {
   return new InteractionRuntime(
     Object.assign(
-      { ui: requirePolicyUi(ctx), logger: ctx.logger },
+      { ui: requirePolicyUi(ctx), logger: ctx.logger, signal: ctx.scope.signal },
       ctx.devices ? { devices: ctx.devices } : {},
       ctx.audit ? { audit: ctx.audit } : {},
       ctx.redaction ? { redaction: ctx.redaction } : {},

@@ -177,4 +177,55 @@ describe("flow engine", () => {
     await expect(engine.run("demo")).resolves.toEqual({ flowId: "demo", endName: "Done" });
     expect(recovery.recover).toHaveBeenCalledWith({ reason: "normalEnd", error: undefined });
   });
+
+  test("external abort disposes active step and recovers as cancel", async () => {
+    const logger = new InMemoryLogger();
+    const abort = new AbortController();
+    const recovery: RecoveryManager = {
+      recover: vi.fn(async () => {}),
+    };
+    let releaseStarted: (() => void) | undefined;
+    const started = new Promise<void>((resolve) => {
+      releaseStarted = resolve;
+    });
+    const engine = new FlowEngine({
+      logger,
+      recovery,
+      flows: [
+        {
+          id: "demo",
+          version: "1",
+          nodes: [
+            { id: "start", type: "start" },
+            { id: "wait", type: "action", action: "wait" },
+            { id: "done", type: "end", name: "Done" },
+          ],
+          edges: [
+            { id: "e1", from: "start", to: "wait" },
+            { id: "e2", from: "wait", to: "done", route: "ok" },
+          ],
+        },
+      ],
+      steps: StepRegistry.fromRecord({
+        async wait(ctx) {
+          releaseStarted?.();
+          await ctx.scope.waitEvent("demo.ready");
+          return ctx.next("ok");
+        },
+      }),
+      context: {
+        events: new InMemoryEventBus<KioskEvents>(),
+        commands: new InMemoryCommandBus(),
+        queries: new InMemoryQueryBus(),
+        logger,
+      },
+    });
+
+    const run = engine.run("demo", { signal: abort.signal });
+    await started;
+    abort.abort();
+
+    await expect(run).rejects.toMatchObject({ code: "transaction.cancelled" });
+    expect(recovery.recover).toHaveBeenCalledWith(expect.objectContaining({ reason: "cancel" }));
+  });
 });

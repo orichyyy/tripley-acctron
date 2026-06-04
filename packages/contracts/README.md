@@ -54,6 +54,14 @@ timeout, unhandled errors, or device failure.
 `RecoveryManager` coordinates transaction recovery and is exposed on `StepContext` alongside the
 resource registry.
 
+## Transaction Lifecycle Contracts
+
+`FlowRunner` defines the cancellable flow execution shape used by runtime orchestration.
+
+`transaction.start`, `transaction.cancel`, and `transaction.reset` are typed `CommandBus` commands.
+`transaction.status` is the typed `QueryBus` query for idle, running, completed, cancelled, and
+failed lifecycle state.
+
 ## Milestone 10 Contracts
 
 `TransactionDataStore` is exposed as `StepContext.transaction` for recipe and business data.

@@ -39,3 +39,7 @@
 - Upgraded `apps/demo-kiosk` into a React ATM demo wired to `apps/atm-basic`, `ReactUiAdapter`,
   fake devices, fake host scenarios, transaction data, audit, recovery, and result screens.
 - Added demo runtime and React smoke tests, and expanded Vitest to include app `.test.tsx` files.
+- Added transaction lifecycle contracts, cancellable `FlowEngine.run`, and runtime-core
+  transaction command/query controller.
+- Switched the React ATM demo orchestration to transaction lifecycle commands and added reset
+  cancellation coverage.

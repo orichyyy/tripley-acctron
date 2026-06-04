@@ -1,9 +1,12 @@
 import {
   KioskError,
+  ScopeDisposedError,
   type FlowDefinition,
+  type FlowRunOptions,
   type FlowRunResult,
   type Logger,
   type RecoveryManager,
+  type RecoveryReason,
   type StepContext,
   type StepResult,
   type TransactionResourceRegistry,
@@ -32,7 +35,12 @@ export class FlowEngine {
     }
   }
 
-  public async run(flowId: string): Promise<FlowRunResult> {
+  public async run(flowId: string, options: FlowRunOptions = {}): Promise<FlowRunResult> {
+    if (options.signal?.aborted) {
+      await this.recover("cancel", options.signal.reason);
+      throw cancellationError(options.signal.reason);
+    }
+
     const flow = this.requireFlow(flowId);
     let nodeId = this.resolveNext(flow, flow.startNodeId, "default");
 
@@ -57,15 +65,37 @@ export class FlowEngine {
       }
 
       const scope = new StepScopeImpl(this.options.context.events);
+      const abort = () => {
+        void scope.dispose().catch((error: unknown) => {
+          this.options.logger.error("Flow scope disposal failed during cancellation.", {
+            flowId,
+            nodeId,
+            error,
+          });
+        });
+      };
+      options.signal?.addEventListener("abort", abort, { once: true });
       let result: StepResult;
       try {
         result = await this.executeAction(flow.id, node.id, node.action, node.config, scope);
       } catch (error) {
         await scope.dispose();
+        options.signal?.removeEventListener("abort", abort);
+        if (isCancellation(error, options.signal)) {
+          await this.recover("cancel", error);
+          throw cancellationError(error);
+        }
         await this.recover("unhandledError", error);
         throw error;
       }
+      if (options.signal?.aborted) {
+        await scope.dispose();
+        options.signal.removeEventListener("abort", abort);
+        await this.recover("cancel", options.signal.reason);
+        throw cancellationError(options.signal.reason);
+      }
       await scope.dispose();
+      options.signal?.removeEventListener("abort", abort);
 
       if (result.type === "end") {
         await this.recover("normalEnd");
@@ -127,7 +157,7 @@ export class FlowEngine {
     return flow;
   }
 
-  private async recover(reason: "normalEnd" | "unhandledError", error?: unknown): Promise<void> {
+  private async recover(reason: RecoveryReason, error?: unknown): Promise<void> {
     const recovery = this.options.recovery ?? this.options.context.recovery;
     if (recovery) {
       await recovery.recover({ reason, error });
@@ -140,4 +170,15 @@ export class FlowEngine {
       await resources.clear();
     }
   }
+}
+
+function isCancellation(error: unknown, signal: AbortSignal | undefined): boolean {
+  return signal?.aborted === true || error instanceof ScopeDisposedError;
+}
+
+function cancellationError(cause: unknown): KioskError {
+  if (cause instanceof KioskError && cause.code === "transaction.cancelled") {
+    return cause;
+  }
+  return new KioskError("transaction.cancelled", "Flow run was cancelled.", cause);
 }

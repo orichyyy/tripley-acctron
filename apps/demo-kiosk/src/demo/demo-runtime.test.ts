@@ -9,7 +9,10 @@ describe("demo kiosk runtime", () => {
     await waitForScreen(runtime, "account.input");
     runtime.emitAction("account.input", { type: "submit", value: "123456" });
 
-    await expect(run).resolves.toEqual({ flowId: "atm-basic", endName: "Success" });
+    await expect(run).resolves.toMatchObject({
+      state: "completed",
+      result: { flowId: "atm-basic", endName: "Success" },
+    });
     expect(runtime.store.getSnapshot().currentScreen).toBe("demo.result");
     expect(runtime.store.getSnapshot().screenState).toMatchObject({
       endName: "Success",
@@ -22,13 +25,19 @@ describe("demo kiosk runtime", () => {
     const declinedRun = declined.start("declined");
     await waitForScreen(declined, "account.input");
     declined.emitAction("account.input", { type: "submit", value: "654321" });
-    await expect(declinedRun).resolves.toEqual({ flowId: "atm-basic", endName: "Declined" });
+    await expect(declinedRun).resolves.toMatchObject({
+      state: "completed",
+      result: { flowId: "atm-basic", endName: "Declined" },
+    });
 
     const failed = createDemoKioskRuntime();
     const failedRun = failed.start("failed");
     await waitForScreen(failed, "account.input");
     failed.emitAction("account.input", { type: "submit", value: "654321" });
-    await expect(failedRun).resolves.toEqual({ flowId: "atm-basic", endName: "Failed" });
+    await expect(failedRun).resolves.toMatchObject({
+      state: "completed",
+      result: { flowId: "atm-basic", endName: "Failed" },
+    });
   });
 
   test("routes cancel through the standard input step", async () => {
@@ -38,8 +47,25 @@ describe("demo kiosk runtime", () => {
     await waitForScreen(runtime, "account.input");
     runtime.emitAction("account.input", { type: "cancel" });
 
-    await expect(run).resolves.toEqual({ flowId: "atm-basic", endName: "Cancelled" });
+    await expect(run).resolves.toMatchObject({
+      state: "completed",
+      result: { flowId: "atm-basic", endName: "Cancelled" },
+    });
     expect(runtime.store.getSnapshot().screenState).toMatchObject({ endName: "Cancelled" });
+  });
+
+  test("reset cancels an in-flight transaction and returns to welcome", async () => {
+    const runtime = createDemoKioskRuntime();
+    const run = runtime.start("approved");
+
+    await waitForScreen(runtime, "account.input");
+    await expect(runtime.reset("declined")).resolves.toMatchObject({
+      state: "idle",
+      metadata: { scenario: "declined" },
+    });
+    await expect(run).resolves.toMatchObject({ state: "cancelled" });
+    expect(runtime.store.getSnapshot().currentScreen).toBe("demo.welcome");
+    expect(runtime.store.getSnapshot().screenState).toMatchObject({ scenario: "declined" });
   });
 });
 

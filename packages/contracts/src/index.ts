@@ -10,5 +10,6 @@ export * from "./plugin";
 export * from "./recovery";
 export * from "./timeout";
 export * from "./transaction";
+export * from "./transaction-lifecycle";
 export * from "./ui";
 export * from "./window";

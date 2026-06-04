@@ -24,6 +24,7 @@ export interface InteractionRuntimeDependencies<Screens extends ScreenMap> {
   audit?: InteractionAuditService;
   redaction?: RedactionService;
   timeoutService?: TimeoutService;
+  signal?: AbortSignal;
 }
 
 interface SourceRuntime {
@@ -49,6 +50,12 @@ export class InteractionRuntime<Screens extends ScreenMap> {
     options: InteractionRuntimeOptions<Screens, TScreen, TState, TAccepted>,
   ): Promise<InteractionRunResult<TAccepted>> {
     const abort = new AbortController();
+    const parentAbort = () => abort.abort(this.dependencies.signal?.reason);
+    if (this.dependencies.signal?.aborted) {
+      parentAbort();
+    } else {
+      this.dependencies.signal?.addEventListener("abort", parentAbort, { once: true });
+    }
     const sourceContext = this.createSourceContext(abort.signal);
     const sessions = await this.startSources(options, sourceContext);
     const timeout = this.startTimeout(options, abort.signal);
@@ -58,6 +65,7 @@ export class InteractionRuntime<Screens extends ScreenMap> {
       return await this.runLoop(options, sessions, timeout);
     } finally {
       abort.abort();
+      this.dependencies.signal?.removeEventListener("abort", parentAbort);
       timeout?.cancel();
       await this.stopSources(sessions);
     }
