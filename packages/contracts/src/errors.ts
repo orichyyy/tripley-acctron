@@ -12,9 +12,13 @@ export type KioskErrorCode =
   | "host.timeout"
   | "interaction.sourceMissing"
   | "interaction.runtime"
+  | "recipe.deviceMissing"
+  | "recipe.routeMissing"
   | "recovery.failed"
   | "scope.disposed"
-  | "native.unavailable";
+  | "native.unavailable"
+  | "window.nativeUnsupported"
+  | "window.notFound";
 
 export class KioskError extends Error {
   public constructor(

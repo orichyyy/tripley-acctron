@@ -10,9 +10,19 @@ import type {
   RedactionService,
   RecoveryManager,
   StepHandler,
+  TransactionDataStore,
+  TtsService,
   TimeoutService,
   TransactionResourceRegistry,
+  VoiceGuideService,
+  WindowManagerPort,
 } from "@tripley-acctron/contracts";
+import {
+  DefaultVoiceGuideService,
+  HeadlessAudioPlayer,
+  NoopTtsService,
+  StaticAudioAssetResolver,
+} from "@tripley-acctron/accessibility";
 import {
   DefaultRecoveryManager,
   DefaultTimeoutService,
@@ -27,8 +37,10 @@ import {
   InMemoryLogger,
 } from "@tripley-acctron/observability";
 import { createKioskApp } from "@tripley-acctron/runtime-core";
+import { HeadlessWindowManager } from "@tripley-acctron/window-coordinator";
 import { createFakeDevices } from "./fake-devices";
 import { HeadlessUiAdapter } from "./headless-ui-adapter";
+import { InMemoryTransactionDataStore } from "./in-memory-transaction";
 import { VirtualClock } from "./virtual-clock";
 
 export interface TestKioskAppOptions {
@@ -45,6 +57,10 @@ export interface TestKioskAppOptions {
   timeoutService?: TimeoutService;
   resources?: TransactionResourceRegistry;
   recovery?: RecoveryManager;
+  transaction?: TransactionDataStore;
+  tts?: TtsService;
+  voiceGuide?: VoiceGuideService;
+  windows?: WindowManagerPort;
 }
 
 export function createTestKioskApp(options: TestKioskAppOptions = {}) {
@@ -63,6 +79,15 @@ export function createTestKioskApp(options: TestKioskAppOptions = {}) {
   const clock = options.clock ?? new VirtualClock();
   const timeoutService = options.timeoutService ?? new DefaultTimeoutService({ clock, ui });
   const resources = options.resources ?? new InMemoryTransactionResourceRegistry(logger);
+  const transaction = options.transaction ?? new InMemoryTransactionDataStore();
+  const tts = options.tts ?? new NoopTtsService();
+  const voiceGuide =
+    options.voiceGuide ??
+    new DefaultVoiceGuideService({
+      resolver: new StaticAudioAssetResolver(),
+      player: new HeadlessAudioPlayer(),
+    });
+  const windows = options.windows ?? new HeadlessWindowManager();
   const recovery =
     options.recovery ??
     new DefaultRecoveryManager({
@@ -86,9 +111,13 @@ export function createTestKioskApp(options: TestKioskAppOptions = {}) {
     timeoutService,
     resources,
     recovery,
+    transaction,
     journal,
     redaction,
     audit,
+    tts,
+    voiceGuide,
+    windows,
     logger,
   };
   const flow = new FlowEngine({
@@ -109,9 +138,13 @@ export function createTestKioskApp(options: TestKioskAppOptions = {}) {
     timeoutService,
     resources,
     recovery,
+    transaction,
     journal,
     redaction,
     audit,
+    tts,
+    voiceGuide,
+    windows,
     logger,
   };
 }

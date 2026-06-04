@@ -53,3 +53,14 @@ timeout, unhandled errors, or device failure.
 
 `RecoveryManager` coordinates transaction recovery and is exposed on `StepContext` alongside the
 resource registry.
+
+## Milestone 10 Contracts
+
+`TransactionDataStore` is exposed as `StepContext.transaction` for recipe and business data.
+
+`TtsService`, `VoiceGuideService`, `AudioAssetResolver`, and `AudioPlayer` are exposed through
+accessibility contracts so steps can request speech or prerecorded audio without depending on a
+browser or native implementation.
+
+`WindowManagerPort` is exposed as `StepContext.windows` for supervisor/operator/diagnostic window
+coordination.

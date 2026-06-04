@@ -1,0 +1,19 @@
+{
+  "name": "@tripley-acctron/atm-basic",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsup --config ../../tsup.config.ts"
+  },
+  "dependencies": {
+    "@tripley-acctron/contracts": "workspace:*",
+    "@tripley-acctron/flow-engine": "workspace:*",
+    "@tripley-acctron/host": "workspace:*",
+    "@tripley-acctron/recipes": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "catalog:",
+    "typescript": "catalog:"
+  }
+}

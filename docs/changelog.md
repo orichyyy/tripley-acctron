@@ -25,3 +25,11 @@
 - Wired Standard Step Kit text input, choice, and confirm steps to write prompt/input/choice audit
   records to logger and EJ.
 - Expanded test app observability wiring and redaction/audit coverage.
+- Added Milestone 10 contracts for transaction data, TTS, voice guide, audio assets, and window
+  management.
+- Added `@tripley-acctron/recipes` with `inputAccount`, `waitCardInserted`, and `ejectCard`.
+- Added `@tripley-acctron/accessibility` with noop/browser TTS, voice guide, asset resolver, and
+  audio players.
+- Added `@tripley-acctron/window-coordinator` with headless window manager and native skeleton.
+- Expanded testing app wiring with transaction, TTS, voice guide, and window manager defaults.
+- Added `apps/atm-basic` Recipe-based ATM transaction example.

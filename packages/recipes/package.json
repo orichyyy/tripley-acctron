@@ -1,5 +1,5 @@
 {
-  "name": "@tripley-acctron/testing",
+  "name": "@tripley-acctron/recipes",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,12 +13,8 @@
     "build": "tsup --config ../../tsup.config.ts"
   },
   "dependencies": {
-    "@tripley-acctron/accessibility": "workspace:*",
     "@tripley-acctron/contracts": "workspace:*",
-    "@tripley-acctron/flow-engine": "workspace:*",
-    "@tripley-acctron/observability": "workspace:*",
-    "@tripley-acctron/runtime-core": "workspace:*",
-    "@tripley-acctron/window-coordinator": "workspace:*"
+    "@tripley-acctron/flow-engine": "workspace:*"
   },
   "devDependencies": {
     "tsup": "catalog:",

@@ -1,4 +1,5 @@
 export * from "./bus";
+export * from "./accessibility";
 export * from "./errors";
 export * from "./flow";
 export * from "./host";
@@ -8,4 +9,6 @@ export * from "./observability";
 export * from "./plugin";
 export * from "./recovery";
 export * from "./timeout";
+export * from "./transaction";
 export * from "./ui";
+export * from "./window";

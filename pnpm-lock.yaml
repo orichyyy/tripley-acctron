@@ -87,6 +87,28 @@ importers:
         specifier: 4.1.8
         version: 4.1.8(@types/node@24.10.2)(vite@7.3.0(@types/node@24.10.2)(jiti@2.7.0)(lightningcss@1.30.2))
 
+  apps/atm-basic:
+    dependencies:
+      '@tripley-acctron/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@tripley-acctron/flow-engine':
+        specifier: workspace:*
+        version: link:../../packages/flow-engine
+      '@tripley-acctron/host':
+        specifier: workspace:*
+        version: link:../../packages/host
+      '@tripley-acctron/recipes':
+        specifier: workspace:*
+        version: link:../../packages/recipes
+    devDependencies:
+      tsup:
+        specifier: 'catalog:'
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(typescript@6.0.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
   apps/demo-kiosk:
     dependencies:
       '@radix-ui/react-slot':
@@ -135,6 +157,19 @@ importers:
       vite:
         specifier: 'catalog:'
         version: 7.3.0(@types/node@24.10.2)(jiti@2.7.0)(lightningcss@1.30.2)
+
+  packages/accessibility:
+    dependencies:
+      '@tripley-acctron/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+    devDependencies:
+      tsup:
+        specifier: 'catalog:'
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(typescript@6.0.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
 
   packages/contracts:
     dependencies:
@@ -249,6 +284,22 @@ importers:
         specifier: 'catalog:'
         version: 6.0.3
 
+  packages/recipes:
+    dependencies:
+      '@tripley-acctron/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@tripley-acctron/flow-engine':
+        specifier: workspace:*
+        version: link:../flow-engine
+    devDependencies:
+      tsup:
+        specifier: 'catalog:'
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(typescript@6.0.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
   packages/runtime-core:
     dependencies:
       '@tripley-acctron/contracts':
@@ -273,6 +324,9 @@ importers:
 
   packages/testing:
     dependencies:
+      '@tripley-acctron/accessibility':
+        specifier: workspace:*
+        version: link:../accessibility
       '@tripley-acctron/contracts':
         specifier: workspace:*
         version: link:../contracts
@@ -285,6 +339,22 @@ importers:
       '@tripley-acctron/runtime-core':
         specifier: workspace:*
         version: link:../runtime-core
+      '@tripley-acctron/window-coordinator':
+        specifier: workspace:*
+        version: link:../window-coordinator
+    devDependencies:
+      tsup:
+        specifier: 'catalog:'
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(typescript@6.0.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
+  packages/window-coordinator:
+    dependencies:
+      '@tripley-acctron/contracts':
+        specifier: workspace:*
+        version: link:../contracts
     devDependencies:
       tsup:
         specifier: 'catalog:'

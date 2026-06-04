@@ -19,3 +19,7 @@ support before a real device adapter can be implemented.
 - Device inventory and health/status query.
 - Window coordination for customer, supervisor, operator, and diagnostic screens.
 - Audio/TTS playback hooks if browser TTS is insufficient.
+
+Milestone 10 adds TypeScript contracts plus headless/browser implementations for window coordination
+and audio guidance. The native implementations remain blocked until `tripley-native` exposes window
+and audio/TTS IDL in the generated `@tripley-kit/native` client.

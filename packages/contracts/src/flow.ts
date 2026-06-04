@@ -13,11 +13,14 @@ import type {
   Logger,
   RedactionService,
 } from "./observability";
+import type { TtsService, VoiceGuideService } from "./accessibility";
 import type { TimeoutService } from "./timeout";
 import type { UiPort } from "./ui";
 import type { DeviceManager } from "./native";
 import type { RecoveryManager, TransactionResourceRegistry } from "./recovery";
 import type { HostGateway } from "./host";
+import type { TransactionDataStore } from "./transaction";
+import type { WindowManagerPort } from "./window";
 
 export interface FlowDefinition {
   id: string;
@@ -95,9 +98,13 @@ export interface StepContext {
   readonly timeoutService?: TimeoutService;
   readonly resources?: TransactionResourceRegistry;
   readonly recovery?: RecoveryManager;
+  readonly transaction?: TransactionDataStore;
   readonly journal?: ElectronicJournal;
   readonly redaction?: RedactionService;
   readonly audit?: InteractionAuditService;
+  readonly tts?: TtsService;
+  readonly voiceGuide?: VoiceGuideService;
+  readonly windows?: WindowManagerPort;
   readonly logger: Logger;
   next(route: string): StepResult;
   end(name: string): StepResult;
