@@ -3,10 +3,12 @@ import {
   type DeviceManager,
   type InputSourceContext,
   type InputSourceSession,
+  type InteractionAuditService,
   type InteractionIntent,
   type InteractionRunResult,
   type InteractionRuntimeOptions,
   type Logger,
+  type RedactionService,
   type ScreenMap,
   type TimeoutHandle,
   type TimeoutResult,
@@ -19,6 +21,8 @@ export interface InteractionRuntimeDependencies<Screens extends ScreenMap> {
   ui: UiPort<Screens>;
   logger: Logger;
   devices?: DeviceManager;
+  audit?: InteractionAuditService;
+  redaction?: RedactionService;
   timeoutService?: TimeoutService;
 }
 
@@ -67,6 +71,8 @@ export class InteractionRuntime<Screens extends ScreenMap> {
         logger: this.dependencies.logger,
       },
       this.dependencies.devices ? { devices: this.dependencies.devices } : {},
+      this.dependencies.audit ? { audit: this.dependencies.audit } : {},
+      this.dependencies.redaction ? { redaction: this.dependencies.redaction } : {},
     );
   }
 

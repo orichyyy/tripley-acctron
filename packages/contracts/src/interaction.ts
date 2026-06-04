@@ -1,4 +1,4 @@
-import type { Logger } from "./observability";
+import type { InteractionAuditService, Logger, RedactionService } from "./observability";
 import type { TimeoutOptions } from "./timeout";
 import type { ScreenMap, UiPort } from "./ui";
 import type { DeviceManager } from "./native";
@@ -22,6 +22,8 @@ export interface InputSourceContext {
   readonly signal: AbortSignal;
   readonly ui?: UiPort;
   readonly devices?: DeviceManager;
+  readonly audit?: InteractionAuditService;
+  readonly redaction?: RedactionService;
   readonly logger: Logger;
 }
 

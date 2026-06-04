@@ -4,6 +4,16 @@ Shared public contracts for the Tripley Acctron kiosk framework.
 
 Update this document when public interfaces, flow schema, UI contracts, or native/device ports change.
 
+## Observability Contracts
+
+`ElectronicJournal` writes structured `JournalEntry` records.
+
+`RedactionService` is the required boundary for masking PIN, password, account, card, ID, barcode,
+and customer input values before they are written to log or EJ sinks.
+
+`InteractionAuditService` records prompt begin/end, customer choices, and customer input. It is
+available on `StepContext` for standard steps and custom steps.
+
 ## Interaction Contracts
 
 The interaction layer defines `InteractionIntent`, `InputSource`, `InputSourceSession`,

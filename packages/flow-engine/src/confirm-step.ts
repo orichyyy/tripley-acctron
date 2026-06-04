@@ -1,5 +1,6 @@
 import type {
   InteractionIntent,
+  InteractionRunResult,
   InteractionReducerContext,
   StepContext,
   StepHandler,
@@ -19,40 +20,55 @@ async function runConfirmStep(ctx: StepContext, definition: ConfirmStepDefinitio
     Object.assign(
       { ui, logger: ctx.logger },
       ctx.devices ? { devices: ctx.devices } : {},
+      ctx.audit ? { audit: ctx.audit } : {},
+      ctx.redaction ? { redaction: ctx.redaction } : {},
       ctx.timeoutService ? { timeoutService: ctx.timeoutService } : {},
     ),
   );
   const initialState = resolveState(definition.state, ctx);
 
-  const result = await runtime.run<string, typeof initialState, boolean>(
-    Object.assign(
-      {
-        screen: definition.screen,
-        initialState,
-        render: (state: typeof initialState) => state,
-        sources: () =>
-          definition.sources ?? [
-            InputSources.ui.confirmCancel(definition.screen),
-            InputSources.pinpad.confirmCancel(),
-          ],
-        auditIntent: (intent: InteractionIntent) => auditConfirmIntent(ctx, definition.id, intent),
-        reduce: (
-          state: typeof initialState,
-          intent: InteractionIntent,
-          reducerCtx: InteractionReducerContext<typeof initialState, boolean>,
-        ) => {
-          if (intent.type === "confirm") {
-            return reducerCtx.accept(true);
-          }
-          if (intent.type === "cancel") {
-            return reducerCtx.cancel();
-          }
-          return reducerCtx.update(state);
+  await ctx.audit?.beginPrompt({
+    promptId: definition.id,
+    flowId: ctx.flowId,
+    nodeId: ctx.nodeId,
+    stepId: definition.id,
+    screen: definition.screen,
+  });
+  let result: InteractionRunResult<boolean>;
+  try {
+    result = await runtime.run<string, typeof initialState, boolean>(
+      Object.assign(
+        {
+          screen: definition.screen,
+          initialState,
+          render: (state: typeof initialState) => state,
+          sources: () =>
+            definition.sources ?? [
+              InputSources.ui.confirmCancel(definition.screen),
+              InputSources.pinpad.confirmCancel(),
+            ],
+          auditIntent: (intent: InteractionIntent) =>
+            auditConfirmIntent(ctx, definition.id, intent),
+          reduce: (
+            state: typeof initialState,
+            intent: InteractionIntent,
+            reducerCtx: InteractionReducerContext<typeof initialState, boolean>,
+          ) => {
+            if (intent.type === "confirm") {
+              return reducerCtx.accept(true);
+            }
+            if (intent.type === "cancel") {
+              return reducerCtx.cancel();
+            }
+            return reducerCtx.update(state);
+          },
         },
-      },
-      definition.timeout ? { timeout: definition.timeout } : {},
-    ),
-  );
+        definition.timeout ? { timeout: definition.timeout } : {},
+      ),
+    );
+  } finally {
+    await ctx.audit?.endPrompt(definition.id);
+  }
 
   if (result.type === "accepted") {
     await definition.commit?.(ctx);
@@ -67,10 +83,24 @@ async function runConfirmStep(ctx: StepContext, definition: ConfirmStepDefinitio
   return routeFailedOrThrow(ctx, definition.routes.failed, result.error);
 }
 
-function auditConfirmIntent(ctx: StepContext, stepId: string, intent: InteractionIntent): void {
-  ctx.logger.info("Confirm intent received.", {
+async function auditConfirmIntent(
+  ctx: StepContext,
+  stepId: string,
+  intent: InteractionIntent,
+): Promise<void> {
+  await ctx.audit?.recordCustomerChoice({
+    promptId: stepId,
+    flowId: ctx.flowId,
+    nodeId: ctx.nodeId,
     stepId,
-    intentType: intent.type,
+    choiceId: intent.type === "confirm" ? "confirm" : intent.type,
     source: intent.source,
   });
+  if (!ctx.audit) {
+    ctx.logger.info("Confirm intent received.", {
+      stepId,
+      intentType: intent.type,
+      source: intent.source,
+    });
+  }
 }

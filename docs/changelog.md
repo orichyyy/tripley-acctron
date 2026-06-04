@@ -20,3 +20,8 @@
 - Expanded testing fake devices and test app recovery wiring.
 - Added Host Gateway contracts, default JSON host runtime, fake host gateway, and HostRequestStep
   gateway integration.
+- Added Electronic Journal, redaction, and interaction audit contracts.
+- Added in-memory Electronic Journal, default redaction, and default interaction audit service.
+- Wired Standard Step Kit text input, choice, and confirm steps to write prompt/input/choice audit
+  records to logger and EJ.
+- Expanded test app observability wiring and redaction/audit coverage.

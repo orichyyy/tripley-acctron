@@ -1,5 +1,6 @@
 import type {
   InteractionIntent,
+  InteractionRunResult,
   InteractionReducerContext,
   StepContext,
   StepHandler,
@@ -21,6 +22,8 @@ async function runChoiceStep<TValue>(ctx: StepContext, definition: ChoiceStepDef
     Object.assign(
       { ui, logger: ctx.logger },
       ctx.devices ? { devices: ctx.devices } : {},
+      ctx.audit ? { audit: ctx.audit } : {},
+      ctx.redaction ? { redaction: ctx.redaction } : {},
       ctx.timeoutService ? { timeoutService: ctx.timeoutService } : {},
     ),
   );
@@ -29,32 +32,46 @@ async function runChoiceStep<TValue>(ctx: StepContext, definition: ChoiceStepDef
     choices: definition.choices,
   };
 
-  const result = await runtime.run<string, typeof initialState, ChoiceDefinition<TValue>>(
-    Object.assign(
-      {
-        screen: definition.screen,
-        initialState,
-        render: (state: typeof initialState) => state,
-        sources: () => definition.sources ?? defaultChoiceSources(definition),
-        auditIntent: (intent: InteractionIntent) => auditChoiceIntent(ctx, definition.id, intent),
-        reduce: (
-          _state: typeof initialState,
-          intent: InteractionIntent,
-          reducerCtx: InteractionReducerContext<typeof initialState, ChoiceDefinition<TValue>>,
-        ) => {
-          if (intent.type === "select") {
-            const choice = definition.choices.find((candidate) => candidate.id === intent.choiceId);
-            return choice ? reducerCtx.accept(choice) : reducerCtx.update(initialState);
-          }
-          if (intent.type === "cancel") {
-            return reducerCtx.cancel();
-          }
-          return reducerCtx.update(initialState);
+  await ctx.audit?.beginPrompt({
+    promptId: definition.id,
+    flowId: ctx.flowId,
+    nodeId: ctx.nodeId,
+    stepId: definition.id,
+    screen: definition.screen,
+  });
+  let result: InteractionRunResult<ChoiceDefinition<TValue>>;
+  try {
+    result = await runtime.run<string, typeof initialState, ChoiceDefinition<TValue>>(
+      Object.assign(
+        {
+          screen: definition.screen,
+          initialState,
+          render: (state: typeof initialState) => state,
+          sources: () => definition.sources ?? defaultChoiceSources(definition),
+          auditIntent: (intent: InteractionIntent) => auditChoiceIntent(ctx, definition.id, intent),
+          reduce: (
+            _state: typeof initialState,
+            intent: InteractionIntent,
+            reducerCtx: InteractionReducerContext<typeof initialState, ChoiceDefinition<TValue>>,
+          ) => {
+            if (intent.type === "select") {
+              const choice = definition.choices.find(
+                (candidate) => candidate.id === intent.choiceId,
+              );
+              return choice ? reducerCtx.accept(choice) : reducerCtx.update(initialState);
+            }
+            if (intent.type === "cancel") {
+              return reducerCtx.cancel();
+            }
+            return reducerCtx.update(initialState);
+          },
         },
-      },
-      definition.timeout ? { timeout: definition.timeout } : {},
-    ),
-  );
+        definition.timeout ? { timeout: definition.timeout } : {},
+      ),
+    );
+  } finally {
+    await ctx.audit?.endPrompt(definition.id);
+  }
 
   if (result.type === "accepted") {
     await definition.commit?.(ctx, result.value);
@@ -79,10 +96,34 @@ function defaultChoiceSources<TValue>(definition: ChoiceStepDefinition<TValue>) 
   ];
 }
 
-function auditChoiceIntent(ctx: StepContext, stepId: string, intent: InteractionIntent): void {
-  ctx.logger.info("Choice intent received.", {
+async function auditChoiceIntent(
+  ctx: StepContext,
+  stepId: string,
+  intent: InteractionIntent,
+): Promise<void> {
+  await ctx.audit?.recordCustomerChoice({
+    promptId: stepId,
+    flowId: ctx.flowId,
+    nodeId: ctx.nodeId,
     stepId,
-    intentType: intent.type,
+    choiceId: choiceIdFromIntent(intent),
     source: intent.source,
   });
+  if (!ctx.audit) {
+    ctx.logger.info("Choice intent received.", {
+      stepId,
+      intentType: intent.type,
+      source: intent.source,
+    });
+  }
+}
+
+function choiceIdFromIntent(intent: InteractionIntent): string {
+  if (intent.type === "select") {
+    return intent.choiceId;
+  }
+  if (intent.type === "cancel") {
+    return "cancel";
+  }
+  return intent.type;
 }

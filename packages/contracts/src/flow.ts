@@ -7,7 +7,12 @@ import type {
   TypedEventBus,
   TypedQueryBus,
 } from "./bus";
-import type { Logger } from "./observability";
+import type {
+  ElectronicJournal,
+  InteractionAuditService,
+  Logger,
+  RedactionService,
+} from "./observability";
 import type { TimeoutService } from "./timeout";
 import type { UiPort } from "./ui";
 import type { DeviceManager } from "./native";
@@ -90,6 +95,9 @@ export interface StepContext {
   readonly timeoutService?: TimeoutService;
   readonly resources?: TransactionResourceRegistry;
   readonly recovery?: RecoveryManager;
+  readonly journal?: ElectronicJournal;
+  readonly redaction?: RedactionService;
+  readonly audit?: InteractionAuditService;
   readonly logger: Logger;
   next(route: string): StepResult;
   end(name: string): StepResult;

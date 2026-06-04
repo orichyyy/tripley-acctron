@@ -1,15 +1,9 @@
 import { describe, expect, test } from "vitest";
-import type { StepHandler } from "@tripley-acctron/contracts";
-import {
-  type TestKioskAppOptions,
-  VirtualClock,
-  createFakeDevices,
-  createTestKioskApp,
-} from "@tripley-acctron/testing";
 import { InputSources } from "./input-sources";
 import { defineChoiceStep } from "./choice-step";
 import { defineConfirmStep } from "./confirm-step";
 import { defineHostRequestStep, defineWaitDeviceStep } from "./skeleton-steps";
+import { createStandardStepTestKit, flushPromises } from "./standard-step-test-kit";
 import { defineTextInputStep } from "./text-input-step";
 
 describe("standard step kit", () => {
@@ -138,7 +132,7 @@ describe("standard step kit", () => {
       }),
     });
     const timeoutRun = timedOut.flow.run("demo");
-    await flushPromises();
+    await flushPromises(12);
     timedOut.clock.advanceBy(100);
     await expect(timeoutRun).resolves.toEqual({ flowId: "demo", endName: "Timeout" });
   });
@@ -213,7 +207,7 @@ describe("standard step kit", () => {
       }),
     });
     const timeoutRun = timedOut.flow.run("demo");
-    await flushPromises();
+    await flushPromises(12);
     timedOut.clock.advanceBy(100);
     await expect(timeoutRun).resolves.toEqual({ flowId: "demo", endName: "Timeout" });
   });
@@ -250,54 +244,3 @@ describe("standard step kit", () => {
     await expect(failed.flow.run("demo")).resolves.toEqual({ flowId: "demo", endName: "Failed" });
   });
 });
-
-function createStandardStepTestKit(steps: Record<string, StepHandler>) {
-  const devices = createFakeDevices();
-  const clock = new VirtualClock();
-  const appOptions: TestKioskAppOptions = {
-    steps,
-    devices,
-    clock,
-    flows: [
-      {
-        id: "demo",
-        version: "1",
-        nodes: [
-          { id: "start", type: "start" },
-          { id: "input", type: "action", action: "input" },
-          { id: "valid", type: "end", name: "Valid" },
-          { id: "cancelled", type: "end", name: "Cancelled" },
-          { id: "timeout", type: "end", name: "Timeout" },
-          { id: "saving", type: "end", name: "Saving" },
-          { id: "checking", type: "end", name: "Checking" },
-          { id: "confirmed", type: "end", name: "Confirmed" },
-          { id: "approved", type: "end", name: "Approved" },
-          { id: "declined", type: "end", name: "Declined" },
-          { id: "done", type: "end", name: "Done" },
-          { id: "failed", type: "end", name: "Failed" },
-        ],
-        edges: [
-          { id: "start-input", from: "start", to: "input" },
-          { id: "valid", from: "input", to: "valid", route: "Valid" },
-          { id: "cancelled", from: "input", to: "cancelled", route: "Cancelled" },
-          { id: "timeout", from: "input", to: "timeout", route: "Timeout" },
-          { id: "saving", from: "input", to: "saving", route: "Saving" },
-          { id: "checking", from: "input", to: "checking", route: "Checking" },
-          { id: "confirmed", from: "input", to: "confirmed", route: "Confirmed" },
-          { id: "approved", from: "input", to: "approved", route: "Approved" },
-          { id: "declined", from: "input", to: "declined", route: "Declined" },
-          { id: "done", from: "input", to: "done", route: "Done" },
-          { id: "failed", from: "input", to: "failed", route: "Failed" },
-        ],
-      },
-    ],
-  };
-  const kit = createTestKioskApp(appOptions);
-  return { ...kit, devices, clock };
-}
-
-async function flushPromises(count = 4): Promise<void> {
-  for (let index = 0; index < count; index += 1) {
-    await Promise.resolve();
-  }
-}

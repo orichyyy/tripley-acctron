@@ -28,7 +28,10 @@ queued responses or failures.
 ## Test App
 
 `createTestKioskApp` wires headless UI, fake devices, `VirtualClock`, `DefaultTimeoutService`,
-`InMemoryTransactionResourceRegistry`, and `DefaultRecoveryManager` into `FlowEngine`, so standard
-step builders and recovery paths can be tested without real UI or hardware.
+`InMemoryTransactionResourceRegistry`, `DefaultRecoveryManager`, in-memory EJ, default redaction, and
+default interaction audit into `FlowEngine`, so standard step builders, audit records, and recovery
+paths can be tested without real UI or hardware.
 
 Tests can pass `host` to `createTestKioskApp` to make Host Gateway calls available in step context.
+
+Tests can pass `journal`, `redaction`, or `audit` to replace the default observability services.

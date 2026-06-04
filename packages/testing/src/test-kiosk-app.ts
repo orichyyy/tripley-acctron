@@ -1,10 +1,13 @@
 import type {
   Clock,
   DeviceManager,
+  ElectronicJournal,
   FlowDefinition,
   HostGateway,
+  InteractionAuditService,
   KioskPlugin,
   Logger,
+  RedactionService,
   RecoveryManager,
   StepHandler,
   TimeoutService,
@@ -17,7 +20,12 @@ import {
   InMemoryTransactionResourceRegistry,
   StepRegistry,
 } from "@tripley-acctron/flow-engine";
-import { InMemoryLogger } from "@tripley-acctron/observability";
+import {
+  DefaultInteractionAuditService,
+  DefaultRedactionService,
+  InMemoryElectronicJournal,
+  InMemoryLogger,
+} from "@tripley-acctron/observability";
 import { createKioskApp } from "@tripley-acctron/runtime-core";
 import { createFakeDevices } from "./fake-devices";
 import { HeadlessUiAdapter } from "./headless-ui-adapter";
@@ -28,6 +36,9 @@ export interface TestKioskAppOptions {
   steps?: Record<string, StepHandler>;
   plugins?: KioskPlugin[];
   logger?: Logger;
+  journal?: ElectronicJournal;
+  redaction?: RedactionService;
+  audit?: InteractionAuditService;
   devices?: DeviceManager;
   host?: HostGateway;
   clock?: Clock;
@@ -38,6 +49,15 @@ export interface TestKioskAppOptions {
 
 export function createTestKioskApp(options: TestKioskAppOptions = {}) {
   const logger = options.logger ?? new InMemoryLogger();
+  const journal = options.journal ?? new InMemoryElectronicJournal();
+  const redaction = options.redaction ?? new DefaultRedactionService();
+  const audit =
+    options.audit ??
+    new DefaultInteractionAuditService({
+      logger,
+      journal,
+      redaction,
+    });
   const ui = new HeadlessUiAdapter();
   const devices = options.devices ?? createFakeDevices();
   const clock = options.clock ?? new VirtualClock();
@@ -66,6 +86,9 @@ export function createTestKioskApp(options: TestKioskAppOptions = {}) {
     timeoutService,
     resources,
     recovery,
+    journal,
+    redaction,
+    audit,
     logger,
   };
   const flow = new FlowEngine({
@@ -77,5 +100,18 @@ export function createTestKioskApp(options: TestKioskAppOptions = {}) {
     recovery,
     context: options.host ? { ...context, host: options.host } : context,
   });
-  return { app, flow, ui, devices, clock, timeoutService, resources, recovery, logger };
+  return {
+    app,
+    flow,
+    ui,
+    devices,
+    clock,
+    timeoutService,
+    resources,
+    recovery,
+    journal,
+    redaction,
+    audit,
+    logger,
+  };
 }

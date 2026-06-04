@@ -18,6 +18,14 @@ pinpad input, pinpad function keys, pinpad confirm/cancel, barcode QR scans, and
 `InteractionRuntime` starts all sources for a screen, waits for the first intent, audits it, resets
 timeout, runs the reducer, patches UI state, and stops all sources when the interaction ends.
 
+## Audit
+
+Standard text input, choice, and confirm steps call `InteractionAuditService` when it is available on
+`StepContext`.
+
+Text input records customer input using `value.redactAs`, so PIN and password values are not written
+in clear text. Choice and confirm steps record customer selections from UI and pinpad sources.
+
 ## Standard Step Kit
 
 `defineTextInputStep`, `defineChoiceStep`, and `defineConfirmStep` wrap common kiosk interactions

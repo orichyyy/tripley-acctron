@@ -1,6 +1,8 @@
 import type {
   InteractionIntent,
+  InteractionRunResult,
   InteractionReducerContext,
+  RedactionKind,
   StepContext,
   StepHandler,
 } from "@tripley-acctron/contracts";
@@ -29,27 +31,36 @@ async function runTextInputStep<TValue>(
     Object.assign(
       { ui, logger: ctx.logger },
       ctx.devices ? { devices: ctx.devices } : {},
+      ctx.audit ? { audit: ctx.audit } : {},
+      ctx.redaction ? { redaction: ctx.redaction } : {},
       ctx.timeoutService ? { timeoutService: ctx.timeoutService } : {},
     ),
   );
 
-  const result = await runtime.run<string, TextInputState, TValue>(
-    Object.assign(
-      {
-        screen: definition.screen,
-        initialState: { value: initialValue(definition, ctx) },
-        render: (state: TextInputState) => renderTextInput(definition, state),
-        sources: () => (definition.sources.length > 0 ? definition.sources : [InputSources.none()]),
-        auditIntent: (intent: InteractionIntent) => auditTextInputIntent(ctx, definition, intent),
-        reduce: (
-          state: TextInputState,
-          intent: InteractionIntent,
-          reducerCtx: InteractionReducerContext<TextInputState, TValue>,
-        ) => reduceTextInput(ctx, definition, state, intent, reducerCtx),
-      },
-      definition.timeout ? { timeout: definition.timeout } : {},
-    ),
-  );
+  await ctx.audit?.beginPrompt(promptFromContext(ctx, definition.id, definition.screen));
+  let result: InteractionRunResult<TValue>;
+  try {
+    result = await runtime.run<string, TextInputState, TValue>(
+      Object.assign(
+        {
+          screen: definition.screen,
+          initialState: { value: initialValue(definition, ctx) },
+          render: (state: TextInputState) => renderTextInput(definition, state),
+          sources: () =>
+            definition.sources.length > 0 ? definition.sources : [InputSources.none()],
+          auditIntent: (intent: InteractionIntent) => auditTextInputIntent(ctx, definition, intent),
+          reduce: (
+            state: TextInputState,
+            intent: InteractionIntent,
+            reducerCtx: InteractionReducerContext<TextInputState, TValue>,
+          ) => reduceTextInput(ctx, definition, state, intent, reducerCtx),
+        },
+        definition.timeout ? { timeout: definition.timeout } : {},
+      ),
+    );
+  } finally {
+    await ctx.audit?.endPrompt(definition.id);
+  }
 
   if (result.type === "accepted") {
     await definition.commit?.(ctx, result.value);
@@ -162,18 +173,54 @@ function renderTextInput<TValue>(
   };
 }
 
-function auditTextInputIntent<TValue>(
+async function auditTextInputIntent<TValue>(
   ctx: StepContext,
   definition: TextInputStepDefinition<TValue>,
   intent: InteractionIntent,
-): void {
+): Promise<void> {
   if (definition.audit === false) {
     return;
   }
-  ctx.logger.info("Text input intent received.", {
+  const input = {
+    promptId: definition.id,
+    flowId: ctx.flowId,
+    nodeId: ctx.nodeId,
     stepId: definition.id,
-    intentType: intent.type,
     source: intent.source,
-    redactAs: definition.value?.redactAs,
-  });
+    inputType: intent.type,
+    value: intentValue(intent),
+  };
+  const redactAs = definition.value?.redactAs as RedactionKind | undefined;
+  await ctx.audit?.recordCustomerInput(redactAs ? { ...input, redactAs } : input);
+  if (!ctx.audit) {
+    ctx.logger.info("Text input intent received.", {
+      stepId: definition.id,
+      intentType: intent.type,
+      source: intent.source,
+      redactAs: definition.value?.redactAs,
+    });
+  }
+}
+
+function promptFromContext(ctx: StepContext, stepId: string, screen: string) {
+  return { promptId: stepId, flowId: ctx.flowId, nodeId: ctx.nodeId, stepId, screen };
+}
+
+function intentValue(intent: InteractionIntent): unknown {
+  if (intent.type === "append") {
+    return intent.text;
+  }
+  if (intent.type === "submit" && "value" in intent) {
+    return intent.value;
+  }
+  if (intent.type === "scan") {
+    return intent.text;
+  }
+  if (intent.type === "select") {
+    return intent.choiceId;
+  }
+  if (intent.type === "action") {
+    return intent.action;
+  }
+  return undefined;
 }

@@ -11,10 +11,10 @@ in separate packages.
 - `@tripley-acctron/plugin-system`: service registry, lifecycle, and plugin runtime.
 - `@tripley-acctron/runtime-core`: `createKioskApp` runtime composition.
 - `@tripley-acctron/flow-engine`: flow compiler, step scope, timeout, interaction runtime, standard
-  step builders, and transaction recovery.
+  step builders, audit integration, and transaction recovery.
 - `@tripley-acctron/host`: Host Gateway runtime, JSON codec, and canonical message mapper.
 - `@tripley-acctron/testing`: headless UI, async fake devices, recovery wiring, fake host, and
-  virtual clock.
+  observability wiring, and virtual clock.
 - `@tripley-acctron/native`: adapter over `@tripley-kit/native`.
 - `@tripley-acctron/react-ui`: minimal React `UiPort` adapter.
 - `apps/demo-kiosk`: Vite React demo shell.
