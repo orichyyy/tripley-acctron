@@ -4,7 +4,15 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@tripley-acctron/react-ui": ["../../packages/react-ui/src/index.ts"]
+      "@tripley-acctron/accessibility": ["../../packages/accessibility/src/index.ts"],
+      "@tripley-acctron/atm-basic": ["../atm-basic/src/index.ts"],
+      "@tripley-acctron/contracts": ["../../packages/contracts/src/index.ts"],
+      "@tripley-acctron/flow-engine": ["../../packages/flow-engine/src/index.ts"],
+      "@tripley-acctron/observability": ["../../packages/observability/src/index.ts"],
+      "@tripley-acctron/react-ui": ["../../packages/react-ui/src/index.ts"],
+      "@tripley-acctron/runtime-core": ["../../packages/runtime-core/src/index.ts"],
+      "@tripley-acctron/testing": ["../../packages/testing/src/index.ts"],
+      "@tripley-acctron/window-coordinator": ["../../packages/window-coordinator/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"]

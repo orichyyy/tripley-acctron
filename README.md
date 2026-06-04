@@ -19,9 +19,9 @@ in separate packages.
 - `@tripley-acctron/testing`: headless UI, async fake devices, recovery wiring, fake host, and
   observability, accessibility, window, transaction wiring, and virtual clock.
 - `@tripley-acctron/native`: adapter over `@tripley-kit/native`.
-- `@tripley-acctron/react-ui`: minimal React `UiPort` adapter.
+- `@tripley-acctron/react-ui`: React `UiPort` adapter and runtime store for browser screens.
 - `apps/atm-basic`: basic ATM transaction flow built with Recipes.
-- `apps/demo-kiosk`: Vite React demo shell.
+- `apps/demo-kiosk`: Vite React ATM demo wired to `apps/atm-basic`.
 
 ## Commands
 
@@ -30,6 +30,9 @@ pnpm install
 pnpm run check
 pnpm --filter @tripley-acctron/demo-kiosk run dev
 ```
+
+The demo app runs the Recipe-based ATM flow in the browser with fake devices, fake host scenarios,
+React UI actions, audit, transaction data, recovery, and the standard step policy runtime.
 
 ## Native Policy
 

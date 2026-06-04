@@ -1,28 +1,58 @@
-import { MonitorCheckIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AccountInputScreen } from "@/components/account-input-screen";
+import { AtmShell, StatusPill } from "@/components/atm-shell";
+import { ProcessingScreen } from "@/components/processing-screen";
+import { ResultScreen } from "@/components/result-screen";
+import { WelcomeScreen } from "@/components/welcome-screen";
+import { accountInputState, resultState, welcomeState } from "@/demo/screen-state";
+import { useDemoRuntime } from "@/demo/use-demo-runtime";
 
 export function App() {
+  const demo = useDemoRuntime();
+  const status = (
+    <StatusPill {...(demo.error ? { error: demo.error } : {})} running={demo.running} />
+  );
+
+  if (demo.snapshot.currentScreen === "account.input") {
+    return (
+      <AtmShell
+        eyebrow="Tripley Acctron"
+        onReset={() => demo.reset("approved")}
+        status={status}
+        title="ATM Basic"
+      >
+        <AccountInputScreen
+          disabled={demo.running === false}
+          onCancel={() => demo.runtime.emitAction("account.input", { type: "cancel" })}
+          onSubmit={(value) => demo.runtime.emitAction("account.input", { type: "submit", value })}
+          state={accountInputState(demo.snapshot)}
+        />
+      </AtmShell>
+    );
+  }
+
+  if (demo.snapshot.currentScreen === "demo.processing") {
+    return (
+      <AtmShell eyebrow="Tripley Acctron" status={status} title="ATM Basic">
+        <ProcessingScreen />
+      </AtmShell>
+    );
+  }
+
+  if (demo.snapshot.currentScreen === "demo.result") {
+    return (
+      <AtmShell eyebrow="Tripley Acctron" status={status} title="ATM Basic">
+        <ResultScreen onRestart={() => demo.reset("approved")} state={resultState(demo.snapshot)} />
+      </AtmShell>
+    );
+  }
+
   return (
-    <main className="min-h-dvh bg-background text-foreground">
-      <section className="mx-auto flex min-h-dvh max-w-5xl items-center justify-center px-8 py-10">
-        <Card className="w-full max-w-xl">
-          <CardHeader>
-            <CardTitle>Tripley Acctron</CardTitle>
-            <CardDescription>Kiosk framework MVP demo surface</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-5">
-            <p className="text-sm leading-6 text-muted-foreground">
-              Demo text is visible. V1 keeps the UI intentionally simple while the framework, native
-              adapter, and testing contracts are established.
-            </p>
-            <Button type="button" className="w-fit">
-              <MonitorCheckIcon data-icon="inline-start" />
-              Demo Ready
-            </Button>
-          </CardContent>
-        </Card>
-      </section>
-    </main>
+    <AtmShell eyebrow="Tripley Acctron" status={status} title="ATM Basic">
+      <WelcomeScreen
+        initialScenario={welcomeState(demo.snapshot).scenario}
+        onStart={demo.start}
+        running={demo.running}
+      />
+    </AtmShell>
   );
 }

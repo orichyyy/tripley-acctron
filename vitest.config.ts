@@ -4,7 +4,9 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: {
     alias: {
+      "@": sourcePath("./apps/demo-kiosk/src"),
       "@tripley-acctron/accessibility": sourcePath("./packages/accessibility/src/index.ts"),
+      "@tripley-acctron/atm-basic": sourcePath("./apps/atm-basic/src/index.ts"),
       "@tripley-acctron/contracts": sourcePath("./packages/contracts/src/index.ts"),
       "@tripley-acctron/event-bus": sourcePath("./packages/event-bus/src/index.ts"),
       "@tripley-acctron/flow-engine": sourcePath("./packages/flow-engine/src/index.ts"),
@@ -21,7 +23,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["packages/**/*.test.ts", "apps/**/*.test.ts"],
+    include: ["packages/**/*.test.ts", "apps/**/*.test.ts", "apps/**/*.test.tsx"],
   },
 });
 

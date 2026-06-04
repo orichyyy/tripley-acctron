@@ -3,6 +3,7 @@
   "compilerOptions": {
     "paths": {
       "@tripley-acctron/accessibility": ["./packages/accessibility/src/index.ts"],
+      "@tripley-acctron/atm-basic": ["./apps/atm-basic/src/index.ts"],
       "@tripley-acctron/contracts": ["./packages/contracts/src/index.ts"],
       "@tripley-acctron/event-bus": ["./packages/event-bus/src/index.ts"],
       "@tripley-acctron/flow-engine": ["./packages/flow-engine/src/index.ts"],

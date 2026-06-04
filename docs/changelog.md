@@ -36,3 +36,6 @@
 - Added Step Policy Runtime for standard steps, centralizing prompt audit, optional voice guide,
   optional TTS, failed route logging, and cancel/timeout route defaults.
 - Moved `Recipes.inputAccount` voice guide playback to prompt start instead of successful commit.
+- Upgraded `apps/demo-kiosk` into a React ATM demo wired to `apps/atm-basic`, `ReactUiAdapter`,
+  fake devices, fake host scenarios, transaction data, audit, recovery, and result screens.
+- Added demo runtime and React smoke tests, and expanded Vitest to include app `.test.tsx` files.

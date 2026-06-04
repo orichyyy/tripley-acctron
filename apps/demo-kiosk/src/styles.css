@@ -14,24 +14,42 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-border: var(--border);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
 }
 
 :root {
-  --background: oklch(0.985 0.01 100);
-  --foreground: oklch(0.18 0.02 245);
+  --background: oklch(0.97 0.012 205);
+  --foreground: oklch(0.17 0.025 235);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 245);
-  --primary: oklch(0.28 0.08 235);
-  --primary-foreground: oklch(0.98 0.01 100);
-  --secondary: oklch(0.93 0.02 185);
-  --secondary-foreground: oklch(0.22 0.04 220);
-  --muted: oklch(0.94 0.015 95);
-  --muted-foreground: oklch(0.45 0.03 230);
-  --accent: oklch(0.9 0.04 160);
-  --accent-foreground: oklch(0.2 0.04 220);
-  --border: oklch(0.86 0.02 120);
+  --card-foreground: oklch(0.17 0.025 235);
+  --primary: oklch(0.34 0.09 225);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.91 0.035 180);
+  --secondary-foreground: oklch(0.2 0.035 225);
+  --muted: oklch(0.91 0.014 215);
+  --muted-foreground: oklch(0.44 0.035 230);
+  --accent: oklch(0.82 0.12 150);
+  --accent-foreground: oklch(0.22 0.05 160);
+  --border: oklch(0.82 0.018 220);
+  --success: oklch(0.55 0.13 150);
+  --warning: oklch(0.65 0.13 75);
+  --danger: oklch(0.56 0.16 28);
+  --danger-soft: oklch(0.94 0.035 28);
 }
 
 body {
   margin: 0;
+  font-family:
+    Avenir Next,
+    Segoe UI,
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+  background:
+    linear-gradient(90deg, oklch(0.9 0.018 220 / 0.6) 1px, transparent 1px),
+    linear-gradient(oklch(0.9 0.018 220 / 0.55) 1px, transparent 1px), var(--background);
+  background-size: 44px 44px;
 }

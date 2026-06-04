@@ -117,9 +117,33 @@ importers:
       '@tailwindcss/vite':
         specifier: 'catalog:'
         version: 4.1.17(vite@7.3.0(@types/node@24.10.2)(jiti@2.7.0)(lightningcss@1.30.2))
+      '@tripley-acctron/accessibility':
+        specifier: workspace:*
+        version: link:../../packages/accessibility
+      '@tripley-acctron/atm-basic':
+        specifier: workspace:*
+        version: link:../atm-basic
+      '@tripley-acctron/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@tripley-acctron/flow-engine':
+        specifier: workspace:*
+        version: link:../../packages/flow-engine
+      '@tripley-acctron/observability':
+        specifier: workspace:*
+        version: link:../../packages/observability
       '@tripley-acctron/react-ui':
         specifier: workspace:*
         version: link:../../packages/react-ui
+      '@tripley-acctron/runtime-core':
+        specifier: workspace:*
+        version: link:../../packages/runtime-core
+      '@tripley-acctron/testing':
+        specifier: workspace:*
+        version: link:../../packages/testing
+      '@tripley-acctron/window-coordinator':
+        specifier: workspace:*
+        version: link:../../packages/window-coordinator
       '@vitejs/plugin-react':
         specifier: 'catalog:'
         version: 5.1.2(vite@7.3.0(@types/node@24.10.2)(jiti@2.7.0)(lightningcss@1.30.2))
