@@ -8,11 +8,11 @@ export function inputAccount(definition: InputAccountRecipe) {
       id: definition.id,
       screen: definition.screen,
       audit: "customerInput" as const,
+      voiceGuide: voiceGuideKey(definition),
       value: accountValueOptions(definition),
       sources: accountSources(definition),
       cancelRoute: "cancelled",
-      commit: async (ctx: StepContext, value: string) => {
-        await speakOrPlayGuide(ctx, definition.voiceGuide, definition.screen);
+      commit: (ctx: StepContext, value: string) => {
         ctx.transaction?.set(definition.saveAs, value);
       },
       routes: accountRoutes(definition),
@@ -20,6 +20,10 @@ export function inputAccount(definition: InputAccountRecipe) {
     definition.timeout ? { timeout: definition.timeout } : {},
   );
   return defineTextInputStep(stepDefinition);
+}
+
+function voiceGuideKey(definition: InputAccountRecipe) {
+  return definition.voiceGuide === undefined ? definition.screen : definition.voiceGuide;
 }
 
 function accountValueOptions(definition: InputAccountRecipe) {
@@ -60,15 +64,4 @@ function accountSources(definition: InputAccountRecipe): InputSource[] {
     result.push(InputSources.ui.action(definition.screen));
   }
   return result;
-}
-
-async function speakOrPlayGuide(
-  ctx: StepContext,
-  voiceGuide: string | false | undefined,
-  screen: string,
-): Promise<void> {
-  const key = voiceGuide === undefined ? screen : voiceGuide;
-  if (key) {
-    await ctx.voiceGuide?.play(key);
-  }
 }

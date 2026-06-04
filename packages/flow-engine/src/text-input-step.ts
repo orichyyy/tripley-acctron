@@ -7,9 +7,15 @@ import type {
   StepHandler,
 } from "@tripley-acctron/contracts";
 import { InputSources } from "./input-sources";
-import { InteractionRuntime } from "./interaction-runtime";
+import {
+  createInteractionRuntime,
+  promptPolicyFromDefinition,
+  routeFailedOrThrow,
+  routeInteractionResult,
+  runPromptPolicy,
+} from "./step-policy";
 import type { TextInputStepDefinition, ValidationResult } from "./step-kit-types";
-import { mapRouteOrThrow, requireUi, routeFailedOrThrow } from "./step-kit-utils";
+import { requireUi } from "./step-kit-utils";
 
 interface TextInputState {
   value: string;
@@ -26,53 +32,44 @@ async function runTextInputStep<TValue>(
   ctx: StepContext,
   definition: TextInputStepDefinition<TValue>,
 ) {
-  const ui = requireUi(ctx, definition.id);
-  const runtime = new InteractionRuntime(
-    Object.assign(
-      { ui, logger: ctx.logger },
-      ctx.devices ? { devices: ctx.devices } : {},
-      ctx.audit ? { audit: ctx.audit } : {},
-      ctx.redaction ? { redaction: ctx.redaction } : {},
-      ctx.timeoutService ? { timeoutService: ctx.timeoutService } : {},
-    ),
-  );
+  requireUi(ctx, definition.id);
+  const runtime = createInteractionRuntime(ctx);
 
-  await ctx.audit?.beginPrompt(promptFromContext(ctx, definition.id, definition.screen));
+  const routes = Object.assign(
+    { cancelled: definition.routes.cancelled ?? definition.cancelRoute ?? "cancelled" },
+    definition.routes.timeout !== undefined ? { timeout: definition.routes.timeout } : {},
+    definition.routes.failed !== undefined ? { failed: definition.routes.failed } : {},
+  );
   let result: InteractionRunResult<TValue>;
   try {
-    result = await runtime.run<string, TextInputState, TValue>(
-      Object.assign(
-        {
-          screen: definition.screen,
-          initialState: { value: initialValue(definition, ctx) },
-          render: (state: TextInputState) => renderTextInput(definition, state),
-          sources: () =>
-            definition.sources.length > 0 ? definition.sources : [InputSources.none()],
-          auditIntent: (intent: InteractionIntent) => auditTextInputIntent(ctx, definition, intent),
-          reduce: (
-            state: TextInputState,
-            intent: InteractionIntent,
-            reducerCtx: InteractionReducerContext<TextInputState, TValue>,
-          ) => reduceTextInput(ctx, definition, state, intent, reducerCtx),
-        },
-        definition.timeout ? { timeout: definition.timeout } : {},
+    result = await runPromptPolicy(ctx, promptPolicyFromDefinition(definition), () =>
+      runtime.run<string, TextInputState, TValue>(
+        Object.assign(
+          {
+            screen: definition.screen,
+            initialState: { value: initialValue(definition, ctx) },
+            render: (state: TextInputState) => renderTextInput(definition, state),
+            sources: () =>
+              definition.sources.length > 0 ? definition.sources : [InputSources.none()],
+            auditIntent: (intent: InteractionIntent) =>
+              auditTextInputIntent(ctx, definition, intent),
+            reduce: (
+              state: TextInputState,
+              intent: InteractionIntent,
+              reducerCtx: InteractionReducerContext<TextInputState, TValue>,
+            ) => reduceTextInput(ctx, definition, state, intent, reducerCtx),
+          },
+          definition.timeout ? { timeout: definition.timeout } : {},
+        ),
       ),
     );
-  } finally {
-    await ctx.audit?.endPrompt(definition.id);
+  } catch (error) {
+    return routeFailedOrThrow(ctx, routes.failed, error);
   }
-
-  if (result.type === "accepted") {
-    await definition.commit?.(ctx, result.value);
+  return routeInteractionResult(ctx, result, routes, async (value) => {
+    await definition.commit?.(ctx, value);
     return ctx.next(definition.routes.accepted);
-  }
-  if (result.type === "cancelled") {
-    return mapRouteOrThrow(ctx, definition.routes.cancelled, definition.cancelRoute ?? "cancelled");
-  }
-  if (result.type === "timeout") {
-    return mapRouteOrThrow(ctx, definition.routes.timeout, "timeout");
-  }
-  return routeFailedOrThrow(ctx, definition.routes.failed, result.error);
+  });
 }
 
 async function reduceTextInput<TValue>(
@@ -200,10 +197,6 @@ async function auditTextInputIntent<TValue>(
       redactAs: definition.value?.redactAs,
     });
   }
-}
-
-function promptFromContext(ctx: StepContext, stepId: string, screen: string) {
-  return { promptId: stepId, flowId: ctx.flowId, nodeId: ctx.nodeId, stepId, screen };
 }
 
 function intentValue(intent: InteractionIntent): unknown {

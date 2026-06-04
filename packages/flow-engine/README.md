@@ -31,6 +31,13 @@ in clear text. Choice and confirm steps record customer selections from UI and p
 `defineTextInputStep`, `defineChoiceStep`, and `defineConfirmStep` wrap common kiosk interactions
 around `InteractionRuntime`.
 
+Standard steps run through Step Policy before their interaction source loop starts. Step Policy
+centralizes prompt audit begin/end, optional voice guide, optional TTS, failed route logging, and
+cancel/timeout route defaults.
+
+Use `voiceGuide`, `tts`, and `audit: false` on step definitions instead of wiring those concerns
+inside reducer or commit callbacks.
+
 `defineHostRequestStep` supports callback-based host logic and direct `ctx.host.request()` calls
 through `messageType`/`body` definitions.
 

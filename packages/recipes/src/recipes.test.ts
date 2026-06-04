@@ -1,21 +1,33 @@
 import { describe, expect, test } from "vitest";
-import type { StepHandler } from "@tripley-acctron/contracts";
-import { VirtualClock, createFakeDevices, createTestKioskApp } from "@tripley-acctron/testing";
+import type { StepHandler, VoiceGuideOptions, VoiceGuideService } from "@tripley-acctron/contracts";
+import {
+  type TestKioskAppOptions,
+  VirtualClock,
+  createFakeDevices,
+  createTestKioskApp,
+} from "@tripley-acctron/testing";
 import { Recipes } from "./recipes";
 
 describe("recipes", () => {
   test("inputAccount accepts pinpad account and stores transaction value", async () => {
-    const kit = createRecipeKit({
-      input: Recipes.inputAccount({
-        id: "input",
-        screen: "account.input",
-        saveAs: "accountNo",
-        constraints: { minLength: 6, maxLength: 18 },
-        routes: { valid: "Valid", cancel: "Cancelled", timeout: "Timeout" },
-      }),
-    });
+    const voiceGuide = new RecordingVoiceGuide();
+    const kit = createRecipeKit(
+      {
+        input: Recipes.inputAccount({
+          id: "input",
+          screen: "account.input",
+          saveAs: "accountNo",
+          constraints: { minLength: 6, maxLength: 18 },
+          routes: { valid: "Valid", cancel: "Cancelled", timeout: "Timeout" },
+        }),
+      },
+      { voiceGuide },
+    );
 
     const run = kit.flow.run("demo");
+    await flushPromises();
+    expect(voiceGuide.played).toEqual(["account.input"]);
+
     for (const key of ["1", "2", "3", "4", "5", "6", "enter"] as const) {
       kit.devices.pinpad.press(key);
       await flushPromises();
@@ -31,6 +43,7 @@ describe("recipes", () => {
         id: "cancel",
         screen: "account.input",
         saveAs: "accountNo",
+        voiceGuide: false,
         routes: { valid: "Valid", cancel: "Cancelled" },
       }),
     });
@@ -43,6 +56,7 @@ describe("recipes", () => {
         id: "timeout",
         screen: "account.input",
         saveAs: "accountNo",
+        voiceGuide: false,
         timeout: { key: "account", durationMs: 100 },
         sources: { pinpad: false, barcodeQr: false, uiActions: false },
         routes: { valid: "Valid", timeout: "Timeout" },
@@ -59,6 +73,7 @@ describe("recipes", () => {
         id: "barcode",
         screen: "account.input",
         saveAs: "accountNo",
+        voiceGuide: false,
         sources: {
           pinpad: false,
           uiActions: false,
@@ -125,10 +140,13 @@ describe("recipes", () => {
   });
 });
 
-function createRecipeKit(steps: Record<string, StepHandler>) {
+function createRecipeKit(
+  steps: Record<string, StepHandler>,
+  options: { voiceGuide?: VoiceGuideService } = {},
+) {
   const devices = createFakeDevices();
   const clock = new VirtualClock();
-  const kit = createTestKioskApp({
+  const appOptions: TestKioskAppOptions = {
     flows: [
       {
         id: "demo",
@@ -159,7 +177,11 @@ function createRecipeKit(steps: Record<string, StepHandler>) {
     steps,
     devices,
     clock,
-  });
+  };
+  if (options.voiceGuide) {
+    appOptions.voiceGuide = options.voiceGuide;
+  }
+  const kit = createTestKioskApp(appOptions);
   return { ...kit, devices, clock };
 }
 
@@ -167,4 +189,14 @@ async function flushPromises(count = 4): Promise<void> {
   for (let index = 0; index < count; index += 1) {
     await Promise.resolve();
   }
+}
+
+class RecordingVoiceGuide implements VoiceGuideService {
+  public readonly played: string[] = [];
+
+  public async play(key: string, _options?: VoiceGuideOptions): Promise<void> {
+    this.played.push(key);
+  }
+
+  public async stop(): Promise<void> {}
 }

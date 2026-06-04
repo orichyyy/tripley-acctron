@@ -11,7 +11,7 @@ in separate packages.
 - `@tripley-acctron/plugin-system`: service registry, lifecycle, and plugin runtime.
 - `@tripley-acctron/runtime-core`: `createKioskApp` runtime composition.
 - `@tripley-acctron/flow-engine`: flow compiler, step scope, timeout, interaction runtime, standard
-  step builders, audit integration, and transaction recovery.
+  step builders, step policy, audit integration, and transaction recovery.
 - `@tripley-acctron/host`: Host Gateway runtime, JSON codec, and canonical message mapper.
 - `@tripley-acctron/recipes`: business-level recipes for common ATM steps.
 - `@tripley-acctron/accessibility`: TTS, voice guide, audio asset resolution, and audio players.

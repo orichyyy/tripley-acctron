@@ -2,7 +2,8 @@
 
 Business-level step recipes for common ATM flows.
 
-- `Recipes.inputAccount` expands to a text input step and stores the accepted value in `ctx.transaction`.
+- `Recipes.inputAccount` expands to a text input step, plays its voice guide before input starts,
+  and stores the accepted value in `ctx.transaction`.
 - `Recipes.waitCardInserted` waits for `ctx.devices.cardReader.waitForCard`.
 - `Recipes.ejectCard` ejects the card and routes taken/retained/failed outcomes.
 

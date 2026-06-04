@@ -6,7 +6,7 @@ import {
   type StepHandler,
 } from "@tripley-acctron/contracts";
 import type { HostRequestStepDefinition, WaitDeviceStepDefinition } from "./step-kit-types";
-import { routeFailedOrThrow } from "./step-kit-utils";
+import { routeFailedOrThrow } from "./step-policy";
 
 export function defineHostRequestStep<TResponse = unknown>(
   definition: HostRequestStepDefinition<TResponse>,

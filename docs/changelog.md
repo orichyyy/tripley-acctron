@@ -33,3 +33,6 @@
 - Added `@tripley-acctron/window-coordinator` with headless window manager and native skeleton.
 - Expanded testing app wiring with transaction, TTS, voice guide, and window manager defaults.
 - Added `apps/atm-basic` Recipe-based ATM transaction example.
+- Added Step Policy Runtime for standard steps, centralizing prompt audit, optional voice guide,
+  optional TTS, failed route logging, and cancel/timeout route defaults.
+- Moved `Recipes.inputAccount` voice guide playback to prompt start instead of successful commit.

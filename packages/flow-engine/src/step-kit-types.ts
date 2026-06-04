@@ -8,6 +8,11 @@ import type {
 
 export type ValidationResult<TValue> = { ok: true; value: TValue } | { ok: false; error: string };
 
+export type StepPolicyValue =
+  | string
+  | false
+  | ((ctx: StepContext) => string | undefined | Promise<string | undefined>);
+
 export interface TextInputValueOptions {
   initial?: string | ((ctx: StepContext) => string);
   minLength?: number;
@@ -27,6 +32,8 @@ export interface TextInputStepDefinition<TValue = string> {
   id: string;
   screen: string;
   timeout?: TimeoutOptions;
+  voiceGuide?: StepPolicyValue;
+  tts?: StepPolicyValue;
   audit?: "customerInput" | false;
   cancelRoute?: string;
   value?: TextInputValueOptions;
@@ -59,6 +66,9 @@ export interface ChoiceStepDefinition<TValue = unknown> {
   choices: Array<ChoiceDefinition<TValue>>;
   sources?: InputSource[];
   timeout?: TimeoutOptions;
+  voiceGuide?: StepPolicyValue;
+  tts?: StepPolicyValue;
+  audit?: "customerChoice" | false;
   commit?(ctx: StepContext, choice: ChoiceDefinition<TValue>): void | Promise<void>;
   routes?: ChoiceRoutes;
 }
@@ -76,6 +86,9 @@ export interface ConfirmStepDefinition {
   state?: Record<string, unknown> | ((ctx: StepContext) => Record<string, unknown>);
   sources?: InputSource[];
   timeout?: TimeoutOptions;
+  voiceGuide?: StepPolicyValue;
+  tts?: StepPolicyValue;
+  audit?: "customerChoice" | false;
   commit?(ctx: StepContext): void | Promise<void>;
   routes: ConfirmRoutes;
 }

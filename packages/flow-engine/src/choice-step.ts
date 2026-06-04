@@ -1,14 +1,18 @@
 import type {
   InteractionIntent,
-  InteractionRunResult,
   InteractionReducerContext,
   StepContext,
   StepHandler,
 } from "@tripley-acctron/contracts";
 import { InputSources } from "./input-sources";
-import { InteractionRuntime } from "./interaction-runtime";
+import {
+  createInteractionRuntime,
+  promptPolicyFromDefinition,
+  routeInteractionResult,
+  runPromptPolicy,
+} from "./step-policy";
 import type { ChoiceDefinition, ChoiceStepDefinition } from "./step-kit-types";
-import { mapRouteOrThrow, requireUi, resolveState, routeFailedOrThrow } from "./step-kit-utils";
+import { requireUi, resolveState } from "./step-kit-utils";
 
 export function defineChoiceStep<TValue = unknown>(
   definition: ChoiceStepDefinition<TValue>,
@@ -17,38 +21,22 @@ export function defineChoiceStep<TValue = unknown>(
 }
 
 async function runChoiceStep<TValue>(ctx: StepContext, definition: ChoiceStepDefinition<TValue>) {
-  const ui = requireUi(ctx, definition.id);
-  const runtime = new InteractionRuntime(
-    Object.assign(
-      { ui, logger: ctx.logger },
-      ctx.devices ? { devices: ctx.devices } : {},
-      ctx.audit ? { audit: ctx.audit } : {},
-      ctx.redaction ? { redaction: ctx.redaction } : {},
-      ctx.timeoutService ? { timeoutService: ctx.timeoutService } : {},
-    ),
-  );
+  requireUi(ctx, definition.id);
+  const runtime = createInteractionRuntime(ctx);
   const initialState = {
     ...resolveState(definition.state, ctx),
     choices: definition.choices,
   };
 
-  await ctx.audit?.beginPrompt({
-    promptId: definition.id,
-    flowId: ctx.flowId,
-    nodeId: ctx.nodeId,
-    stepId: definition.id,
-    screen: definition.screen,
-  });
-  let result: InteractionRunResult<ChoiceDefinition<TValue>>;
-  try {
-    result = await runtime.run<string, typeof initialState, ChoiceDefinition<TValue>>(
+  const result = await runPromptPolicy(ctx, promptPolicyFromDefinition(definition), () =>
+    runtime.run<string, typeof initialState, ChoiceDefinition<TValue>>(
       Object.assign(
         {
           screen: definition.screen,
           initialState,
           render: (state: typeof initialState) => state,
           sources: () => definition.sources ?? defaultChoiceSources(definition),
-          auditIntent: (intent: InteractionIntent) => auditChoiceIntent(ctx, definition.id, intent),
+          auditIntent: (intent: InteractionIntent) => auditChoiceIntent(ctx, definition, intent),
           reduce: (
             _state: typeof initialState,
             intent: InteractionIntent,
@@ -68,22 +56,13 @@ async function runChoiceStep<TValue>(ctx: StepContext, definition: ChoiceStepDef
         },
         definition.timeout ? { timeout: definition.timeout } : {},
       ),
-    );
-  } finally {
-    await ctx.audit?.endPrompt(definition.id);
-  }
+    ),
+  );
 
-  if (result.type === "accepted") {
-    await definition.commit?.(ctx, result.value);
-    return ctx.next(result.value.route);
-  }
-  if (result.type === "cancelled") {
-    return mapRouteOrThrow(ctx, definition.routes?.cancelled, "cancelled");
-  }
-  if (result.type === "timeout") {
-    return mapRouteOrThrow(ctx, definition.routes?.timeout, "timeout");
-  }
-  return routeFailedOrThrow(ctx, definition.routes?.failed, result.error);
+  return routeInteractionResult(ctx, result, definition.routes ?? {}, async (choice) => {
+    await definition.commit?.(ctx, choice);
+    return ctx.next(choice.route);
+  });
 }
 
 function defaultChoiceSources<TValue>(definition: ChoiceStepDefinition<TValue>) {
@@ -98,9 +77,13 @@ function defaultChoiceSources<TValue>(definition: ChoiceStepDefinition<TValue>) 
 
 async function auditChoiceIntent(
   ctx: StepContext,
-  stepId: string,
+  definition: ChoiceStepDefinition,
   intent: InteractionIntent,
 ): Promise<void> {
+  if (definition.audit === false) {
+    return;
+  }
+  const stepId = definition.id;
   await ctx.audit?.recordCustomerChoice({
     promptId: stepId,
     flowId: ctx.flowId,

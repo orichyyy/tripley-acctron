@@ -6,13 +6,17 @@ import {
   createTestKioskApp,
 } from "@tripley-acctron/testing";
 
-export function createStandardStepTestKit(steps: Record<string, StepHandler>) {
+export function createStandardStepTestKit(
+  steps: Record<string, StepHandler>,
+  options: Pick<TestKioskAppOptions, "logger" | "tts" | "voiceGuide"> = {},
+) {
   const devices = createFakeDevices();
   const clock = new VirtualClock();
   const appOptions: TestKioskAppOptions = {
     steps,
     devices,
     clock,
+    ...options,
     flows: [
       {
         id: "demo",

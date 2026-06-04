@@ -12,6 +12,7 @@ export * from "./skeleton-steps";
 export * from "./step-registry";
 export * from "./step-scope";
 export * from "./step-kit-types";
+export * from "./step-policy";
 export * from "./system-clock";
 export * from "./text-input-step";
 export * from "./timeout-service";
