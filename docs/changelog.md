@@ -18,3 +18,5 @@
 - Added transaction resource registry and default recovery manager.
 - Added flow recovery hooks for unhandled step errors and normal flow completion.
 - Expanded testing fake devices and test app recovery wiring.
+- Added Host Gateway contracts, default JSON host runtime, fake host gateway, and HostRequestStep
+  gateway integration.

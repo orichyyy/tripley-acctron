@@ -23,8 +23,10 @@ timeout, runs the reducer, patches UI state, and stops all sources when the inte
 `defineTextInputStep`, `defineChoiceStep`, and `defineConfirmStep` wrap common kiosk interactions
 around `InteractionRuntime`.
 
-`defineHostRequestStep` and `defineWaitDeviceStep` are callback-based skeletons for later HostGateway
-and expanded device contracts.
+`defineHostRequestStep` supports callback-based host logic and direct `ctx.host.request()` calls
+through `messageType`/`body` definitions.
+
+`defineWaitDeviceStep` remains a callback-based skeleton for expanded device workflows.
 
 ## Recovery
 

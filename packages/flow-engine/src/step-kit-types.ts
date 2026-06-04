@@ -1,4 +1,5 @@
 import type {
+  HostResponse,
   InputSource,
   StepContext,
   StepHandler,
@@ -79,12 +80,26 @@ export interface ConfirmStepDefinition {
   routes: ConfirmRoutes;
 }
 
-export interface HostRequestStepDefinition<TResponse = unknown> {
+export interface CallbackHostRequestStepDefinition<TResponse = unknown> {
   id: string;
   request(ctx: StepContext): Promise<TResponse>;
   route(response: TResponse, ctx: StepContext): string;
   routes?: { failed?: string };
 }
+
+export interface GatewayHostRequestStepDefinition<TRequest = unknown, TResponse = unknown> {
+  id: string;
+  messageType: string;
+  body: TRequest | ((ctx: StepContext) => TRequest);
+  timeoutMs?: number;
+  traceId?: string | ((ctx: StepContext) => string);
+  route(response: HostResponse<TResponse>, ctx: StepContext): string;
+  routes?: { failed?: string };
+}
+
+export type HostRequestStepDefinition<TResponse = unknown> =
+  | CallbackHostRequestStepDefinition<TResponse>
+  | GatewayHostRequestStepDefinition<unknown, TResponse>;
 
 export interface WaitDeviceStepDefinition<TResponse = unknown> {
   id: string;

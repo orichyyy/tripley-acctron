@@ -2,6 +2,7 @@ import type {
   Clock,
   DeviceManager,
   FlowDefinition,
+  HostGateway,
   KioskPlugin,
   Logger,
   RecoveryManager,
@@ -28,6 +29,7 @@ export interface TestKioskAppOptions {
   plugins?: KioskPlugin[];
   logger?: Logger;
   devices?: DeviceManager;
+  host?: HostGateway;
   clock?: Clock;
   timeoutService?: TimeoutService;
   resources?: TransactionResourceRegistry;
@@ -56,6 +58,16 @@ export function createTestKioskApp(options: TestKioskAppOptions = {}) {
   const app = createKioskApp(
     options.plugins ? { ...appOptions, plugins: options.plugins } : appOptions,
   );
+  const context = {
+    events: app.events,
+    commands: app.commands,
+    queries: app.queries,
+    devices,
+    timeoutService,
+    resources,
+    recovery,
+    logger,
+  };
   const flow = new FlowEngine({
     flows: options.flows ?? [],
     steps: StepRegistry.fromRecord(options.steps ?? {}),
@@ -63,16 +75,7 @@ export function createTestKioskApp(options: TestKioskAppOptions = {}) {
     logger,
     resources,
     recovery,
-    context: {
-      events: app.events,
-      commands: app.commands,
-      queries: app.queries,
-      devices,
-      timeoutService,
-      resources,
-      recovery,
-      logger,
-    },
+    context: options.host ? { ...context, host: options.host } : context,
   });
   return { app, flow, ui, devices, clock, timeoutService, resources, recovery, logger };
 }

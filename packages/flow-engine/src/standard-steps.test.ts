@@ -1,6 +1,11 @@
 import { describe, expect, test } from "vitest";
 import type { StepHandler } from "@tripley-acctron/contracts";
-import { VirtualClock, createFakeDevices, createTestKioskApp } from "@tripley-acctron/testing";
+import {
+  type TestKioskAppOptions,
+  VirtualClock,
+  createFakeDevices,
+  createTestKioskApp,
+} from "@tripley-acctron/testing";
 import { InputSources } from "./input-sources";
 import { defineChoiceStep } from "./choice-step";
 import { defineConfirmStep } from "./confirm-step";
@@ -218,7 +223,7 @@ describe("standard step kit", () => {
       input: defineHostRequestStep({
         id: "host",
         request: async () => ({ approved: true }),
-        route: (response) => (response.approved ? "Approved" : "Declined"),
+        route: (response: { approved: boolean }) => (response.approved ? "Approved" : "Declined"),
       }),
     });
     await expect(host.flow.run("demo")).resolves.toEqual({ flowId: "demo", endName: "Approved" });
@@ -249,7 +254,7 @@ describe("standard step kit", () => {
 function createStandardStepTestKit(steps: Record<string, StepHandler>) {
   const devices = createFakeDevices();
   const clock = new VirtualClock();
-  const kit = createTestKioskApp({
+  const appOptions: TestKioskAppOptions = {
     steps,
     devices,
     clock,
@@ -286,7 +291,8 @@ function createStandardStepTestKit(steps: Record<string, StepHandler>) {
         ],
       },
     ],
-  });
+  };
+  const kit = createTestKioskApp(appOptions);
   return { ...kit, devices, clock };
 }
 

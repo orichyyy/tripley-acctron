@@ -12,6 +12,7 @@ import type { TimeoutService } from "./timeout";
 import type { UiPort } from "./ui";
 import type { DeviceManager } from "./native";
 import type { RecoveryManager, TransactionResourceRegistry } from "./recovery";
+import type { HostGateway } from "./host";
 
 export interface FlowDefinition {
   id: string;
@@ -85,6 +86,7 @@ export interface StepContext {
   readonly queries: TypedQueryBus<KioskQueries>;
   readonly ui?: UiPort;
   readonly devices?: DeviceManager;
+  readonly host?: HostGateway;
   readonly timeoutService?: TimeoutService;
   readonly resources?: TransactionResourceRegistry;
   readonly recovery?: RecoveryManager;

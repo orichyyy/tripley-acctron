@@ -15,6 +15,16 @@ business state transitions without directly managing device wait loops.
 Standard intents now include text entry, selection, confirmation, cancellation, and barcode scan
 parse results.
 
+## Host Contracts
+
+`HostGateway` provides the canonical business API for host request/response calls.
+
+`HostTransport`, `HostCodec`, and `HostMessageMapper` keep transport, wire encoding, and customer
+message mapping replaceable by plugins.
+
+`HostCommand` defines canonical suspend, resume, and maintenance commands that host plugins can
+dispatch to application state later.
+
 ## Device Contracts
 
 `DeviceManager` exposes optional ports for pinpad, barcode reader, card reader, cash dispenser, and

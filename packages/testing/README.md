@@ -20,8 +20,15 @@ tests can advance time deterministically.
 Device fakes record calls and expose cancellation state, allowing tests to verify source cleanup and
 recovery behavior.
 
+## Fake Host
+
+`FakeHostGateway` implements the framework `HostGateway` contract, records sent requests, and supports
+queued responses or failures.
+
 ## Test App
 
 `createTestKioskApp` wires headless UI, fake devices, `VirtualClock`, `DefaultTimeoutService`,
 `InMemoryTransactionResourceRegistry`, and `DefaultRecoveryManager` into `FlowEngine`, so standard
 step builders and recovery paths can be tested without real UI or hardware.
+
+Tests can pass `host` to `createTestKioskApp` to make Host Gateway calls available in step context.
