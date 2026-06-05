@@ -36,6 +36,7 @@ export interface TransactionLifecycleQueries {
 }
 
 export interface TransactionLifecycleHooks {
+  beforeStartGuard?(request: TransactionStartRequest): Promise<void> | void;
   beforeStart?(request: TransactionStartRequest): Promise<void> | void;
   afterComplete?(status: TransactionLifecycleStatus): Promise<void> | void;
   afterFailed?(status: TransactionLifecycleStatus, error: unknown): Promise<void> | void;
@@ -82,6 +83,7 @@ export class TransactionLifecycleController implements Disposable {
       );
     }
 
+    await this.options.hooks?.beforeStartGuard?.(request);
     this.options.transaction?.clear();
     await this.options.hooks?.beforeStart?.(request);
 

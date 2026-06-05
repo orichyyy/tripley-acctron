@@ -35,6 +35,14 @@ message mapping replaceable by plugins.
 `HostCommand` defines canonical suspend, resume, and maintenance commands that host plugins can
 dispatch to application state later.
 
+## Operational Control Contracts
+
+`ServiceOperationalStatus` reports online, suspending, suspended, and maintenance states.
+
+`service.applyHostCommand`, `service.resume`, `service.enterMaintenance`, and
+`service.exitMaintenance` are typed command bus commands. `service.status` is the typed query for
+runtime service state.
+
 ## Device Contracts
 
 `DeviceManager` exposes optional ports for pinpad, barcode reader, card reader, cash dispenser, and

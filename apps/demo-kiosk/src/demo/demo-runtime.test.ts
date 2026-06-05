@@ -67,6 +67,36 @@ describe("demo kiosk runtime", () => {
     expect(runtime.store.getSnapshot().currentScreen).toBe("demo.welcome");
     expect(runtime.store.getSnapshot().screenState).toMatchObject({ scenario: "declined" });
   });
+
+  test("host suspend command blocks new transactions", async () => {
+    const runtime = createDemoKioskRuntime();
+
+    await expect(
+      runtime.commands.execute("service.applyHostCommand", {
+        traceId: "trace-suspend",
+        command: { type: "suspendService", mode: "immediate", reason: "operator" },
+      }),
+    ).resolves.toMatchObject({ state: "suspended" });
+    await expect(runtime.start("approved")).rejects.toMatchObject({ code: "service.suspended" });
+  });
+
+  test("host maintenance command cancels in-flight transaction", async () => {
+    const runtime = createDemoKioskRuntime();
+    const run = runtime.start("approved");
+
+    await waitForScreen(runtime, "account.input");
+    await expect(
+      runtime.commands.execute("service.applyHostCommand", {
+        traceId: "trace-maintenance",
+        command: { type: "enterMaintenance", reason: "cash replenish" },
+      }),
+    ).resolves.toMatchObject({ state: "maintenance" });
+
+    await expect(run).resolves.toMatchObject({ state: "cancelled" });
+    await expect(runtime.queries.query("service.status", {})).resolves.toMatchObject({
+      state: "maintenance",
+    });
+  });
 });
 
 async function waitForScreen(

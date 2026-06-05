@@ -14,3 +14,9 @@ It tracks in-flight requests by request id and supports timeout and abort cleanu
 `JsonHostCodec` serializes raw messages as JSON strings.
 `IdentityHostMessageMapper` maps canonical messages directly and is intended for tests, demos, and
 simple JSON hosts.
+
+## Command Dispatch
+
+`createHostCommandHandler` adapts inbound canonical `HostCommand` messages to
+`service.applyHostCommand` on the runtime command bus. Gateway transport and wire mapping remain
+separate from service state policy.

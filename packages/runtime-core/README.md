@@ -13,5 +13,15 @@ buses.
   to idle.
 - `transaction.status`: returns the current lifecycle snapshot.
 
+`registerOperationalControl` installs service operation commands and queries:
+
+- `service.applyHostCommand`: applies canonical host suspend, resume, and maintenance commands.
+- `service.resume`, `service.enterMaintenance`, and `service.exitMaintenance`: direct runtime
+  controls.
+- `service.status`: returns online, suspending, suspended, or maintenance state.
+
+Use `OperationalControlController.beforeTransactionStart` as the transaction start guard and call
+`afterTransactionSettled` from transaction completion, failure, and cancellation hooks.
+
 Update this document when app startup, shutdown, plugin composition, transaction lifecycle, or role
 behavior changes.

@@ -1,7 +1,13 @@
 import { describe, expect, test, vi } from "vitest";
-import type { CanonicalHostMessage, HostTransport } from "@tripley-acctron/contracts";
+import type {
+  CanonicalHostMessage,
+  CommandResponse,
+  CommandRequest,
+  HostTransport,
+} from "@tripley-acctron/contracts";
 import { InMemoryLogger } from "@tripley-acctron/observability";
 import { DefaultHostGateway } from "./default-host-gateway";
+import { createHostCommandHandler, type HostCommandDispatchCommands } from "./host-command-handler";
 import { IdentityHostMessageMapper } from "./identity-host-message-mapper";
 import { JsonHostCodec } from "./json-host-codec";
 
@@ -102,6 +108,27 @@ describe("default host gateway", () => {
     await flushPromises();
 
     expect(commands).toEqual(["resumeService"]);
+  });
+
+  test("host command handler dispatches to service command bus", async () => {
+    const handled: unknown[] = [];
+    const handler = createHostCommandHandler({
+      async execute(name, request) {
+        handled.push({ name, request });
+        const _typedRequest: CommandRequest<HostCommandDispatchCommands[typeof name]> = request;
+        void _typedRequest;
+        return { state: "online" } as CommandResponse<HostCommandDispatchCommands[typeof name]>;
+      },
+    });
+
+    await handler({ type: "resumeService" }, "trace-5");
+
+    expect(handled).toEqual([
+      {
+        name: "service.applyHostCommand",
+        request: { command: { type: "resumeService" }, traceId: "trace-5" },
+      },
+    ]);
   });
 });
 

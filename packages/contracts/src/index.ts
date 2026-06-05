@@ -8,6 +8,7 @@ export * from "./native";
 export * from "./observability";
 export * from "./plugin";
 export * from "./recovery";
+export * from "./service-control";
 export * from "./timeout";
 export * from "./transaction";
 export * from "./transaction-lifecycle";

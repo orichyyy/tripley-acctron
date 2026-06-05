@@ -43,3 +43,6 @@
   transaction command/query controller.
 - Switched the React ATM demo orchestration to transaction lifecycle commands and added reset
   cancellation coverage.
+- Added service operational control contracts and runtime-core controller for host suspend, resume,
+  and maintenance commands.
+- Added host command dispatch helper and demo coverage for service suspend and maintenance behavior.

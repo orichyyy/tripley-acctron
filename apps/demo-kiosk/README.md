@@ -11,9 +11,12 @@ Vite React ATM demo for Tripley Acctron.
 - fake devices, scenario host, transaction data, audit, recovery, TTS, voice guide, and windows.
 - `transaction.start`, `transaction.reset`, and `transaction.status` command/query handlers from
   `@tripley-acctron/runtime-core`.
+- `service.applyHostCommand` and `service.status` operational control handlers for suspend, resume,
+  and maintenance behavior.
 
 React components render screens and emit UI actions only. Validation, routing, transaction writes,
-host calls, timeout, audit, recovery, and transaction lifecycle stay in the framework runtime.
+host calls, timeout, audit, recovery, transaction lifecycle, and service operation state stay in the
+framework runtime.
 
 ## Screens
 

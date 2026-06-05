@@ -31,7 +31,11 @@ import {
   InMemoryLogger,
 } from "@tripley-acctron/observability";
 import { ReactUiAdapter, UiRuntimeStore } from "@tripley-acctron/react-ui";
-import { createKioskApp, registerTransactionLifecycle } from "@tripley-acctron/runtime-core";
+import {
+  createKioskApp,
+  registerOperationalControl,
+  registerTransactionLifecycle,
+} from "@tripley-acctron/runtime-core";
 import { InMemoryTransactionDataStore, createFakeDevices } from "@tripley-acctron/testing";
 import { HeadlessWindowManager } from "@tripley-acctron/window-coordinator";
 import { resultStateFor, type DemoScreens, type HostScenario } from "./screens";
@@ -66,6 +70,11 @@ export function createDemoKioskRuntime(): DemoKioskRuntime {
   });
   const windows = new HeadlessWindowManager();
   const app = createKioskApp({ role: "mainCustomerScreen", logger });
+  const operational = registerOperationalControl({
+    commands: app.commands,
+    queries: app.queries,
+    logger,
+  });
 
   const flow = new FlowEngine({
     flows: [atmBasicFlow],
@@ -101,16 +110,21 @@ export function createDemoKioskRuntime(): DemoKioskRuntime {
     transaction,
     ui,
     hooks: {
+      beforeStartGuard(request) {
+        operational.beforeTransactionStart(request);
+      },
       beforeStart(request) {
         transaction.clear();
         host.setScenario(scenarioFromMetadata(request.metadata));
         return ui.show("demo.processing", {});
       },
       afterComplete(status) {
+        operational.afterTransactionSettled(status);
         const endName = status.result?.endName ?? "Failed";
         return ui.show("demo.result", resultStateFor(endName, transaction.get("accountNo")));
       },
       afterFailed(status) {
+        operational.afterTransactionSettled(status);
         return ui.show("demo.result", {
           endName: "Failed",
           tone: "danger",
@@ -118,7 +132,8 @@ export function createDemoKioskRuntime(): DemoKioskRuntime {
           message: status.errorMessage ?? "The transaction could not be completed.",
         });
       },
-      afterCancelled(_status) {
+      afterCancelled(status) {
+        operational.afterTransactionSettled(status);
         return ui.show("demo.result", resultStateFor("Cancelled", transaction.get("accountNo")));
       },
       afterReset(request) {

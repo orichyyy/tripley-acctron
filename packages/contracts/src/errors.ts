@@ -1,6 +1,8 @@
 export type KioskErrorCode =
   | "service.notFound"
   | "service.duplicate"
+  | "service.suspended"
+  | "service.maintenance"
   | "bus.handlerMissing"
   | "bus.handlerDuplicate"
   | "plugin.duplicate"
@@ -8,6 +10,7 @@ export type KioskErrorCode =
   | "flow.compile"
   | "flow.stepMissing"
   | "host.codec"
+  | "host.commandUnsupported"
   | "host.missing"
   | "host.timeout"
   | "interaction.sourceMissing"
