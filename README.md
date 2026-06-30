@@ -1,53 +1,59 @@
-# Tripley Acctron
+# Web Container TypeScript Framework Design Spec
 
-TypeScript kiosk framework MVP for Tripley Acctron. The implementation follows
-`docs/kiosk-ts-framework-design.md` and keeps contracts, runtime, flow, testing, native, and UI code
-in separate packages.
+Version: 0.1.0  
+Generated: 2026-06-30  
+Target users: framework implementers, project-base developers, kiosk project developers, Codex coding agents.
 
-## Packages
+This document set defines a TypeScript application framework for Web Container runtimes. It is designed for modern browser/WebView hosts, Electron, WebView2, and kiosk-style native containers. The framework isolates the host SDK behind adapters, provides a typed event bus, flow engine, native window management, plugin system, UI abstraction, configuration, logging, storage, command/action system, condition engine, device abstraction, and kiosk base best practices.
 
-- `@tripley-acctron/contracts`: public interfaces and shared types.
-- `@tripley-acctron/event-bus`: typed event, command, and query buses.
-- `@tripley-acctron/plugin-system`: service registry, lifecycle, and plugin runtime.
-- `@tripley-acctron/runtime-core`: `createKioskApp` runtime composition, transaction lifecycle,
-  and operational control command controllers.
-- `@tripley-acctron/flow-engine`: flow compiler, step scope, timeout, interaction runtime, standard
-  step builders, step policy, audit integration, and transaction recovery.
-- `@tripley-acctron/host`: Host Gateway runtime, JSON codec, canonical message mapper, and host
-  command dispatch helper.
-- `@tripley-acctron/recipes`: business-level recipes for common ATM steps.
-- `@tripley-acctron/accessibility`: TTS, voice guide, audio asset resolution, and audio players.
-- `@tripley-acctron/window-coordinator`: window manager port implementations and native skeleton.
-- `@tripley-acctron/testing`: headless UI, async fake devices, recovery wiring, fake host, and
-  observability, accessibility, window, transaction wiring, and virtual clock.
-- `@tripley-acctron/native`: adapter over `@tripley-kit/native`.
-- `@tripley-acctron/react-ui`: React `UiPort` adapter and runtime store for browser screens.
-- `apps/atm-basic`: basic ATM transaction flow built with Recipes.
-- `apps/demo-kiosk`: Vite React ATM demo wired to `apps/atm-basic`.
+## Confirmed non-negotiable boundaries
 
-## Commands
+- Native host windows are required for Window Manager. There is no `window.open` fallback for production window management.
+- Missing required native capabilities fail fast.
+- Plugin activation failure fails app startup.
+- Flow instances start only through explicit `flowEngine.start(flowId, input)` in v1.
+- Event Bus v1 does not automatically retry handlers; retry is owned by Flow Engine or explicit resilience policies.
+- UI framework/router is abstracted. React adapter is first, React Router adapter is provided, but core does not depend on React Router.
+- Logging follows `@tripley-kit/logger` JSON Lines app file log model.
+- Native SDK missing API requirements are tracked in `docs/14-native-sdk-api-requirements.md`.
+- Core must remain open: new devices, input sources, flow node kinds, effects, config providers, repositories, routes, conditions, command middleware, health checks, and native bridges must be added by plugin/registry without modifying core.
 
-```sh
-pnpm install
-pnpm run check
-pnpm --filter @tripley-acctron/demo-kiosk run dev
-```
+## Document map
 
-The demo app runs the Recipe-based ATM flow in the browser with fake devices, fake host scenarios,
-React UI actions, audit, transaction data, recovery, transaction lifecycle commands, and the
-standard step policy runtime. Host suspend, resume, and maintenance commands are routed through the
-runtime command bus.
+| File | Purpose |
+| --- | --- |
+| `docs/00-overall-architecture.md` | Runtime, packages, dependency boundaries, startup/shutdown. |
+| `docs/01-native-sdk-adapter.md` | Adapter over `@tripley-kit/native`, capabilities, reconnect. |
+| `docs/02-event-bus.md` | Typed event bus, envelope, request/response, trace, dead-letter. |
+| `docs/03-flow-engine.md` | Flow DSL, DAG, node types, policy, hooks, recovery, testing. |
+| `docs/04-window-manager.md` | Native window manager, display layout, kiosk topology. |
+| `docs/05-plugin-system.md` | Plugin manifest, lifecycle, dependencies, contributions. |
+| `docs/06-ui-abstraction.md` | UI port, React/Zustand/React Router adapters, route/layout/menu. |
+| `docs/07-project-base-and-kiosk-example.md` | Kiosk base preset, window topology, legacy coexistence. |
+| `docs/08-security-permission-model.md` | Capability, permission, data classification, secret handling. |
+| `docs/09-configuration-system.md` | Spring/.NET-style providers, writable config, SQLite KV. |
+| `docs/10-logging-spec.md` | LoggerPort, `@tripley-kit/logger` integration, viewer guidance. |
+| `docs/11-observability-error-handling.md` | Trace, error catalog, health and diagnostics. |
+| `docs/12-storage-state-persistence.md` | Storage abstraction, SQLite, runtime store. |
+| `docs/13-testing-strategy.md` | Vitest harness, mocks, contract tests. |
+| `docs/14-native-sdk-api-requirements.md` | Required additions to native SDK. |
+| `docs/15-codex-implementation-plan.md` | Suggested package build order for Codex. |
+| `docs/16-kiosk-data-access-and-sqlite.md` | Transactions, messages, counter, configuration KV, Drizzle adapter. |
+| `docs/17-command-action-system.md` | Prism-like command system and action pipeline. |
+| `docs/18-condition-policy-engine.md` | Visible/enabled/canExecute and custom policies. |
+| `docs/19-tts-service.md` | Browser TTS adapter and native TTS extension point. |
+| `docs/20-kiosk-flow-best-practices.md` | Timeout, interrupt, cleanup, idempotency, user input. |
+| `docs/21-scoped-store.md` | application/session/transaction/flow/node lifecycle store. |
+| `docs/22-device-abstraction-layer.md` | Device registry, device locks, events, health. |
+| `docs/23-user-input-node-and-device-input.md` | Pinpad/barcode/user input orchestration and extension. |
+| `docs/24-extensibility-architecture.md` | Open extension contract and registry rules. |
+| `docs/25-decision-record.md` | All confirmed decisions. |
+| `docs/26-resilience-idempotency-outbox.md` | Resilience policies, operation ledger, idempotency, reliable outbox. |
+| `docs/27-calendar-feature-localization-accessibility.md` | Clock, business calendar, feature flags, prompt catalog, accessibility. |
+| `docs/28-project-preset-blueprint.md` | Project preset / blueprint assembly model. |
 
-## Native Policy
+## Source SDK constraints used by this design
 
-All native calls must go through `@tripley-kit/native` and the adapter in `packages/native`.
-Do not call Tauri, Electron, or WebView invoke APIs directly from business or framework code.
-Missing native capabilities are tracked in `docs/native-required-capabilities.md`.
+The current `@tripley-kit/native` SDK exposes runtime, fs, archive, tcp, websocket, sqlite, and system services only. Therefore window, display, device, pinpad, barcode reader, native TTS, native secure storage, and richer SQLite APIs are recorded as SDK API requirements rather than assumed as existing APIs.
 
-## Documentation Rule
-
-When adding a feature, important update, or fix:
-
-- update the affected package or app README;
-- record user-visible or contract-level changes in `docs/changelog.md`;
-- record missing native requirements in `docs/native-required-capabilities.md`.
+The current `@tripley-kit/logger` app log model recommends JSON Lines, `JsonFormatter`, stable metadata fields such as `eventId`, `module`, `action`, and `traceId`, and viewer grouping by `metadata.eventId`.

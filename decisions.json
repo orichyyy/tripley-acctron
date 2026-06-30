@@ -1,0 +1,47 @@
+{
+  "architecture": {
+    "runtime": "Multi-host web container: browser, Electron, mobile WebView, kiosk WebView.",
+    "window": "Native host windows are required; no window.open fallback for Window Manager.",
+    "repo": "Monorepo; packages can later be published.",
+    "target": "Modern browser / WebView; no SSR requirement.",
+    "project_base": "Template + base plugins + runtime preset."
+  },
+  "event_bus": {
+    "scope": "Native SDK / Plugin / Flow / Window / UI unified event layer.",
+    "dispatch": "Async handler, error isolation, timeout, trace, dead-letter; no automatic retry in Event Bus v1.",
+    "type_safety": "Core events typed; plugin events extended through manifest and module augmentation.",
+    "ordering": "Guarantee same publisher + same topic order.",
+    "request_response": "request() default responseMode = first.",
+    "cross_window": "BroadcastChannelTransport first; native window transport added later.",
+    "trace": "Memory + optional SQLite."
+  },
+  "flow": {
+    "definition": "TypeScript DSL primary; JSON schema import/export supported.",
+    "execution": "DAG flow; node can have internal state machine.",
+    "start": "Only explicit flowEngine.start(flowId, input); no automatic event/UI/plugin auto-start in v1.",
+    "node_types": "action / userInput / waitEvent / decision / parallel / race / subflow / compensation / terminal.",
+    "effects": "Direct ctx calls and effect-first both supported; effect-first recommended.",
+    "timeout": "Flow-level and node-level timeout; project preset default userInputTimeout; node override.",
+    "interrupt": "Flow-level interrupt policy with priority + node override + project default policy.",
+    "hooks": "Flow + node hooks + global middleware.",
+    "versioning": "Flow instance binds to start-time flow version; no v1 migration.",
+    "recovery": "Project policy: discard / manualRecover / autoRecover.",
+    "trace": "Summary by default; safeToLog fields opt-in."
+  },
+  "logging": {
+    "format": "JsonFormatter + JSON Lines.",
+    "rolling": "Daily rolling /logs/app_{{yyyyMMdd}}.log; 14 files; compression configurable default true.",
+    "transports": "dev console + native file; prod native file.",
+    "fallback": "If Native FS unavailable use console logger and publish logging.file.unavailable warning.",
+    "mode": "dev direct writes; prod queued writes.",
+    "flush": "Flush after error; close on shutdown.",
+    "privacy": "Redact password/token/secret/pin/auth/privateKey; hashed userId only."
+  },
+  "tooling": {
+    "workspace": "pnpm workspaces",
+    "build": "tsup for packages, Vite for example/project app",
+    "lint": "Biome",
+    "test": "Vitest",
+    "pkg": "@tripley/web-container-*"
+  }
+}
