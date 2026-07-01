@@ -25,13 +25,15 @@ P3 future consideration
 
 ## Current SDK baseline
 
-Current available services are runtime, fs, archive, tcp, websocket, sqlite, and system. Current SDK does not list native window, display, TTS, secure storage, pinpad, barcode reader, or general device APIs.
+Current available services are runtime, fs, archive, tcp, websocket, sqlite, and system. Current SDK does not list native window, display, TTS, or secure storage APIs.
+
+CEN/XFS device operations are intentionally not tracked as Native SDK API proposals here. Device services should be wrapped from `@tripley-kit/xfs-client` through framework ports/adapters so application, Flow, Command, and UI code still depend on framework device abstractions instead of raw XFS clients.
 
 ---
 
 ## NATIVE-API-001 Native Window Management
 
-Status: proposed  
+Status: implemented  
 Priority: P0  
 Source module: Window Manager
 
@@ -48,9 +50,11 @@ native.window.getCurrentWindow()
 native.window.onWindowEvent(handler)
 ```
 
+Implemented through `@tripley-kit/native` container adapters. Tauri is provided by the SDK; Electron must inject a preload/main adapter that owns real BrowserWindow access.
+
 ## NATIVE-API-002 Display / Screen Enumeration
 
-Status: proposed  
+Status: implemented  
 Priority: P0
 
 ```ts
@@ -62,9 +66,11 @@ native.display.onDisplayEvent(handler)
 
 Return `id`, `index`, `isPrimary`, `bounds.x/y/width/height`, workArea, scaleFactor, rotation, touchSupport.
 
+Implemented through container adapters. Tauri maps monitor information from `@tauri-apps/api/window`; Electron must inject a display adapter.
+
 ## NATIVE-API-003 Window Placement
 
-Status: proposed  
+Status: implemented  
 Priority: P0
 
 ```ts
@@ -74,7 +80,7 @@ native.window.moveWindowToDisplay(windowId, displayId, options)
 
 ## NATIVE-API-004 Window Z-order / Always-on-top
 
-Status: proposed  
+Status: implemented  
 Priority: P0
 
 ```ts
@@ -85,7 +91,7 @@ Needed to coexist with legacy kiosk systems.
 
 ## NATIVE-API-005 Window Visibility Control
 
-Status: proposed  
+Status: implemented  
 Priority: P0
 
 ```ts
@@ -97,14 +103,14 @@ native.window.restoreWindow(windowId)
 
 ## NATIVE-API-006 Window Lifecycle Events
 
-Status: proposed  
+Status: implemented  
 Priority: P1
 
 Events: opened, ready, focused, blurred, hidden, shown, minimized, restored, closed, crashed, boundsChanged, displayChanged, alwaysOnTopChanged.
 
 ## NATIVE-API-007 Capability Detail
 
-Status: proposed  
+Status: implemented  
 Priority: P1
 
 ```ts
@@ -123,7 +129,7 @@ interface NativeCapabilityDetail {
 
 ## NATIVE-API-008 SQLite parameterized/callback transaction
 
-Status: proposed  
+Status: implemented  
 Priority: P1
 
 ```ts
@@ -132,9 +138,11 @@ sqlite.transaction<T>(fn: (tx: SqliteTransaction) => Promise<T>): Promise<T>
 
 Needed for atomic counters and operation ledger.
 
+Implemented as a TypeScript facade callback transaction over one SQLite connection: `BEGIN IMMEDIATE`, callback operations, `COMMIT`, and `ROLLBACK` on error.
+
 ## NATIVE-API-009 SQLite batch query with params and return values
 
-Status: proposed  
+Status: implemented  
 Priority: P2
 
 ```ts
@@ -143,7 +151,7 @@ sqlite.batch(queries: Array<{ sql: string; params?: SqliteValue[]; method: 'run'
 
 ## NATIVE-API-010 SQLite raw query result
 
-Status: proposed  
+Status: implemented  
 Priority: P2
 
 ```ts
@@ -154,7 +162,7 @@ Key requirement for production-ready Drizzle proxy adapter.
 
 ## NATIVE-API-011 Native TTS Service
 
-Status: proposed  
+Status: implemented  
 Priority: P2
 
 ```ts
@@ -168,9 +176,11 @@ native.tts.onEvent(handler)
 
 Browser `speechSynthesis` is default v1 implementation.
 
+Implemented as the default fallback adapter.
+
 ## NATIVE-API-012 Native Secure Storage
 
-Status: proposed  
+Status: implemented  
 Priority: P1
 
 ```ts
@@ -182,58 +192,4 @@ native.secureStorage.list(prefix?)
 
 Needed for secrets beyond v1 insecure SQLite fallback.
 
-## NATIVE-API-013 Pinpad Service
-
-Status: proposed  
-Priority: P1/P0 for banking kiosk
-
-Preferred via unified `native.device` model or typed service:
-
-```ts
-native.pinpad.getData(options)
-native.pinpad.getPin(options)
-native.pinpad.cancel(operationId?, reason?)
-native.pinpad.onEvent(handler)
-```
-
-## NATIVE-API-014 Barcode Reader Service
-
-Status: proposed  
-Priority: P1
-
-```ts
-native.barcodeReader.startScan(options)
-native.barcodeReader.stopScan(operationId?, reason?)
-native.barcodeReader.onEvent(handler)
-```
-
-## NATIVE-API-015 Device Operation Cancellation
-
-Status: proposed  
-Priority: P0 for userInput nodes
-
-Every long-running device operation must return or accept `operationId` and support cancel on node exit, timeout, interrupt, or flow cancellation.
-
-## NATIVE-API-016 Device Lock / Exclusive Operation Support
-
-Status: proposed  
-Priority: P1
-
-Native host should support or cooperate with framework device locks to avoid concurrent operations on pinpad, reader, cash unit, printer, etc.
-
-## NATIVE-API-017 Unified Device API
-
-Status: proposed  
-Priority: P2
-
-Preferred long-term model:
-
-```ts
-native.device.listDevices()
-native.device.getStatus(deviceId)
-native.device.execute({ deviceId, command, options, operationId })
-native.device.cancel(operationId)
-native.device.onEvent(handler)
-```
-
-Framework then exposes typed `PinpadPort`, `BarcodeReaderPort`, `CashUnitPort`, etc.
+Implemented as an in-memory fallback adapter. Projects that need OS-backed secrets should inject a stronger secure storage adapter.
