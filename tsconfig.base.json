@@ -29,6 +29,7 @@
       "@tripley/web-container-errors": ["packages/errors/src/index.ts"],
       "@tripley/web-container-event-bus": ["packages/event-bus/src/index.ts"],
       "@tripley/web-container-flow-engine": ["packages/flow-engine/src/index.ts"],
+      "@tripley/web-container-host-message": ["packages/host-message/src/index.ts"],
       "@tripley/web-container-kiosk-base": ["packages/kiosk-base/src/index.ts"],
       "@tripley/web-container-logging": ["packages/logging/src/index.ts"],
       "@tripley/web-container-native-adapter": ["packages/native-adapter/src/index.ts"],

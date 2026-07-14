@@ -8,6 +8,7 @@ export type ErrorCategory =
   | "extension"
   | "native"
   | "plugin"
+  | "protocol"
   | "storage"
   | "unknown";
 

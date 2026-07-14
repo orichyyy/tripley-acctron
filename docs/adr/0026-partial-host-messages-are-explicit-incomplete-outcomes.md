@@ -1,0 +1,3 @@
+# Partial host messages are explicit incomplete outcomes
+
+Host Message Service supports project-default and per-call `allowPartial` settings because deployed projects need usable leading fields when a later field is truncated, cannot be decoded, or fails declarative validation. A partial decode is a distinct result containing only fully decoded and validated fields plus a safe field/header path and byte-count descriptor for the failed position; it never pads or returns the failed field, never weakens profile, bitmap, registry, resource, or invariant failures, and can never be typed as a complete business message.
