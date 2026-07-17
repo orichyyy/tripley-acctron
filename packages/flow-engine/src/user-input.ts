@@ -154,14 +154,20 @@ export class UserInputNodeExecutor implements FlowNodeExecutor<UserInputNodeDefi
         status: "valid",
       });
 
+      const output =
+        businessValidation?.value ??
+        localValidation.value ??
+        race.result.value ??
+        (secure ? race.result : undefined);
+
       if (!node.next) {
-        return { type: "end", output: localValidation.value ?? race.result.value };
+        return { type: "end", output };
       }
 
       return {
         type: "next",
         nodeId: node.next,
-        output: localValidation.value ?? race.result.value,
+        output,
       };
     } finally {
       await cancelActiveSessions(sessions, settledSessionIds, exitReason);

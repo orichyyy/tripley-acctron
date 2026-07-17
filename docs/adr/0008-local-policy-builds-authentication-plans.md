@@ -1,0 +1,3 @@
+# Local policy builds authentication plans from declarative requirements
+
+Credential verification returns a safe assessment with declarative authentication requirements, never executable Flow definitions, device names, or arbitrary input profiles. A local policy combines those requirements with the bank's mandatory minimums, resolves only registered and compatible challenge contributions, validates bounded parameters, and freezes their IDs, versions, and order for the operation; unknown, unavailable, or weaker plans fail closed. This permits business-driven step-up authentication without allowing remote responses or configuration to inject behavior or weaken local controls.

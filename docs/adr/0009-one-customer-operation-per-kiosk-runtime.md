@@ -1,0 +1,3 @@
+# A kiosk runtime permits one active customer operation
+
+Each kiosk runtime atomically leases one customer-operation slot before starting a withdrawal and releases it only after input cancellation, device unlock, scoped-state reset, UI/TTS cleanup, and audit completion. Repeated intents are handled through idempotency while competing entry methods are rejected; node-level device locks remain mandatory because the operation lease and resource ownership solve different problems. This favors deterministic kiosk recovery and customer isolation over unsupported multi-customer concurrency within one runtime.

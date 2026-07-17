@@ -1,0 +1,3 @@
+# Recovery reconciles custody without resuming customer Flow
+
+A new runtime never resumes an unfinished customer operation at credential, input, authentication, or business nodes. It reads only safe operation-ledger state, reconciles possible physical-media custody against device status, and either closes an abandoned operation, runs card-return recovery, or enters terminal intervention when custody is unknown; new operations remain blocked until resolution. This sacrifices transaction continuation to prevent stale secrets, duplicated side effects, and false cleanup after browser or runtime failure.

@@ -1,0 +1,3 @@
+# Hostd mode fails fast instead of silently falling back
+
+The kiosk example supports explicitly selected memory and hostd runtime modes. When hostd mode lacks its required connection, capability, or logical service, startup fails with a visible diagnostic rather than substituting memory devices; an operator may deliberately create a new memory-mode runtime, but an active operation never changes device composition. This preserves evidence that a successful hostd-mode scenario actually exercised the native device path, at the cost of requiring an explicit recovery action during local development.

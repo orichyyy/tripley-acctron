@@ -1,0 +1,3 @@
+# Kiosk runtime is a separate deep module
+
+A new framework-owned `kiosk-runtime` package will expose a small composition facade while containing entry and authentication registries, operation coordination, readiness, recovery, and safe UI projection. It remains independent of React, XFS, and hostd, while `kiosk-base` retains reusable project services and the application supplies concrete adapters and contributions; existing oversized kiosk-base modules are split by responsibility before integration work begins. This avoids turning kiosk-base or the generic plugin manager into a device-aware orchestration layer.

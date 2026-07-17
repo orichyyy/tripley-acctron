@@ -10,12 +10,30 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@tripley/web-container-command-system": "workspace:*",
     "@tripley/web-container-core": "workspace:*",
+    "@tripley/web-container-device-core": "workspace:*",
+    "@tripley/web-container-errors": "workspace:*",
+    "@tripley/web-container-flow-engine": "workspace:*",
     "@tripley/web-container-host-message": "workspace:*",
-    "@tripley/web-container-kiosk-base": "workspace:*"
+    "@tripley/web-container-kiosk-base": "workspace:*",
+    "@tripley/web-container-kiosk-runtime": "workspace:*",
+    "@tripley/web-container-logging": "workspace:*",
+    "@tripley/web-container-prompt-presentation": "workspace:*",
+    "@tripley/web-container-scoped-store": "workspace:*",
+    "@tripley/web-container-tts": "workspace:*",
+    "@tripley/web-container-ui-port": "workspace:*",
+    "@tripley/web-container-xfs-device-service": "workspace:*",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.0",
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
     "typescript": "^5.7.2",
-    "vite": "^6.0.3"
+    "vite": "^6.0.3",
+    "vitest": "^2.1.8"
   }
 }

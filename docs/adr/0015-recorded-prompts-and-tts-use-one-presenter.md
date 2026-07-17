@@ -1,0 +1,3 @@
+# Recorded prompts and TTS use one prompt presenter
+
+Recorded audio and synthesized speech use separate ports because they have different inputs, integrity, deployment, and capability semantics, while one prompt presenter selects and serializes their use from semantic catalog intents. Recorded assets are trusted, versioned contributions addressed by asset ID, and fallback to TTS occurs only when the bank policy for that prompt explicitly permits it; presentation sessions share priority, deduplication, and operation cancellation. This supports approved bank audio without exposing arbitrary media playback to Flow or allowing TTS and recordings to overlap unpredictably.

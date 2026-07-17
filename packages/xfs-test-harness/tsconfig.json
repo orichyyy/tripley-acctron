@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "types": ["node", "vite/client"]
+  },
+  "include": ["src", "vitest.config.ts"]
+}

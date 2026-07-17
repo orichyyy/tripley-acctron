@@ -59,6 +59,7 @@ export class MemoryScopedStore implements ScopedStore {
 
   public async resetTransaction(reason = "transaction.reset"): Promise<void> {
     await this.clearScope("transaction", "default", reason);
+    await this.clearAllMatching("transaction", reason);
     await this.clearAllMatching("flow", reason);
     await this.clearAllMatching("node", reason);
   }

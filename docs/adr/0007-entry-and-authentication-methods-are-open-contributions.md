@@ -1,0 +1,3 @@
+# Entry and authentication methods are open contributions
+
+Withdrawal entry methods are project contributions with independent availability rather than a core IDC/PIN/BCR readiness matrix, and successful credential verification returns an authentication plan rather than entering a fixed PIN step. A selected operation freezes its entry contribution and authentication plan, so NFC, reservation withdrawal, mobile confirmation, and future methods can be added without core changes while unrelated device failures do not interrupt active work. The example may order contact card before QR, but that ordering is preset policy rather than a framework rule.

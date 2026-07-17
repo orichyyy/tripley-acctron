@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@tripley-kit/xrpc-runtime': file:../../front-end/tripley-kit/libs/xrpc-runtime
+
 importers:
 
   .:
@@ -29,22 +32,76 @@ importers:
 
   apps/kiosk-example:
     dependencies:
+      '@tripley/web-container-command-system':
+        specifier: workspace:*
+        version: link:../../packages/command-system
       '@tripley/web-container-core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@tripley/web-container-device-core':
+        specifier: workspace:*
+        version: link:../../packages/device-core
+      '@tripley/web-container-errors':
+        specifier: workspace:*
+        version: link:../../packages/errors
+      '@tripley/web-container-flow-engine':
+        specifier: workspace:*
+        version: link:../../packages/flow-engine
       '@tripley/web-container-host-message':
         specifier: workspace:*
         version: link:../../packages/host-message
       '@tripley/web-container-kiosk-base':
         specifier: workspace:*
         version: link:../../packages/kiosk-base
+      '@tripley/web-container-kiosk-runtime':
+        specifier: workspace:*
+        version: link:../../packages/kiosk-runtime
+      '@tripley/web-container-logging':
+        specifier: workspace:*
+        version: link:../../packages/logging
+      '@tripley/web-container-prompt-presentation':
+        specifier: workspace:*
+        version: link:../../packages/prompt-presentation
+      '@tripley/web-container-scoped-store':
+        specifier: workspace:*
+        version: link:../../packages/scoped-store
+      '@tripley/web-container-tts':
+        specifier: workspace:*
+        version: link:../../packages/tts
+      '@tripley/web-container-ui-port':
+        specifier: workspace:*
+        version: link:../../packages/ui-port
+      '@tripley/web-container-xfs-device-service':
+        specifier: workspace:*
+        version: link:../../packages/xfs-device-service
+      react:
+        specifier: ^19.1.0
+        version: 19.2.7
+      react-dom:
+        specifier: ^19.1.0
+        version: 19.2.7(react@19.2.7)
+      react-router-dom:
+        specifier: ^7.6.0
+        version: 7.18.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      zustand:
+        specifier: ^5.0.5
+        version: 5.0.14(@types/react@19.2.17)(react@19.2.7)
     devDependencies:
+      '@types/react':
+        specifier: ^19.1.0
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: ^19.1.0
+        version: 19.2.3(@types/react@19.2.17)
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
       vite:
         specifier: ^6.0.3
         version: 6.4.3(@types/node@22.20.0)
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.0)
 
   packages/command-system:
     dependencies:
@@ -256,6 +313,46 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.0)
 
+  packages/kiosk-runtime:
+    dependencies:
+      '@tripley/web-container-command-system':
+        specifier: workspace:*
+        version: link:../command-system
+      '@tripley/web-container-errors':
+        specifier: workspace:*
+        version: link:../errors
+      '@tripley/web-container-flow-engine':
+        specifier: workspace:*
+        version: link:../flow-engine
+      '@tripley/web-container-kiosk-base':
+        specifier: workspace:*
+        version: link:../kiosk-base
+      '@tripley/web-container-logging':
+        specifier: workspace:*
+        version: link:../logging
+      '@tripley/web-container-prompt-presentation':
+        specifier: workspace:*
+        version: link:../prompt-presentation
+      '@tripley/web-container-scoped-store':
+        specifier: workspace:*
+        version: link:../scoped-store
+      '@tripley/web-container-types':
+        specifier: workspace:*
+        version: link:../types
+      '@tripley/web-container-ui-port':
+        specifier: workspace:*
+        version: link:../ui-port
+    devDependencies:
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.0)
+
   packages/logging:
     dependencies:
       '@tripley/web-container-errors':
@@ -326,6 +423,25 @@ importers:
       '@tripley/web-container-utils':
         specifier: workspace:*
         version: link:../utils
+    devDependencies:
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.0)
+
+  packages/prompt-presentation:
+    dependencies:
+      '@tripley/web-container-errors':
+        specifier: workspace:*
+        version: link:../errors
+      '@tripley/web-container-tts':
+        specifier: workspace:*
+        version: link:../tts
     devDependencies:
       tsup:
         specifier: ^8.3.5
@@ -513,6 +629,50 @@ importers:
       tsup:
         specifier: ^8.3.5
         version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.0)
+
+  packages/xfs-device-service:
+    dependencies:
+      '@tripley-kit/xfs-client':
+        specifier: file:../../../../front-end/tripley-kit/libs/xfs-client
+        version: file:../../front-end/tripley-kit/libs/xfs-client
+      '@tripley/web-container-device-core':
+        specifier: workspace:*
+        version: link:../device-core
+      '@tripley/web-container-errors':
+        specifier: workspace:*
+        version: link:../errors
+    devDependencies:
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.0)
+
+  packages/xfs-test-harness:
+    dependencies:
+      '@tripley-kit/xfs-client':
+        specifier: file:../../../../front-end/tripley-kit/libs/xfs-client
+        version: file:../../front-end/tripley-kit/libs/xfs-client
+      '@tripley-kit/xfs-control-client':
+        specifier: file:../../../../front-end/tripley-kit/libs/xfs-control-client
+        version: file:../../front-end/tripley-kit/libs/xfs-control-client
+      '@tripley/web-container-device-core':
+        specifier: workspace:*
+        version: link:../device-core
+      '@tripley/web-container-xfs-device-service':
+        specifier: workspace:*
+        version: link:../xfs-device-service
+    devDependencies:
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
@@ -1042,6 +1202,10 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
+  '@msgpack/msgpack@3.1.3':
+    resolution: {integrity: sha512-47XIizs9XZXvuJgoaJUIE2lFoID8ugvc0jzSHP+Ptfk8nTbnR8g788wv48N03Kx0UkAv559HWRQ3yzOgzlRNUA==}
+    engines: {node: '>= 18'}
+
   '@rollup/rollup-android-arm-eabi@4.62.2':
     resolution: {integrity: sha512-6o7ZLZK+BeenkZCFNDXqpbjw9bD6nuWonvS/lwQJp7NoVVxm6p3qE7qQ5jGuBjiFsgvqjD8mZAU5oWxTmbOeOg==}
     cpu: [arm]
@@ -1180,11 +1344,28 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@tripley-kit/xfs-client@file:../../front-end/tripley-kit/libs/xfs-client':
+    resolution: {directory: ../../front-end/tripley-kit/libs/xfs-client, type: directory}
+
+  '@tripley-kit/xfs-control-client@file:../../front-end/tripley-kit/libs/xfs-control-client':
+    resolution: {directory: ../../front-end/tripley-kit/libs/xfs-control-client, type: directory}
+
+  '@tripley-kit/xrpc-runtime@file:../../front-end/tripley-kit/libs/xrpc-runtime':
+    resolution: {directory: ../../front-end/tripley-kit/libs/xrpc-runtime, type: directory}
+
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
 
   '@types/node@22.20.0':
     resolution: {integrity: sha512-QWlFW2wf3nTjC13/DqRnBpR4ZO36VJH/JVBkA/vcnmbTBNQIlnObqyqZE1tUR7+Ni23Lda8R1BxMfbXRpCUx5g==}
+
+  '@types/react-dom@19.2.3':
+    resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
+    peerDependencies:
+      '@types/react': ^19.2.0
+
+  '@types/react@19.2.17':
+    resolution: {integrity: sha512-MXfmqaVPEVgkBT/aY0aGCkRWWtByiYQXo3xdQ8r5RzuFrPiRn8Gar2tQdXSUQ2GKV3bkXckek89V8wQBY2Q/Aw==}
 
   '@vitest/expect@2.1.9':
     resolution: {integrity: sha512-UJCIkTBenHeKT1TTlKMJWy1laZewsRIzYighyYiJKZreqtdxSos/S1t+ktRMQWu2CKqaarrkeszJx1cgC5tGZw==}
@@ -1259,6 +1440,13 @@ packages:
   consola@3.4.2:
     resolution: {integrity: sha512-5IKcdX0nnYavi6G7TtOhwkYzyjfJlatbjMjuLSfE2kYT5pMDOilZ4OvMhi637CcDICTmz3wARPoyhqyX1Y+XvA==}
     engines: {node: ^14.18.0 || >=16.10.0}
+
+  cookie@1.1.1:
+    resolution: {integrity: sha512-ei8Aos7ja0weRpFzJnEA9UHJ/7XQmqglbRwnf2ATjcB9Wq874VKH9kfjjirM6UhU2/E5fFYadylyhFldcqSidQ==}
+    engines: {node: '>=18'}
+
+  csstype@3.2.3:
+    resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
@@ -1400,6 +1588,32 @@ packages:
     resolution: {integrity: sha512-vuwillviilfKZsg0VGj5R/YwwcHx4SLsIOI/7K6mQkWx+l5cUHTjj5g0AasTBcyXsbfTgrwsUNmVUb5xVwyPwg==}
     engines: {node: ^10 || ^12 || >=14}
 
+  react-dom@19.2.7:
+    resolution: {integrity: sha512-t0BRVXvbiE/o20Hfw669rLbMCDWtYZLvmJigy2f0MxsXF+71pxhR3xOkspmsO8h3ZlNzyibAmtCa3l4lYKk6gQ==}
+    peerDependencies:
+      react: ^19.2.7
+
+  react-router-dom@7.18.1:
+    resolution: {integrity: sha512-KaZh+X/6UtEp28x51AUYZDMg9NGoz2ja3dNHa+ta/tk40vCzKhQ/RypCWBMLbmDr6//E24Vv5uPsrqXFozdkAg==}
+    engines: {node: '>=20.0.0'}
+    peerDependencies:
+      react: '>=18'
+      react-dom: '>=18'
+
+  react-router@7.18.1:
+    resolution: {integrity: sha512-GDLgg3i3uM0aeJO3Fm+TCS+sDQ7gu12T6x0qdTEzcwqEfleci7JwugVNIF3U//0FWKnJT7ptG+20B2jfDqnZAg==}
+    engines: {node: '>=20.0.0'}
+    peerDependencies:
+      react: '>=18'
+      react-dom: '>=18'
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+
+  react@19.2.7:
+    resolution: {integrity: sha512-HNe9WslTbXmFK8o8cmwgAeJFSBvt1bPdHCVKtaaV+WlAN36mpT4hcRpwbf3fY56ar2oIXzsBpOAiIRHAdY0OlQ==}
+    engines: {node: '>=0.10.0'}
+
   readdirp@4.1.2:
     resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
     engines: {node: '>= 14.18.0'}
@@ -1412,6 +1626,12 @@ packages:
     resolution: {integrity: sha512-RFnrW4lhXA3s3eqHDZvN654g8OTjzRfqpIRJYczCGB6HzphckVAi/Qh4tbPUbRuDi7s1Llv8g/NspLkttY3gTA==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
+
+  scheduler@0.27.0:
+    resolution: {integrity: sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==}
+
+  set-cookie-parser@2.7.2:
+    resolution: {integrity: sha512-oeM1lpU/UvhTxw+g3cIfxXHyJRc/uidd3yK1P242gzHds0udQBYzs3y8j4gCCW+ZJ7ad0yctld8RYO+bdurlvw==}
 
   siginfo@2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
@@ -1606,6 +1826,24 @@ packages:
     resolution: {integrity: sha512-hUrmaWBdVDcxvYqnyh09zunKzROWjbZTiNy8dBEjkS7ehEDQibXJ7XvlmtbwuTclUiIyN+CyXQD4Vmko8fNm8w==}
     engines: {node: '>=8'}
     hasBin: true
+
+  zustand@5.0.14:
+    resolution: {integrity: sha512-/8tAspM5LMPr28b3fwLYrtdj77ECpfZviaP75CMTnwO8ISyaE4GDIG/9rDDYq/cH9D2Xw2A2RXglLInmVBQB/g==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      '@types/react': '>=18.0.0'
+      immer: '>=9.0.6'
+      react: '>=18.0.0'
+      use-sync-external-store: '>=1.2.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      immer:
+        optional: true
+      react:
+        optional: true
+      use-sync-external-store:
+        optional: true
 
 snapshots:
 
@@ -1883,6 +2121,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  '@msgpack/msgpack@3.1.3': {}
+
   '@rollup/rollup-android-arm-eabi@4.62.2':
     optional: true
 
@@ -1958,11 +2198,31 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.2':
     optional: true
 
+  '@tripley-kit/xfs-client@file:../../front-end/tripley-kit/libs/xfs-client':
+    dependencies:
+      '@tripley-kit/xrpc-runtime': file:../../front-end/tripley-kit/libs/xrpc-runtime
+
+  '@tripley-kit/xfs-control-client@file:../../front-end/tripley-kit/libs/xfs-control-client':
+    dependencies:
+      '@tripley-kit/xrpc-runtime': file:../../front-end/tripley-kit/libs/xrpc-runtime
+
+  '@tripley-kit/xrpc-runtime@file:../../front-end/tripley-kit/libs/xrpc-runtime':
+    dependencies:
+      '@msgpack/msgpack': 3.1.3
+
   '@types/estree@1.0.9': {}
 
   '@types/node@22.20.0':
     dependencies:
       undici-types: 6.21.0
+
+  '@types/react-dom@19.2.3(@types/react@19.2.17)':
+    dependencies:
+      '@types/react': 19.2.17
+
+  '@types/react@19.2.17':
+    dependencies:
+      csstype: 3.2.3
 
   '@vitest/expect@2.1.9':
     dependencies:
@@ -2036,6 +2296,10 @@ snapshots:
   confbox@0.1.8: {}
 
   consola@3.4.2: {}
+
+  cookie@1.1.1: {}
+
+  csstype@3.2.3: {}
 
   debug@4.4.3:
     dependencies:
@@ -2211,6 +2475,27 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
+  react-dom@19.2.7(react@19.2.7):
+    dependencies:
+      react: 19.2.7
+      scheduler: 0.27.0
+
+  react-router-dom@7.18.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+    dependencies:
+      react: 19.2.7
+      react-dom: 19.2.7(react@19.2.7)
+      react-router: 7.18.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+
+  react-router@7.18.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+    dependencies:
+      cookie: 1.1.1
+      react: 19.2.7
+      set-cookie-parser: 2.7.2
+    optionalDependencies:
+      react-dom: 19.2.7(react@19.2.7)
+
+  react@19.2.7: {}
+
   readdirp@4.1.2: {}
 
   resolve-from@5.0.0: {}
@@ -2245,6 +2530,10 @@ snapshots:
       '@rollup/rollup-win32-x64-gnu': 4.62.2
       '@rollup/rollup-win32-x64-msvc': 4.62.2
       fsevents: 2.3.3
+
+  scheduler@0.27.0: {}
+
+  set-cookie-parser@2.7.2: {}
 
   siginfo@2.0.0: {}
 
@@ -2405,3 +2694,8 @@ snapshots:
     dependencies:
       siginfo: 2.0.0
       stackback: 0.0.2
+
+  zustand@5.0.14(@types/react@19.2.17)(react@19.2.7):
+    optionalDependencies:
+      '@types/react': 19.2.17
+      react: 19.2.7

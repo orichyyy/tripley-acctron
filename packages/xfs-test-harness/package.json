@@ -1,0 +1,20 @@
+{
+  "name": "@tripley/web-container-xfs-test-harness",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:hostd": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@tripley-kit/xfs-control-client": "file:../../../../front-end/tripley-kit/libs/xfs-control-client",
+    "@tripley-kit/xfs-client": "file:../../../../front-end/tripley-kit/libs/xfs-client",
+    "@tripley/web-container-device-core": "workspace:*",
+    "@tripley/web-container-xfs-device-service": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

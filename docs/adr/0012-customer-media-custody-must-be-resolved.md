@@ -1,0 +1,3 @@
+# Customer media custody must be resolved before operation release
+
+An entry contribution that accepts physical media owns an explicit custody policy and compensation path. Once a card is inside the IDC, normal completion, rejection, timeout, and interruption must return it and wait for removal, or retain it under bank policy; unknown custody enters terminal intervention and prevents the customer-operation lease from being released as an ordinary clean completion. This makes card return part of the first input/auth vertical slice rather than deferring a customer-safety obligation until cash-dispense support.

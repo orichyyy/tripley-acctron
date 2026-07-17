@@ -134,6 +134,38 @@ describe("UserInputNodeExecutor", () => {
     });
   });
 
+  it("returns the safe value produced by successful business validation", async () => {
+    const inputSources = new InputSourceRegistry();
+    inputSources.register(
+      createResolvedAdapter("test.input", async (source) =>
+        plainResult(source, "raw-sensitive-credential"),
+      ),
+    );
+    const runner = new FlowTestRunner({ inputSources });
+    const flow = singleUserInputFlow(
+      defineUserInputNode({
+        id: "verifyCredential",
+        kind: "userInput",
+        input: {
+          profile: { id: "credential", promptKey: "credential.prompt" },
+          sources: [{ id: "credential", kind: "test.input", secure: true }],
+          validation: {
+            business: () => ({
+              safeSummary: { verified: true },
+              valid: true,
+              value: { credentialId: "safe-reference" },
+            }),
+          },
+        },
+      }),
+    );
+
+    const result = await runner.run(flow, {});
+
+    expect(result.output).toEqual({ credentialId: "safe-reference" });
+    expect(JSON.stringify(result.trace)).not.toContain("raw-sensitive-credential");
+  });
+
   it("logs only safe summaries for secure pin input", async () => {
     const logger = new MemoryLogger();
     const inputSources = new InputSourceRegistry();
