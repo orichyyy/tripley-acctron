@@ -12,6 +12,51 @@ import type {
 } from "./types";
 
 describe("KioskRuntime", () => {
+  it("fails fast when cash safety has no launcher supervision contract", async () => {
+    const configured = options({ entries: [entry("card", [])] });
+    const runtime = createKioskRuntime({
+      ...configured,
+      cashSafety: { enabled: true, restartWindowMs: 30_000 },
+    });
+
+    await expect(runtime.initialize()).rejects.toThrow(/launcher supervision/i);
+  });
+
+  it("blocks customer operations while startup cash recovery is unresolved", async () => {
+    const configured = options({ entries: [entry("card", [])] });
+    const audit: unknown[] = [];
+    const runtime = createKioskRuntime({
+      ...configured,
+      cashSafety: { enabled: true, restartWindowMs: 30_000 },
+      ports: {
+        ...configured.ports,
+        audit: { append: async (event) => { audit.push(event); return event; } },
+        launcherSupervision: {
+          observeStartup: async () => ({
+            previousRuntime: {
+              instanceId: "runtime-old", lostAt: new Date(0).toISOString(),
+            },
+            runtimeInstanceId: "runtime-new",
+            startedAt: new Date(31_000).toISOString(),
+            watchdogHealthy: true,
+          }),
+        },
+        recoveryStartup: {
+          recover: async () => ({
+            safeSummary: { unresolved: 1 }, status: "intervention" as const,
+          }),
+        },
+      },
+    });
+
+    await runtime.initialize();
+
+    expect(runtime.snapshot().readiness.status).toBe("intervention");
+    await expect(runtime.start({ entryMethodId: "card", intentId: "blocked" }))
+      .rejects.toThrow();
+    expect(JSON.stringify(audit)).toContain("restartWindowBreached");
+  });
+
   it("executes a bank reservation contribution through a locally approved challenge", async () => {
     const runtime = createKioskRuntime(
       options({

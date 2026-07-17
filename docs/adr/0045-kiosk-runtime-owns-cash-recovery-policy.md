@@ -1,0 +1,3 @@
+# Kiosk Runtime owns cash recovery policy
+
+An external Kiosk Launcher must replace a failed Kiosk Runtime within a project-defined Runtime Restart Window, and the replacement runtime must pass the Recovery Startup Barrier before accepting customer operations. Production cash-device presets require an explicit launcher supervision contract and restart window rather than claiming a framework default. The Tripley Native Host enforces command leases, authority, epoch, and fencing but does not choose or execute bank cash-recovery policy; if a deployment cannot guarantee the window, it must provide an explicit recovery agent rather than silently extending hostd responsibilities.

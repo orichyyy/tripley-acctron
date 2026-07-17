@@ -8,6 +8,7 @@ import type {
   CashDispensePlan,
   CashInventorySnapshot,
   CashOperationEvidence,
+  CashRecoveryTransferReceipt,
   HeldCashSessionResources,
 } from "./cash-contracts";
 import type { CashPresentationAuthorization, CashPresentationPolicy } from "./cash-policy";
@@ -38,6 +39,10 @@ export interface CashDeliveryTerminalResult {
   readonly after?: CashInventorySnapshot | undefined;
   readonly safeSummary: Readonly<Record<string, unknown>>;
 }
+
+export type CashDeliveryExitResult =
+  | { readonly status: "terminal"; readonly result: CashDeliveryTerminalResult }
+  | { readonly status: "transferred"; readonly receipt: CashRecoveryTransferReceipt };
 
 export interface CashDeliveryPort {
   start(request: StartCashDeliveryRequest): Promise<StartCashDeliveryResult>;
@@ -197,6 +202,7 @@ export class CashDeliverySession {
   private movementPossible = false;
   private retractDispatched = false;
   private reconciliationRequired = false;
+  private recoveryTransferred = false;
   private terminal?: CashDeliveryTerminalResult;
   private readonly consumedAuthorizations = new Set<string>();
 
@@ -207,6 +213,7 @@ export class CashDeliverySession {
   public get isTerminal(): boolean { return this.currentPhase === "terminal"; }
 
   public async dispense(plan: CashDispensePlan): Promise<void> {
+    this.requireForegroundOwnership();
     this.requirePhase("planned");
     this.validatePlan(plan);
     this.planConsumed = true;
@@ -236,6 +243,7 @@ export class CashDeliverySession {
   }
 
   public async present(authorization: CashPresentationAuthorization): Promise<void> {
+    this.requireForegroundOwnership();
     this.requirePhase("staged");
     this.validateAuthorization(authorization);
     this.consumedAuthorizations.add(authorization.id);
@@ -256,6 +264,7 @@ export class CashDeliverySession {
   }
 
   public async waitForTake(): Promise<CashDeliveryTerminalResult> {
+    this.requireForegroundOwnership();
     this.requirePhase("awaitingTake");
     const deadline = Date.now() + this.options.presentationPolicy.takeTimeoutMs;
     while (Date.now() < deadline) {
@@ -280,6 +289,7 @@ export class CashDeliverySession {
   public async abort(
     trigger: "cancel" | "timeout" | "interrupt" | "routeExit" | "runtimeShutdown",
   ): Promise<CashDeliveryTerminalResult> {
+    this.requireForegroundOwnership();
     if (this.terminal) return this.terminal;
     if (this.movementPossible) {
       await this.recordSafely("cash.abort.requested", "flow", "observed", undefined, trigger);
@@ -288,6 +298,35 @@ export class CashDeliverySession {
     }
     if (!this.movementPossible) return this.finish("notDispensed");
     return this.retract(trigger);
+  }
+
+  public async exit(
+    trigger: NonNullable<CashOperationEvidence["trigger"]>,
+  ): Promise<CashDeliveryExitResult> {
+    this.requireForegroundOwnership();
+    if (this.terminal) return { result: this.terminal, status: "terminal" };
+    if (!this.movementPossible) {
+      return { result: await this.abort(trigger), status: "terminal" };
+    }
+    const transfer = this.options.dependencies.recoveryTransfer;
+    if (!transfer) {
+      throw cashError(
+        "cash.recoveryTransfer.unavailable",
+        "A non-terminal cash session cannot exit without a Recovery Supervisor.",
+      );
+    }
+    await this.recordSafely("cash.abort.requested", "flow", "observed", undefined, trigger);
+    await this.updateRecovery();
+    const receipt = await transfer.acceptTransfer({
+      evidenceSequence: this.sequence,
+      hostCommandLease: this.options.resources.hostCommandLease,
+      lease: this.options.resources.recoveryLease,
+      phase: this.currentPhase,
+      releaseForegroundResources: () => this.options.resources.deviceLease.release(),
+      trigger,
+    });
+    this.recoveryTransferred = true;
+    return { receipt, status: "transferred" };
   }
 
   private async retract(
@@ -431,6 +470,15 @@ export class CashDeliverySession {
       this.currentPhase,
       this.sequence,
     );
+  }
+
+  private requireForegroundOwnership(): void {
+    if (this.recoveryTransferred) {
+      throw cashError(
+        "cash.recoveryTransfer.foregroundOwnerStale",
+        "Foreground cash-session ownership has already transferred to recovery.",
+      );
+    }
   }
 
   private positionRequest() {

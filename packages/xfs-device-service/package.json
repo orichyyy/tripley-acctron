@@ -21,7 +21,8 @@
   "dependencies": {
     "@tripley-kit/xfs-client": "file:../../../../front-end/tripley-kit/libs/xfs-client",
     "@tripley/web-container-device-core": "workspace:*",
-    "@tripley/web-container-errors": "workspace:*"
+    "@tripley/web-container-errors": "workspace:*",
+    "@tripley/web-container-storage-core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.3.5",

@@ -205,6 +205,33 @@ export interface KioskAuditPort {
   }): Promise<unknown>;
 }
 
+export interface LauncherStartupObservation {
+  readonly runtimeInstanceId: string;
+  readonly startedAt: string;
+  readonly watchdogHealthy: boolean;
+  readonly previousRuntime?: {
+    readonly instanceId: string;
+    readonly lostAt: string;
+    readonly exitReason?: string | undefined;
+  } | undefined;
+}
+
+export interface KioskLauncherSupervisionPort {
+  observeStartup(): Promise<LauncherStartupObservation>;
+}
+
+export interface RecoveryStartupBarrierPort {
+  recover(): Promise<{
+    readonly status: "ready" | "recovering" | "intervention";
+    readonly safeSummary: Readonly<Record<string, string | number | boolean>>;
+  }>;
+}
+
+export interface CashRuntimeSafetyPolicy {
+  readonly enabled: boolean;
+  readonly restartWindowMs: number;
+}
+
 export interface KioskRuntimePorts {
   readonly ledger: OperationLedger;
   readonly scopedStore: ScopedStore;
@@ -212,6 +239,8 @@ export interface KioskRuntimePorts {
   readonly audit?: KioskAuditPort | undefined;
   readonly logger?: LoggerPort | undefined;
   readonly prompt?: PromptPresenterPort | undefined;
+  readonly launcherSupervision?: KioskLauncherSupervisionPort | undefined;
+  readonly recoveryStartup?: RecoveryStartupBarrierPort | undefined;
 }
 
 export interface KioskRuntimeOptions {
@@ -225,6 +254,7 @@ export interface KioskRuntimeOptions {
     | ((assessment: CredentialAssessment) => readonly AuthenticationRequirement[])
     | undefined;
   readonly policy: OperationInteractionPolicy;
+  readonly cashSafety?: CashRuntimeSafetyPolicy | undefined;
   readonly ports: KioskRuntimePorts;
   readonly now?: (() => number) | undefined;
   readonly operationIdFactory?: (() => string) | undefined;

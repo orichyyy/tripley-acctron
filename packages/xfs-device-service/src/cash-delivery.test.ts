@@ -78,6 +78,28 @@ describe("XfsCashDeliveryPort", () => {
       satisfiedGates: ["bank.mobileOtp"],
     })).rejects.toThrow(/authorization is invalid/i);
   });
+
+  it("permanently removes foreground authority after recovery transfer", async () => {
+    const transfers: unknown[] = [];
+    const fixture = createFixture({
+      recoveryTransfer: {
+        acceptTransfer: async (input) => {
+          transfers.push(input);
+          return { fencingToken: 2, leaseId: "recovery-1", state: "recoveryBound" as const };
+        },
+      },
+    });
+    const started = await fixture.port.start(request(1_000));
+    await started.session.dispense(started.plan);
+
+    await expect(started.session.exit("routeExit")).resolves.toMatchObject({
+      status: "transferred",
+    });
+    await expect(started.session.abort("cancel")).rejects.toThrow(/already transferred/i);
+    expect(fixture.calls.present).toBe(0);
+    expect(fixture.calls.retract).toBe(0);
+    expect(transfers).toHaveLength(1);
+  });
 });
 
 const policy: CashPresentationPolicy = {
@@ -95,7 +117,10 @@ const request = (minorUnits: number) => ({
   presentationPolicy: policy,
 });
 
-const createFixture = (options: { readonly failBefore?: boolean } = {}) => {
+const createFixture = (options: {
+  readonly failBefore?: boolean;
+  readonly recoveryTransfer?: CashDeliveryDependencies["recoveryTransfer"];
+} = {}) => {
   const calls = { denominate: 0, dispense: 0, present: 0, retract: 0, releaseLease: 0 };
   const evidence: CashOperationEvidence[] = [];
   let nextId = 0;
@@ -118,6 +143,7 @@ const createFixture = (options: { readonly failBefore?: boolean } = {}) => {
       hasUnresolved: async () => false,
       update: async () => {},
     },
+    recoveryTransfer: options.recoveryTransfer,
   };
   const cdm = {
     denominate: async ({ denomination }: { denomination: unknown }) => {

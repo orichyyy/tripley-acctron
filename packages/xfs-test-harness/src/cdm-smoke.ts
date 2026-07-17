@@ -74,6 +74,16 @@ export async function prepareHostdCdmSimulator(
       sessionId,
       timeoutMs: 5_000,
     });
+    lease = await xfs.commandLeases!.transition({
+      fencingToken: lease.fencingToken,
+      fromAuthority: "transaction",
+      hostEpoch: lease.hostEpoch,
+      logicalService: lease.logicalService,
+      nextFencingToken: lease.fencingToken + 1,
+      operationId: lease.operationId,
+      toAuthority: "recovery",
+      ttlMs: 60_000,
+    });
 
     return summarize(logicalName, profileName, cashUnitInfo, lease.hostEpoch);
   } finally {

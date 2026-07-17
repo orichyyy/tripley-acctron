@@ -103,6 +103,25 @@ export interface CashRecoveryLease {
   readonly cashSessionId: string;
   readonly ownerInstanceId: string;
   readonly fencingToken: number;
+  readonly logicalService?: string | undefined;
+  readonly revision?: number | undefined;
+}
+
+export interface CashRecoveryTransferReceipt {
+  readonly leaseId: string;
+  readonly state: "recoveryBound" | "transferPending";
+  readonly fencingToken: number;
+}
+
+export interface CashRecoveryTransferPort {
+  acceptTransfer(input: {
+    readonly lease: CashRecoveryLease;
+    readonly hostCommandLease: HeldCashSessionResources["hostCommandLease"];
+    readonly phase: CashDeliveryPhase;
+    readonly evidenceSequence: number;
+    readonly trigger: NonNullable<CashOperationEvidence["trigger"]>;
+    readonly releaseForegroundResources: () => Promise<void>;
+  }): Promise<CashRecoveryTransferReceipt>;
 }
 
 export interface CashRecoveryLeasePort {
@@ -122,6 +141,7 @@ export interface CashDeliveryDependencies {
   readonly evidence: OperationEvidenceRecorderPort;
   readonly emergencySpool: EmergencyEvidenceSpoolPort;
   readonly recoveryLeases: CashRecoveryLeasePort;
+  readonly recoveryTransfer?: CashRecoveryTransferPort | undefined;
   readonly now?: () => Date;
   readonly monotonicNow?: () => number;
   readonly idFactory?: () => string;

@@ -12,6 +12,7 @@ import type {
   XfsCommandLease,
   XfsCommandLeaseReleaseRequest,
   XfsCommandLeaseRequest,
+  XfsCommandLeaseTransitionRequest,
   XfsIdcEjectCardRequest,
   XfsIdcReadRawDataRequest,
   XfsIdcRequest,
@@ -149,6 +150,8 @@ export interface XfsCommandLeaseClientLike {
   getHostEpoch(): Promise<string>;
   acquire(request: XfsCommandLeaseRequest): Promise<XfsCommandLease>;
   release(request: XfsCommandLeaseReleaseRequest): Promise<void>;
+  status(logicalService: string): Promise<XfsCommandLease | null>;
+  transition(request: XfsCommandLeaseTransitionRequest): Promise<XfsCommandLease>;
 }
 
 export interface XfsRuntimeClientLike {

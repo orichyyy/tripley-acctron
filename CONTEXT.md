@@ -323,3 +323,43 @@ The native-host execution guard for a logical service. Side-effecting commands c
 ### Device Command Authority
 
 The mode and command whitelist attached to a host-backed logical-service lease. Transaction, recovery, maintenance, observation, and test-only simulator-control authorities have different permissions and explicit mutual-exclusion rules.
+
+### Recovery Startup Barrier
+
+The state that prevents a replacement Kiosk Runtime from accepting customer operations until every unresolved physical-media responsibility from an earlier runtime has reached a terminal outcome or Terminal Intervention.
+_Avoid_: Normal startup check, background recovery, automatic transaction resume
+
+### Runtime Restart Window
+
+The project-defined maximum interval between loss of a Kiosk Runtime and a replacement runtime taking recovery ownership. It bounds recovery delay without transferring business recovery policy to the Tripley Native Host.
+_Avoid_: Hostd recovery timeout, transaction timeout, unlimited restart delay
+
+### Kiosk Launcher
+
+The deployment supervisor that starts, monitors, and replaces a Kiosk Runtime and reports the previous runtime instance outcome. It is outside both the Kiosk Runtime and the Tripley Native Host.
+_Avoid_: Hostd watchdog, browser helper, recovery supervisor
+
+### Recovery Authority Transition
+
+The owner-authorized replacement of transaction command authority with recovery authority for the same operation, session, and logical service while advancing its fencing token without an unowned command window.
+_Avoid_: Lease release and reacquire, recovery takeover, authority flag update
+
+### Recovery Deadline
+
+The escalation threshold by which a Recovery Supervisor is expected to resolve physical-media custody. Passing it records a supervision breach and requires Terminal Intervention but does not release command fencing or prohibit evidence-backed custody-reducing action.
+_Avoid_: Lease expiry, command timeout, compensation stop time
+
+### Maintenance Intervention Session
+
+The authenticated, locally controlled session that takes fenced maintenance authority from a Recovery Supervisor to investigate and resolve Terminal Intervention under project policy.
+_Avoid_: Remote clear command, admin screen, maintenance flag
+
+### Intervention Resolution
+
+An append-only operator reconciliation outcome that records how an intervention was investigated and whether the device may return to service without rewriting the original custody, deadline, or execution evidence.
+_Avoid_: Error reset, status overwrite, intervention deletion
+
+### Recovery Transfer Boundary
+
+The point at which foreground business ownership must move to the Recovery Supervisor because physical cash has moved or cannot be proven not to have moved. UI exit, cancellation, and timeout are interruption triggers rather than substitutes for this physical-risk boundary.
+_Avoid_: Flow exit hook, cancellation boundary, screen lifecycle
