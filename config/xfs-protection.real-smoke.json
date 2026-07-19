@@ -1,0 +1,18 @@
+{
+  "journalPath": "data/xfs-protection-real-smoke.db",
+  "defaultGraceMs": 1000,
+  "groups": [
+    {
+      "id": "cash-transport-1",
+      "members": [
+        { "logicalService": "CDM", "module": "cdm" },
+        { "logicalService": "CIM", "module": "cim" }
+      ],
+      "disconnectAction": {
+        "kind": "cimRollback",
+        "logicalService": "CIM",
+        "timeoutMs": 30000
+      }
+    }
+  ]
+}

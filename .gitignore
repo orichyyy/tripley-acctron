@@ -4,3 +4,4 @@ dist/
 coverage/
 .turbo/
 .tmp/
+/data/xfs-protection*.db*
