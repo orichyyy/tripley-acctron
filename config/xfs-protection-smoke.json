@@ -1,0 +1,14 @@
+{
+  "journalPath": ".tmp/xfs-protection-smoke.db",
+  "defaultGraceMs": 50,
+  "groups": [
+    {
+      "id": "cash-transport-1",
+      "members": [
+        { "logicalService": "CDM30", "module": "cdm" },
+        { "logicalService": "CIM30", "module": "cim" }
+      ],
+      "disconnectAction": { "kind": "intervention" }
+    }
+  ]
+}

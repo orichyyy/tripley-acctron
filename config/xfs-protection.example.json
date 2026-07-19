@@ -1,0 +1,18 @@
+{
+  "journalPath": "data/xfs-protection.db",
+  "defaultGraceMs": 5000,
+  "groups": [
+    {
+      "id": "cash-transport-1",
+      "members": [
+        { "logicalService": "CDM30", "module": "cdm" },
+        { "logicalService": "CIM30", "module": "cim" }
+      ],
+      "disconnectAction": {
+        "kind": "cimRollback",
+        "logicalService": "CIM30",
+        "timeoutMs": 30000
+      }
+    }
+  ]
+}

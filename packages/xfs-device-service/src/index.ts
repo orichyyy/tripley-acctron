@@ -9,6 +9,7 @@ export * from "./cash-acceptance-store";
 export * from "./cash-acceptance";
 export * from "./cash-acceptance-sql-store";
 export * from "./cash-acceptance-recovery";
+export * from "./cash-acceptance-lease-adapter";
 export * from "./cdm-adapter";
 export * from "./cim-adapter";
 export * from "./investigation";
