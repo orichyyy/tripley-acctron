@@ -217,6 +217,27 @@ _Avoid_: Message format, field profile
 An adapter that maps a business host operation to an API interaction such as HTTP request method, path, headers, JSON body, status, and response mapping.
 _Avoid_: ISO 8583 codec, HTTP message format
 
+**Host Posting Protocol**:
+The operation-frozen project contract defining which host milestones constitute financial handling for a transaction, such as authorization-only or authorization followed by completion. It remains independent from physical-media actions and allows project-specific protocol contributions.
+
+**Host Financial Completion Message**:
+An optional outbound post-authorization message required only by Host Posting Protocols that use a second financial phase. Some external protocols call it commit, but framework contracts avoid the unqualified term.
+
+**Host Posting Outcome**:
+The normalized financial result produced under one Host Posting Protocol, preserving authorization, optional completion, advice, and reversal facts without inference from device custody.
+
+**Operation Finalization**:
+The mandatory, durable application lifecycle that closes every operation after its business activity stops, regardless of outcome. It preserves evidence, resolves or transfers custody, performs configured cleanup, and closes resources without implying any host message or device physical commit.
+
+**Operation Finalization Plan**:
+The operation-frozen set and order of registered finalizers, their dependencies, criticality, idempotency identity, and failure policy. A Host Posting Protocol may contribute a Host Financial Completion Message step, but absence of that step never omits local finalization.
+
+**Operation Finalizer**:
+A registered, versioned, idempotent contribution that performs one focused finalization responsibility and records its durable result. Device, framework, and project finalizers use the same registry rather than adding transaction-type branches to the finalization core.
+
+**Finalizer Criticality**:
+The closure effect of an Operation Finalizer: custody-critical, closure-required, detached-durable, or runtime-cleanup. It states whether failure blocks resource release, requires durable retry before record closure, continues independently through an outbox, or is recorded as local cleanup failure without changing business facts.
+
 **Safe Host Message Record**:
 A persistable transaction-timeline projection containing profile identity, direction, status, timing, correlation metadata, wire size, result summary, and only policy-approved masked or tokenized fields.
 _Avoid_: Raw wire message, complete decoded field bag, diagnostic hex dump
@@ -288,6 +309,10 @@ The identity tuple used to correlate a cash-unit observation across snapshots. I
 
 The configuration or replenishment generation of a logical cash-unit slot. A denomination plan is valid only for its bound revision, and snapshots with different revisions cannot be treated as a direct transaction delta without reconciliation.
 
+### Cash Inventory Revision
+
+The monotonically increasing observation generation for a Cash Device Resource Group's shared cash-unit inventory. A confirmed or potentially inventory-changing CIM action invalidates plans and observations bound to an older revision until reconciliation establishes a new authoritative generation.
+
 ### Cash Movement Reconciliation
 
 A versioned comparison of business-requested or declared value, device-planned and device-reported value, compatible inventory observations, customer custody outcome, and host posting outcome. It preserves each fact's source and certainty instead of forcing them into one amount or status.
@@ -304,9 +329,65 @@ The CDM-specific owner of denomination planning, dispensing to staging, authoriz
 
 The CIM-specific owner of media acceptance, escrow, counting, commit, return, retract, and custody reconciliation. Escrowed media is not treated as committed inventory, and the session does not reuse the CDM delivery state model.
 
+### Cash Acceptance Physical Commit Policy
+
+The operation-frozen project policy naming the registered gates required before escrowed media may be physically committed to device inventory. It may govern host posting order but never merges customer confirmation, physical commit, and financial posting into one outcome.
+
+### Cash Acceptance Physical Commit Authorization
+
+A short-lived, one-use authorization bound to an operation, cash acceptance session, frozen physical-commit policy, and satisfied commit gates. CIM Physical Commit requires this authorization so project flows cannot bypass deposit safety prerequisites.
+
+### CIM Physical Commit
+
+The device action that moves one exact escrow revision into CIM inventory, represented by XFS `cashInEnd`. It is distinct from every host authorization, completion, advice, reversal, or posting outcome.
+
+### Deposit Custody Outcome
+
+The CIM-specific terminal result for one Deposit Media Portion: `committedToInventory`, `returnedAndTaken`, `retainedByDevice`, or `custodyUnknown`. It is independent from the interruption trigger, other portions, and host financial posting.
+
+### Deposit Media Portion
+
+A separately traceable subset of media in one Cash Acceptance Session, identified by source batch, known count and value certainty, and physical disposition. Accepted escrow, refused media, and unaccounted potential media are different portions even when produced by one insertion.
+
+### Deposit Custody Resolution
+
+The terminal aggregation of every known or potential Deposit Media Portion in a Cash Acceptance Session. The session closes only when every portion has a Deposit Custody Outcome, while a session that never formed a portion resolves as `noMediaAccepted`.
+
+### Returned Awaiting Take
+
+The non-terminal CIM custody phase in which a media portion has been moved to the customer entry position but has not been observed as taken. A successful return command does not make this phase a terminal deposit outcome.
+
+### Cash Acceptance Snapshot
+
+An immutable, revisioned observation of the media currently attributed to one Cash Acceptance Session, including denomination counts and currency-separated totals. Customer confirmation, host posting, and physical-commit authorization refer to its exact revision; any later media or count change invalidates prior authorization.
+
+### Cash Acceptance Batch
+
+An immutable result of one attempted CIM `cashIn` cycle within a Cash Acceptance Session, preserving accepted, refused, unfit, and uncertain media portions. A completed batch advances the Cash Acceptance Snapshot revision.
+
+### Cash Acceptance Limit Policy
+
+The operation-frozen project limits for cumulative and per-batch item counts, currency-separated values, batch count, accepted note types, and time bounds. It combines project restrictions with device capabilities without claiming selective commit support.
+
+### Cash Acceptance Entry Gate
+
+The fail-closed boundary that establishes exclusive device authority, a complete durable before-inventory snapshot, the acceptance session, and its recovery lease before the CIM input position may accept customer media. Dispatch uncertainty after this gate is treated as potential media custody rather than harmless initialization failure.
+
+### Cash Acceptance Abort Disposition
+
+The immediate result of requesting that a Cash Acceptance Session stop future business actions: closed without accepted media, durably transferred to recovery, or already terminal. It never claims that a native command was cancelled or that customer media was returned.
+
+### Deposit Return Policy
+
+The operation-frozen project policy defining trusted customer-take observations, take timeout, permitted retract destination, and intervention behavior for returned or refused media. It supplies no implicit production timeout or physical destination.
+
+### Cash Device Resource Group
+
+The configured identity of one physical cash mechanism whose CDM and CIM logical services share transport, shutters, stackers, cash units, or retract areas. Transaction, recovery, and maintenance authority is fenced across the whole group even though command whitelists remain logical-service-specific.
+
 ### Cash Recovery Lease
 
-A durable ownership record for a non-terminal CDM or CIM session. It stores the last known physical phase, operation and logical-service identity, evidence sequence, recovery deadline, owner instance, and a monotonically increasing fencing token so only one runtime may issue recovery commands.
+A durable ownership record for a non-terminal CDM or CIM session. It stores the last known physical phase, operation, logical-service and cash-resource-group identity, evidence sequence, recovery deadline, owner instance, and a monotonically increasing fencing token so only one runtime may issue recovery commands.
 
 ### At-Most-Once Device Dispatch
 
@@ -323,6 +404,30 @@ The native-host execution guard for a logical service. Side-effecting commands c
 ### Device Command Authority
 
 The mode and command whitelist attached to a host-backed logical-service lease. Transaction, recovery, maintenance, observation, and test-only simulator-control authorities have different permissions and explicit mutual-exclusion rules.
+
+### Host Disconnect Protection
+
+The host-owned, bounded physical-media safeguarding process activated when an application command owner is lost. It may only observe or reduce custody risk under frozen deployment policy and never resumes customer business, posts financial messages, presents cash, dispenses, or physically commits CIM escrow.
+
+### Protection Authority
+
+The internal host authority that atomically fences a lost transaction owner and permits only validated Host Disconnect Protection actions for its Cash Device Resource Group. Application owners may observe but cannot reclaim transaction authority after protection begins.
+
+### Protection Activation
+
+The irreversible transition from a suspected connection loss to Protection Authority after the phase-specific grace window expires. It advances fencing, permanently stales the former owner, and preserves any in-flight command's execution uncertainty before selecting another physical action.
+
+### Protection Journal
+
+The host-persisted, operation-scoped record of disconnect-protection trigger, policy identity, observations, dispatch intents, execution certainty, and safe physical outcomes. It is imported into application evidence after reconnect but does not replace the transaction database or EJ.
+
+### Protection Journal Store
+
+The host-owned durable persistence boundary that atomically records protection activation and every side-effect intent before native dispatch. If it is unavailable, hostd retains fencing and observation capability but cannot issue a new protective side effect.
+
+### Protection Policy Plugin
+
+A startup-loaded, versioned decision contribution that maps safe protection context to one action from a closed host-validated vocabulary. It has no direct XFS, network, filesystem, financial-message, or unrestricted payload access.
 
 ### Recovery Startup Barrier
 

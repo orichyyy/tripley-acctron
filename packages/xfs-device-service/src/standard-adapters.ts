@@ -6,6 +6,7 @@ import {
 
 import { createStatusHealthCheck } from "./adapter-utils";
 import { xfsCdmDeviceModuleAdapter } from "./cdm-adapter";
+import { cimDeviceModuleAdapter } from "./cim-adapter";
 import { XfsDeviceModuleAdapterRegistry, type XfsDeviceModuleAdapter } from "./module-adapters";
 import {
   XfsBarcodeReaderDevicePort,
@@ -98,7 +99,8 @@ export const createStandardXfsModuleAdapterRegistry = (): XfsDeviceModuleAdapter
     .register(idcAdapter)
     .register(pinAdapter)
     .register(bcrAdapter)
-    .register(xfsCdmDeviceModuleAdapter);
+    .register(xfsCdmDeviceModuleAdapter)
+    .register(cimDeviceModuleAdapter);
 
 const descriptor = (
   config: Parameters<NonNullable<XfsDeviceModuleAdapter["validate"]>>[0],
