@@ -132,6 +132,10 @@ _Avoid_: Customer debit state, denomination plan, cash-unit inventory
 **Terminal Intervention**:
 A state in which unresolved physical-media custody or equivalent safety risk prevents new customer operations until an authorized recovery action occurs.
 _Avoid_: Validation failure, ordinary device degradation
+
+**Protection Recovery Import**:
+The durable, idempotent application process that copies safe Tripley Native Host protection facts into application evidence and project audit projections before host protection is acknowledged and service admission is restored.
+_Avoid_: Flow resume, host journal deletion, acknowledgement retry loop
 **Operation Deadline**:
 The absolute time limit for a customer operation's business activity, unaffected by validation reentry or ordinary user interaction.
 _Avoid_: Node timeout, renewable session timeout

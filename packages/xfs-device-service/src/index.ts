@@ -21,4 +21,8 @@ export * from "./standard-adapters";
 export * from "./recovery-contracts";
 export * from "./recovery-store";
 export * from "./recovery-supervisor";
+export * from "./protection-recovery-contracts";
+export * from "./protection-recovery-host-adapter";
+export * from "./protection-recovery-store";
+export * from "./protection-recovery-barrier";
 export * from "./types";
