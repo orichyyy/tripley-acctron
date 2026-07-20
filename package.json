@@ -10,7 +10,7 @@
     "format": "biome format --write .",
     "test": "vitest run --passWithNoTests",
     "test:xfs-hostd": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-xfs-hostd.ps1",
-    "test:xfs-hostd:contract": "pnpm --filter @tripley/web-container-kiosk-runtime build && pnpm --filter @tripley/web-container-xfs-device-service build && vitest run --config packages/xfs-test-harness/vitest.config.ts",
+    "test:xfs-hostd:contract": "pnpm --filter @tripley-kit/web-container-kiosk-runtime build && pnpm --filter @tripley-kit/web-container-xfs-device-service build && vitest run --config packages/xfs-test-harness/vitest.config.ts",
     "typecheck": "pnpm -r typecheck"
   },
   "pnpm": {

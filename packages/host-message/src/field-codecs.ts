@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@tripley/web-container-types";
+import { err, ok, type Result } from "@tripley-kit/web-container-types";
 import { bytesToHex, hexToBytes } from "./bytes";
 import type {
   EncodedFieldValue,

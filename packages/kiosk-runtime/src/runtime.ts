@@ -1,4 +1,4 @@
-import { CommandRegistry } from "@tripley/web-container-command-system";
+import { CommandRegistry } from "@tripley-kit/web-container-command-system";
 
 import { LocalAuthenticationPlanPolicy } from "./authentication";
 import { CustomerOperationCoordinator } from "./coordinator";

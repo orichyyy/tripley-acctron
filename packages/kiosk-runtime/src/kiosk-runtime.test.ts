@@ -1,7 +1,7 @@
-import { InMemoryOperationLedger } from "@tripley/web-container-kiosk-base";
-import type { PromptPresenterPort } from "@tripley/web-container-prompt-presentation";
-import { MemoryScopedStore } from "@tripley/web-container-scoped-store";
-import { FrameworkUiPort, MemoryUiStateAdapter } from "@tripley/web-container-ui-port";
+import { InMemoryOperationLedger } from "@tripley-kit/web-container-kiosk-base";
+import type { PromptPresenterPort } from "@tripley-kit/web-container-prompt-presentation";
+import { MemoryScopedStore } from "@tripley-kit/web-container-scoped-store";
+import { FrameworkUiPort, MemoryUiStateAdapter } from "@tripley-kit/web-container-ui-port";
 import { describe, expect, it } from "vitest";
 
 import { createKioskRuntime } from "./runtime";

@@ -1,4 +1,4 @@
-export const deviceCorePackageName = "@tripley/web-container-device-core";
+export const deviceCorePackageName = "@tripley-kit/web-container-device-core";
 
 export * from "./extension-registry";
 export * from "./devices";

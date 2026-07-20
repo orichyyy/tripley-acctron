@@ -1,11 +1,11 @@
-import { CommandRegistry } from "@tripley/web-container-command-system";
-import { ConditionRegistry } from "@tripley/web-container-condition-engine";
-import type { InputSourceAdapter } from "@tripley/web-container-device-core";
-import { InputSourceRegistry } from "@tripley/web-container-device-core";
-import { FlowNodeExecutorRegistry, FlowTestRunner } from "@tripley/web-container-flow-engine";
-import type { LoggerPort } from "@tripley/web-container-logging";
-import { MemoryScopedStore } from "@tripley/web-container-scoped-store";
-import { FrameworkUiPort, MemoryUiStateAdapter } from "@tripley/web-container-ui-port";
+import { CommandRegistry } from "@tripley-kit/web-container-command-system";
+import { ConditionRegistry } from "@tripley-kit/web-container-condition-engine";
+import type { InputSourceAdapter } from "@tripley-kit/web-container-device-core";
+import { InputSourceRegistry } from "@tripley-kit/web-container-device-core";
+import { FlowNodeExecutorRegistry, FlowTestRunner } from "@tripley-kit/web-container-flow-engine";
+import type { LoggerPort } from "@tripley-kit/web-container-logging";
+import { MemoryScopedStore } from "@tripley-kit/web-container-scoped-store";
+import { FrameworkUiPort, MemoryUiStateAdapter } from "@tripley-kit/web-container-ui-port";
 
 import { createKioskProjectBlueprint } from "../preset";
 import { InMemoryAuditJournalRepository, InMemoryTransactionRepository } from "../repositories";

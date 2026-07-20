@@ -1,4 +1,4 @@
-import type { PluginModule } from "@tripley/web-container-plugin-system";
+import type { PluginModule } from "@tripley-kit/web-container-plugin-system";
 
 export const idCardReaderPlugin: PluginModule = {
   manifest: {

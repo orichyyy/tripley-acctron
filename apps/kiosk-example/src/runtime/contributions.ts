@@ -2,13 +2,13 @@ import type {
   DeviceLockManager,
   DeviceRegistry,
   InputSourceRegistry,
-} from "@tripley/web-container-device-core";
+} from "@tripley-kit/web-container-device-core";
 import type {
   AuthenticationChallengeContribution,
   EntryMethodContribution,
   OperationExecutionContext,
-} from "@tripley/web-container-kiosk-runtime";
-import type { XfsCardReaderPort } from "@tripley/web-container-xfs-device-service";
+} from "@tripley-kit/web-container-kiosk-runtime";
+import type { XfsCardReaderPort } from "@tripley-kit/web-container-xfs-device-service";
 
 import type { UiInputBroker } from "./input-broker";
 import { type InputRunnerDependencies, runUserInput } from "./input-runner";

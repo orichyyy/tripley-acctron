@@ -2,8 +2,8 @@ import {
   DeviceLockManager,
   DeviceRegistry,
   InputSourceRegistry,
-} from "@tripley/web-container-device-core";
-import { MemoryScopedStore } from "@tripley/web-container-scoped-store";
+} from "@tripley-kit/web-container-device-core";
+import { MemoryScopedStore } from "@tripley-kit/web-container-scoped-store";
 
 import { FlowNodeExecutorRegistry } from "./registries";
 import type {

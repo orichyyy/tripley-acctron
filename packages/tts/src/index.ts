@@ -1,7 +1,7 @@
-import { FrameworkError } from "@tripley/web-container-errors";
-import type { NativePort } from "@tripley/web-container-native-adapter";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import type { NativePort } from "@tripley-kit/web-container-native-adapter";
 
-export const ttsPackageName = "@tripley/web-container-tts";
+export const ttsPackageName = "@tripley-kit/web-container-tts";
 
 export interface TtsSpeakOptions {
   readonly voiceId?: string | undefined;

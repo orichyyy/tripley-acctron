@@ -1,4 +1,4 @@
-import type { Metadata } from "@tripley/web-container-types";
+import type { Metadata } from "@tripley-kit/web-container-types";
 
 export type ErrorSeverity = "debug" | "info" | "warning" | "error" | "fatal";
 

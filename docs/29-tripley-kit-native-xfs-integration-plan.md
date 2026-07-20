@@ -33,7 +33,7 @@ The integration must preserve the framework rule that application code talks to 
 Kiosk application
   -> Command / Flow / UI / Condition
   -> DeviceRegistry + InputSourceRegistry + HealthCheckCenter
-  -> @tripley/web-container-xfs-device-service
+  -> @tripley-kit/web-container-xfs-device-service
   -> @tripley-kit/xfs-client
   -> @tripley-kit/xrpc-runtime WebSocketXRpcTransport
   -> tripley-native-hostd
@@ -41,7 +41,7 @@ Kiosk application
 
 Automated simulator tests
   -> Test harness
-  -> @tripley/web-container-xfs-test-harness
+  -> @tripley-kit/web-container-xfs-test-harness
   -> @tripley-kit/xfs-control-client
   -> tripley-native-hostd xfs-control service
   -> XFS simulator control websocket
@@ -97,10 +97,10 @@ Runtime dependencies:
 
 - `@tripley-kit/xfs-client`
 - `@tripley-kit/xrpc-runtime`
-- `@tripley/web-container-device-core`
-- `@tripley/web-container-plugin-system`
-- `@tripley/web-container-errors`
-- `@tripley/web-container-logging`
+- `@tripley-kit/web-container-device-core`
+- `@tripley-kit/web-container-plugin-system`
+- `@tripley-kit/web-container-errors`
+- `@tripley-kit/web-container-logging`
 
 No dependency on React, React Router, or simulator control.
 

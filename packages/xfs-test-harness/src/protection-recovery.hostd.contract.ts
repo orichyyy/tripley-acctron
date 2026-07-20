@@ -7,7 +7,7 @@ import {
   InMemoryProtectionRecoveryStore,
   ProtectionRecoveryStartupBarrier,
   XfsProtectionRecoveryHostAdapter,
-} from "@tripley/web-container-xfs-device-service";
+} from "@tripley-kit/web-container-xfs-device-service";
 import { describe, expect, it } from "vitest";
 
 const confirmation = "I_UNDERSTAND_SIMULATOR_ONLY";

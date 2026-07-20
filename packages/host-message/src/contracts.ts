@@ -1,4 +1,4 @@
-import type { Result } from "@tripley/web-container-types";
+import type { Result } from "@tripley-kit/web-container-types";
 
 export type DataClassification = "public" | "internal" | "sensitive" | "secret";
 export type MessageDirection = "request" | "response" | "advice";

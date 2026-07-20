@@ -1,5 +1,5 @@
 {
-  "name": "@tripley/web-container-prompt-presentation",
+  "name": "@tripley-kit/web-container-prompt-presentation",
   "version": "0.1.0",
   "type": "module",
   "sideEffects": false,
@@ -19,8 +19,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@tripley/web-container-errors": "workspace:*",
-    "@tripley/web-container-tts": "workspace:*"
+    "@tripley-kit/web-container-errors": "workspace:*",
+    "@tripley-kit/web-container-tts": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.3.5",

@@ -1,5 +1,5 @@
-import { FrameworkError } from "@tripley/web-container-errors";
-import type { JsonValue } from "@tripley/web-container-types";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import type { JsonValue } from "@tripley-kit/web-container-types";
 
 import type { LocalAuthenticationPlanPolicy } from "./authentication";
 import type { AuthenticationChallengeRegistry, EntryMethodRegistry } from "./registries";

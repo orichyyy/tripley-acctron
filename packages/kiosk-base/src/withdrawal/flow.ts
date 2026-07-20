@@ -4,7 +4,7 @@ import {
   defineFlow,
   defineNode,
   defineUserInputNode,
-} from "@tripley/web-container-flow-engine";
+} from "@tripley-kit/web-container-flow-engine";
 
 export const createWithdrawalExampleFlow = (): FlowDefinition =>
   defineFlow({

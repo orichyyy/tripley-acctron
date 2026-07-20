@@ -1,5 +1,5 @@
-import { FrameworkError } from "@tripley/web-container-errors";
-import type { Metadata } from "@tripley/web-container-types";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import type { Metadata } from "@tripley-kit/web-container-types";
 
 export type RegistryKey<TNamespace extends string = string> = string & {
   readonly __registryNamespace?: TNamespace;

@@ -1,4 +1,4 @@
-import { createDeviceOperationInputSourceAdapter } from "@tripley/web-container-device-core";
+import { createDeviceOperationInputSourceAdapter } from "@tripley-kit/web-container-device-core";
 
 import type { ExampleRuntimeExtension } from "./create-runtime";
 import { runUserInput } from "./input-runner";

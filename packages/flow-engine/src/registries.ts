@@ -1,7 +1,7 @@
 import {
   type ExtensionRegistration,
   GenericExtensionRegistry,
-} from "@tripley/web-container-device-core";
+} from "@tripley-kit/web-container-device-core";
 import type {
   EffectRunner,
   FlowNodeExecutor,

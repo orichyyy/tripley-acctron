@@ -1,4 +1,4 @@
-import type { DeviceLease, DeviceLockManager } from "@tripley/web-container-device-core";
+import type { DeviceLease, DeviceLockManager } from "@tripley-kit/web-container-device-core";
 
 export type CashCustodyOutcome = "taken" | "retracted" | "notDispensed" | "custodyUnknown";
 export type CashDeliveryPhase =

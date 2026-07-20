@@ -1,4 +1,4 @@
-export const storageCorePackageName = "@tripley/web-container-storage-core";
+export const storageCorePackageName = "@tripley-kit/web-container-storage-core";
 
 export * from "./config-kv";
 export * from "./counter";

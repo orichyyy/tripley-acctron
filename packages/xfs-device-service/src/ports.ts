@@ -14,8 +14,8 @@ import type {
   PinpadPinPort,
   SecurePinInputResult,
   UserInputSourceResult,
-} from "@tripley/web-container-device-core";
-import { FrameworkError } from "@tripley/web-container-errors";
+} from "@tripley-kit/web-container-device-core";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
 
 import { runAbortableXfsCommand } from "./abortable-command";
 import type {

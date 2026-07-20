@@ -1,5 +1,5 @@
-import { FrameworkError } from "@tripley/web-container-errors";
-import type { MaybePromise } from "@tripley/web-container-types";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import type { MaybePromise } from "@tripley-kit/web-container-types";
 
 import type { DeviceRegistry } from "./devices";
 import type { DataClassification } from "./devices";

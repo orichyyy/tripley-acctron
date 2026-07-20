@@ -1,5 +1,5 @@
 {
-  "name": "@tripley/web-container-window-manager",
+  "name": "@tripley-kit/web-container-window-manager",
   "version": "0.1.0",
   "type": "module",
   "sideEffects": false,
@@ -19,8 +19,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@tripley/web-container-errors": "workspace:*",
-    "@tripley/web-container-native-adapter": "workspace:*"
+    "@tripley-kit/web-container-errors": "workspace:*",
+    "@tripley-kit/web-container-native-adapter": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.3.5",

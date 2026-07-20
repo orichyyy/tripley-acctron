@@ -11,7 +11,7 @@ Build the framework incrementally with strong contracts first, then adapters and
 - Vite for example/project apps.
 - Biome for lint/format.
 - Vitest for tests.
-- Package names: `@tripley/web-container-*`.
+- Package names: `@tripley-kit/web-container-*`.
 
 ## Phase 0: repo skeleton
 

@@ -1,9 +1,9 @@
-import type { ConditionRegistry, ConditionResult } from "@tripley/web-container-condition-engine";
-import { FrameworkError } from "@tripley/web-container-errors";
-import type { TtsPort } from "@tripley/web-container-tts";
-import type { UiPort, UiStateScope } from "@tripley/web-container-ui-port";
+import type { ConditionRegistry, ConditionResult } from "@tripley-kit/web-container-condition-engine";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import type { TtsPort } from "@tripley-kit/web-container-tts";
+import type { UiPort, UiStateScope } from "@tripley-kit/web-container-ui-port";
 
-export const commandSystemPackageName = "@tripley/web-container-command-system";
+export const commandSystemPackageName = "@tripley-kit/web-container-command-system";
 
 export interface Command<TInput = unknown, TResult = unknown> {
   readonly id: string;

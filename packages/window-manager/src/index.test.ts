@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { NativePort } from "@tripley/web-container-native-adapter";
-import { NativeExtensionRegistry } from "@tripley/web-container-native-adapter";
+import type { NativePort } from "@tripley-kit/web-container-native-adapter";
+import { NativeExtensionRegistry } from "@tripley-kit/web-container-native-adapter";
 
 import type { NativeWindowBridge } from "./index";
 import { NativeWindowManagerPort } from "./index";

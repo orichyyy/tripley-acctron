@@ -1,4 +1,4 @@
-import type { TtsPort, TtsSpeakResult } from "@tripley/web-container-tts";
+import type { TtsPort, TtsSpeakResult } from "@tripley-kit/web-container-tts";
 import { describe, expect, it } from "vitest";
 
 import { AudioAssetCatalog, PromptDefinitionCatalog } from "./catalog";

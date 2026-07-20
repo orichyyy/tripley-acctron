@@ -4,10 +4,10 @@ import type {
   UserInputSourceDefinition as DeviceUserInputSourceDefinition,
   InputSourceExecutionContext,
   UserInputSourceResult,
-} from "@tripley/web-container-device-core";
-import type { LoggerPort } from "@tripley/web-container-logging";
-import type { ScopedStore } from "@tripley/web-container-scoped-store";
-import type { MaybePromise } from "@tripley/web-container-types";
+} from "@tripley-kit/web-container-device-core";
+import type { LoggerPort } from "@tripley-kit/web-container-logging";
+import type { ScopedStore } from "@tripley-kit/web-container-scoped-store";
+import type { MaybePromise } from "@tripley-kit/web-container-types";
 
 export type BuiltinFlowNodeKind =
   | "action"

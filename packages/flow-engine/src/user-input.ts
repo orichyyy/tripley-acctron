@@ -4,8 +4,8 @@ import type {
   InputSourceSession,
   UserInputSourceDefinition as ResolvedDeviceSourceDefinition,
   UserInputSourceResult,
-} from "@tripley/web-container-device-core";
-import type { FrameworkLogMetadata } from "@tripley/web-container-logging";
+} from "@tripley-kit/web-container-device-core";
+import type { FrameworkLogMetadata } from "@tripley-kit/web-container-logging";
 
 import type {
   FlowExecutionContext,

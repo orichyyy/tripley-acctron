@@ -22,11 +22,11 @@ import type {
   XfsPinGetPinRequest,
   XfsStartupRequest,
 } from "@tripley-kit/xfs-client";
-import type { DataClassification } from "@tripley/web-container-device-core";
+import type { DataClassification } from "@tripley-kit/web-container-device-core";
 import type { CashDeliveryDependencies } from "./cash-contracts";
 import type { XfsDeviceModuleAdapterRegistry } from "./module-adapters";
 
-export const xfsDeviceServicePackageName = "@tripley/web-container-xfs-device-service";
+export const xfsDeviceServicePackageName = "@tripley-kit/web-container-xfs-device-service";
 
 export type XfsSupportedModule = "idc" | "pin" | "bcr" | "cdm" | (string & {});
 export type XfsRequiredModule = "manager" | XfsSupportedModule;

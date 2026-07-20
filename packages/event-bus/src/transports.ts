@@ -1,4 +1,4 @@
-import { BasicSubscription } from "@tripley/web-container-utils";
+import { BasicSubscription } from "@tripley-kit/web-container-utils";
 import type { EventEnvelope, EventSubscription, EventTransport } from "./types";
 
 export class LocalEventTransport implements EventTransport {

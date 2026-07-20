@@ -1,4 +1,4 @@
-import { defineFlow, defineNode, defineUserInputNode } from "@tripley/web-container-flow-engine";
+import { defineFlow, defineNode, defineUserInputNode } from "@tripley-kit/web-container-flow-engine";
 
 export const withdrawalFlow = defineFlow({
   id: "kiosk.withdrawal",

@@ -1,5 +1,5 @@
-import { FrameworkError } from "@tripley/web-container-errors";
-import type { TtsPort } from "@tripley/web-container-tts";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import type { TtsPort } from "@tripley-kit/web-container-tts";
 
 import type { AudioAssetCatalog, PromptDefinitionCatalog } from "./catalog";
 import type {

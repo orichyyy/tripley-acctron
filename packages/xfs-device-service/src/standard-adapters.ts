@@ -2,7 +2,7 @@ import {
   createBarcodeQrInputSourceAdapter,
   createPinpadDataInputSourceAdapter,
   createPinpadPinInputSourceAdapter,
-} from "@tripley/web-container-device-core";
+} from "@tripley-kit/web-container-device-core";
 
 import { createStatusHealthCheck } from "./adapter-utils";
 import { xfsCdmDeviceModuleAdapter } from "./cdm-adapter";

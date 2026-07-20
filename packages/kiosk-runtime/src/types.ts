@@ -1,10 +1,10 @@
-import type { FlowVersionBinding } from "@tripley/web-container-flow-engine";
-import type { MediaCustodyStatus, OperationLedger } from "@tripley/web-container-kiosk-base";
-import type { LoggerPort } from "@tripley/web-container-logging";
-import type { PromptIntent, PromptPresenterPort } from "@tripley/web-container-prompt-presentation";
-import type { ScopedStore } from "@tripley/web-container-scoped-store";
-import type { JsonValue, MaybePromise } from "@tripley/web-container-types";
-import type { UiPort } from "@tripley/web-container-ui-port";
+import type { FlowVersionBinding } from "@tripley-kit/web-container-flow-engine";
+import type { MediaCustodyStatus, OperationLedger } from "@tripley-kit/web-container-kiosk-base";
+import type { LoggerPort } from "@tripley-kit/web-container-logging";
+import type { PromptIntent, PromptPresenterPort } from "@tripley-kit/web-container-prompt-presentation";
+import type { ScopedStore } from "@tripley-kit/web-container-scoped-store";
+import type { JsonValue, MaybePromise } from "@tripley-kit/web-container-types";
+import type { UiPort } from "@tripley-kit/web-container-ui-port";
 
 export type KioskRuntimeMode = "memory" | "hostd";
 export type CapabilityStatus = "available" | "degraded" | "unavailable";

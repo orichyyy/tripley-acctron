@@ -8,12 +8,12 @@ import {
   DeviceRegistry,
   InputSourceRegistry,
   type SecurePinInputResult,
-} from "@tripley/web-container-device-core";
+} from "@tripley-kit/web-container-device-core";
 import {
   type XfsCardReaderPort,
   XfsDeviceService,
   type XfsHealthCheckResult,
-} from "@tripley/web-container-xfs-device-service";
+} from "@tripley-kit/web-container-xfs-device-service";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createExampleApplicationRuntime } from "../../../apps/kiosk-example/src/runtime/create-runtime";

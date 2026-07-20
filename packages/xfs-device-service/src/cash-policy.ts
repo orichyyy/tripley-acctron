@@ -1,4 +1,4 @@
-import { FrameworkError } from "@tripley/web-container-errors";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
 
 export interface CashPresentationGateContext {
   readonly operationId: string;

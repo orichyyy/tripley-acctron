@@ -1,4 +1,4 @@
-import type { JsonValue } from "@tripley/web-container-types";
+import type { JsonValue } from "@tripley-kit/web-container-types";
 
 export type ConfigKvValueType = "string" | "number" | "boolean" | "null" | "array" | "object";
 

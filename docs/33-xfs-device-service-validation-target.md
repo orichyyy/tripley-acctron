@@ -15,7 +15,7 @@ Make `packages/xfs-device-service` a verified package in the workspace.
 ## Required checks
 
 - Run dependency installation so the local Tripley Kit dependency is represented in the lockfile.
-- Typecheck `@tripley/web-container-xfs-device-service`.
+- Typecheck `@tripley-kit/web-container-xfs-device-service`.
 - Run the package unit tests.
 - Build the package.
 - Run full workspace typecheck if targeted checks pass.
@@ -34,9 +34,9 @@ Likely hardening areas:
 ## Acceptance criteria
 
 - `pnpm install` completes.
-- `pnpm --filter @tripley/web-container-xfs-device-service typecheck` passes.
+- `pnpm --filter @tripley-kit/web-container-xfs-device-service typecheck` passes.
 - `pnpm vitest run packages/xfs-device-service/src/xfs-device-service.test.ts` passes.
-- `pnpm --filter @tripley/web-container-xfs-device-service build` passes.
+- `pnpm --filter @tripley-kit/web-container-xfs-device-service build` passes.
 - No Flow Engine, UserInput executor, or core device abstraction changes are needed for validation.
 
 ## What this unlocks

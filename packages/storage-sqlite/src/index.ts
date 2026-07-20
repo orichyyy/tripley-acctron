@@ -1,12 +1,12 @@
-import type { FrameworkSqlitePort } from "@tripley/web-container-native-adapter";
+import type { FrameworkSqlitePort } from "@tripley-kit/web-container-native-adapter";
 import type {
   FrameworkSqliteConnection,
   FrameworkSqliteTransaction,
   SqliteRunResult,
   SqliteValue,
-} from "@tripley/web-container-storage-core";
+} from "@tripley-kit/web-container-storage-core";
 
-export const storageSqlitePackageName = "@tripley/web-container-storage-sqlite";
+export const storageSqlitePackageName = "@tripley-kit/web-container-storage-sqlite";
 
 export class NativePortSqliteConnection implements FrameworkSqliteConnection {
   public constructor(private readonly sqlite: FrameworkSqlitePort) {}

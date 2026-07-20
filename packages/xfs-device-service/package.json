@@ -1,5 +1,5 @@
 {
-  "name": "@tripley/web-container-xfs-device-service",
+  "name": "@tripley-kit/web-container-xfs-device-service",
   "version": "0.1.0",
   "type": "module",
   "sideEffects": false,
@@ -20,9 +20,9 @@
   },
   "dependencies": {
     "@tripley-kit/xfs-client": "0.1.4",
-    "@tripley/web-container-device-core": "workspace:*",
-    "@tripley/web-container-errors": "workspace:*",
-    "@tripley/web-container-storage-core": "workspace:*"
+    "@tripley-kit/web-container-device-core": "workspace:*",
+    "@tripley-kit/web-container-errors": "workspace:*",
+    "@tripley-kit/web-container-storage-core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.3.5",

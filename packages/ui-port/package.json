@@ -1,5 +1,5 @@
 {
-  "name": "@tripley/web-container-ui-port",
+  "name": "@tripley-kit/web-container-ui-port",
   "version": "0.1.0",
   "type": "module",
   "sideEffects": false,
@@ -19,7 +19,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@tripley/web-container-errors": "workspace:*"
+    "@tripley-kit/web-container-errors": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.3.5",

@@ -3,7 +3,7 @@ import {
   InMemoryProtectionRecoveryStore,
   ProtectionRecoveryStartupBarrier,
   type ProtectionRecoveryHostPort,
-} from "@tripley/web-container-xfs-device-service";
+} from "@tripley-kit/web-container-xfs-device-service";
 
 import { createExampleApplicationRuntime } from "./create-runtime";
 import { createFakeNfcExtension } from "./fake-nfc-extension.fixture";

@@ -1,5 +1,5 @@
-import { ConditionRegistry } from "@tripley/web-container-condition-engine";
-import { FrameworkUiPort, MemoryUiStateAdapter } from "@tripley/web-container-ui-port";
+import { ConditionRegistry } from "@tripley-kit/web-container-condition-engine";
+import { FrameworkUiPort, MemoryUiStateAdapter } from "@tripley-kit/web-container-ui-port";
 import { describe, expect, it } from "vitest";
 
 import { CommandRegistry, conditionResultToCommandResult } from "./index";

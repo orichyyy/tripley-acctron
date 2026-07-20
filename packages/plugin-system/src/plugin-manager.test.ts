@@ -1,4 +1,4 @@
-import type { LoggerPort } from "@tripley/web-container-logging";
+import type { LoggerPort } from "@tripley-kit/web-container-logging";
 import { describe, expect, it } from "vitest";
 import { GenericExtensionRegistry } from "./extension-registry";
 import { PluginManager } from "./plugin-manager";

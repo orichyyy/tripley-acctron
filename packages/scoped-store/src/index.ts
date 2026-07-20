@@ -1,6 +1,6 @@
-import { FrameworkError } from "@tripley/web-container-errors";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
 
-export const scopedStorePackageName = "@tripley/web-container-scoped-store";
+export const scopedStorePackageName = "@tripley-kit/web-container-scoped-store";
 
 export type StoreScope = "application" | "session" | "transaction" | "flow" | "node";
 

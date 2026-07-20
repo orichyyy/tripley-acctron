@@ -73,7 +73,7 @@ export interface UserInputSourceMap {
 Project plugin:
 
 ```ts
-declare module '@tripley/web-container-flow-engine' {
+declare module '@tripley-kit/web-container-flow-engine' {
   interface UserInputSourceMap {
     'bank.idCardReader.identity': { options: IdCardReaderInputOptions; result: IdCardReaderInputResult };
   }

@@ -1,6 +1,6 @@
-import type { ConfigurationProvider } from "@tripley/web-container-configuration";
-import type { NativeExtensionAdapter } from "@tripley/web-container-native-adapter";
-import type { Migration } from "@tripley/web-container-storage-core";
+import type { ConfigurationProvider } from "@tripley-kit/web-container-configuration";
+import type { NativeExtensionAdapter } from "@tripley-kit/web-container-native-adapter";
+import type { Migration } from "@tripley-kit/web-container-storage-core";
 import { GenericExtensionRegistry } from "./extension-registry";
 import type { OpenExtensionKind } from "./extension-registry";
 

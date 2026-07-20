@@ -1,10 +1,10 @@
-import type { DeviceRegistry, InputSourceRegistry } from "@tripley/web-container-device-core";
-import { FrameworkError } from "@tripley/web-container-errors";
-import type { CapabilityStatus } from "@tripley/web-container-kiosk-runtime";
+import type { DeviceRegistry, InputSourceRegistry } from "@tripley-kit/web-container-device-core";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import type { CapabilityStatus } from "@tripley-kit/web-container-kiosk-runtime";
 import {
   type XfsDeviceService,
   createXfsDeviceService,
-} from "@tripley/web-container-xfs-device-service";
+} from "@tripley-kit/web-container-xfs-device-service";
 
 export interface HostdRuntimeConfig {
   readonly url: string;

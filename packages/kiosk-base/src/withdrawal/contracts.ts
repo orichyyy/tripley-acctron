@@ -1,7 +1,7 @@
-import type { CommandRegistry } from "@tripley/web-container-command-system";
-import type { ConditionRegistry } from "@tripley/web-container-condition-engine";
-import type { InputSourceRegistry } from "@tripley/web-container-device-core";
-import type { FlowDefinition, FlowInstanceSnapshot } from "@tripley/web-container-flow-engine";
+import type { CommandRegistry } from "@tripley-kit/web-container-command-system";
+import type { ConditionRegistry } from "@tripley-kit/web-container-condition-engine";
+import type { InputSourceRegistry } from "@tripley-kit/web-container-device-core";
+import type { FlowDefinition, FlowInstanceSnapshot } from "@tripley-kit/web-container-flow-engine";
 
 import type { createKioskProjectBlueprint } from "../preset";
 import type { TransactionRecord } from "../repositories";

@@ -2,12 +2,12 @@ import {
   DeviceLockManager,
   DeviceRegistry,
   InputSourceRegistry,
-} from "@tripley/web-container-device-core";
+} from "@tripley-kit/web-container-device-core";
 import {
   AuditJournalService,
   InMemoryAuditJournalRepository,
   InMemoryOperationLedger,
-} from "@tripley/web-container-kiosk-base";
+} from "@tripley-kit/web-container-kiosk-base";
 import {
   type CashRuntimeSafetyPolicy,
   type CapabilityStatus,
@@ -16,16 +16,16 @@ import {
   type OperationViewState,
   type RecoveryStartupBarrierPort,
   createKioskRuntime,
-} from "@tripley/web-container-kiosk-runtime";
-import { ConsoleLogger } from "@tripley/web-container-logging";
+} from "@tripley-kit/web-container-kiosk-runtime";
+import { ConsoleLogger } from "@tripley-kit/web-container-logging";
 import {
   AudioAssetCatalog,
   PromptDefinitionCatalog,
   PromptPresenter,
-} from "@tripley/web-container-prompt-presentation";
-import { MemoryScopedStore } from "@tripley/web-container-scoped-store";
-import { BrowserSpeechSynthesisTtsAdapter } from "@tripley/web-container-tts";
-import { FrameworkUiPort, ZustandUiStateAdapter } from "@tripley/web-container-ui-port";
+} from "@tripley-kit/web-container-prompt-presentation";
+import { MemoryScopedStore } from "@tripley-kit/web-container-scoped-store";
+import { BrowserSpeechSynthesisTtsAdapter } from "@tripley-kit/web-container-tts";
+import { FrameworkUiPort, ZustandUiStateAdapter } from "@tripley-kit/web-container-ui-port";
 import { createStore } from "zustand/vanilla";
 
 import {

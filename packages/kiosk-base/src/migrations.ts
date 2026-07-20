@@ -1,4 +1,4 @@
-import type { Migration } from "@tripley/web-container-storage-core";
+import type { Migration } from "@tripley-kit/web-container-storage-core";
 
 import {
   kioskAuditJournalTableSql,
@@ -7,7 +7,7 @@ import {
 } from "./repositories";
 import { kioskOperationLedgerTableSql, kioskOutboxTableSql } from "./services";
 
-export const kioskBasePackageId = "@tripley/web-container-kiosk-base";
+export const kioskBasePackageId = "@tripley-kit/web-container-kiosk-base";
 
 export const kioskStandardMigrations: readonly Migration[] = [
   {

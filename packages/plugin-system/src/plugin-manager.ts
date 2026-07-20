@@ -1,8 +1,8 @@
-import { FrameworkError } from "@tripley/web-container-errors";
-import type { EventBus } from "@tripley/web-container-event-bus";
-import type { LoggerPort } from "@tripley/web-container-logging";
-import { ServiceRegistry } from "@tripley/web-container-registry";
-import type { Disposable } from "@tripley/web-container-utils";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import type { EventBus } from "@tripley-kit/web-container-event-bus";
+import type { LoggerPort } from "@tripley-kit/web-container-logging";
+import { ServiceRegistry } from "@tripley-kit/web-container-registry";
+import type { Disposable } from "@tripley-kit/web-container-utils";
 import { type FrameworkExtensionRegistry, createFrameworkExtensionRegistry } from "./contributions";
 import type { PluginManifest, PluginPermissions } from "./manifest";
 

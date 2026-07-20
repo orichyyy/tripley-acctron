@@ -1,7 +1,7 @@
-import { FrameworkError } from "@tripley/web-container-errors";
-import type { NativePort } from "@tripley/web-container-native-adapter";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import type { NativePort } from "@tripley-kit/web-container-native-adapter";
 
-export const windowManagerPackageName = "@tripley/web-container-window-manager";
+export const windowManagerPackageName = "@tripley-kit/web-container-window-manager";
 
 export interface WindowBounds {
   readonly x: number;

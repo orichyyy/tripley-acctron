@@ -2,7 +2,7 @@ import {
   DeviceLockManager,
   DeviceRegistry,
   InputSourceRegistry,
-} from "@tripley/web-container-device-core";
+} from "@tripley-kit/web-container-device-core";
 import { describe, expect, it } from "vitest";
 
 import { createXfsDeviceService } from "./service";

@@ -1,7 +1,7 @@
-import { FrameworkError } from "@tripley/web-container-errors";
-import type { MaybePromise } from "@tripley/web-container-types";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import type { MaybePromise } from "@tripley-kit/web-container-types";
 
-export const conditionEnginePackageName = "@tripley/web-container-condition-engine";
+export const conditionEnginePackageName = "@tripley-kit/web-container-condition-engine";
 
 export interface ConditionContext {
   readonly input?: unknown;

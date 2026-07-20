@@ -1,6 +1,6 @@
-import { FrameworkError } from "@tripley/web-container-errors";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
 
-export const uiPortPackageName = "@tripley/web-container-ui-port";
+export const uiPortPackageName = "@tripley-kit/web-container-ui-port";
 
 export interface NavigateOptions {
   readonly replace?: boolean | undefined;

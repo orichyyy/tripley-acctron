@@ -44,7 +44,7 @@ packages/
   examples/
 ```
 
-Package naming uses `@tripley/web-container-*`.
+Package naming uses `@tripley-kit/web-container-*`.
 
 ## Dependency rules
 

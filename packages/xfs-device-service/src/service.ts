@@ -1,6 +1,6 @@
 import type { XfsStartupRequest } from "@tripley-kit/xfs-client";
-import type { DeviceRegistry, InputSourceRegistry } from "@tripley/web-container-device-core";
-import { FrameworkError } from "@tripley/web-container-errors";
+import type { DeviceRegistry, InputSourceRegistry } from "@tripley-kit/web-container-device-core";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
 
 import { createTripleyKitXfsRuntimeClient } from "./client-factory";
 import type {

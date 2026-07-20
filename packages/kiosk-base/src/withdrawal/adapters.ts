@@ -1,4 +1,4 @@
-import type { InputSourceAdapter, UserInputSourceResult } from "@tripley/web-container-device-core";
+import type { InputSourceAdapter, UserInputSourceResult } from "@tripley-kit/web-container-device-core";
 
 export const createDemoInputAdapter = (): InputSourceAdapter => ({
   canStart: () => true,

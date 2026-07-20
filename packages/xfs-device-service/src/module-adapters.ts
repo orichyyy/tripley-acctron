@@ -1,8 +1,8 @@
 import type {
   DeviceDescriptor,
   InputSourceAdapter,
-} from "@tripley/web-container-device-core";
-import { FrameworkError } from "@tripley/web-container-errors";
+} from "@tripley-kit/web-container-device-core";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
 
 import type { CashDeliveryDependencies } from "./cash-contracts";
 import type {

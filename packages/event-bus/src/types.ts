@@ -1,5 +1,5 @@
-import type { MaybePromise } from "@tripley/web-container-types";
-import type { Disposable, Subscription } from "@tripley/web-container-utils";
+import type { MaybePromise } from "@tripley-kit/web-container-types";
+import type { Disposable, Subscription } from "@tripley-kit/web-container-utils";
 
 export type EventSourceKind =
   | "core"

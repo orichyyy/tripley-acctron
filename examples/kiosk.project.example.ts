@@ -1,4 +1,4 @@
-import { createKioskRuntime } from "@tripley/web-container-kiosk-base";
+import { createKioskRuntime } from "@tripley-kit/web-container-kiosk-base";
 
 export const kioskProject = createKioskRuntime({
   appId: "bank-kiosk-app",

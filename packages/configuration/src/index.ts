@@ -1,13 +1,13 @@
-import { FrameworkError } from "@tripley/web-container-errors";
-import type { JsonValue, Metadata } from "@tripley/web-container-types";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import type { JsonValue, Metadata } from "@tripley-kit/web-container-types";
 import {
   BasicSubscription,
   type Clock,
   type Subscription,
   systemClock,
-} from "@tripley/web-container-utils";
+} from "@tripley-kit/web-container-utils";
 
-export const configurationPackageName = "@tripley/web-container-configuration";
+export const configurationPackageName = "@tripley-kit/web-container-configuration";
 
 export const CONFIGURATION_CHANGED_EVENT = "core.config.changed";
 

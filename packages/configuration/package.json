@@ -1,5 +1,5 @@
 {
-  "name": "@tripley/web-container-configuration",
+  "name": "@tripley-kit/web-container-configuration",
   "version": "0.1.0",
   "type": "module",
   "sideEffects": false,
@@ -19,9 +19,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@tripley/web-container-errors": "workspace:*",
-    "@tripley/web-container-types": "workspace:*",
-    "@tripley/web-container-utils": "workspace:*"
+    "@tripley-kit/web-container-errors": "workspace:*",
+    "@tripley-kit/web-container-types": "workspace:*",
+    "@tripley-kit/web-container-utils": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.3.5",

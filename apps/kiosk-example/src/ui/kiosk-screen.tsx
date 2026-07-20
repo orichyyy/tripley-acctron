@@ -1,4 +1,4 @@
-import type { OperationViewState, RuntimeReadiness } from "@tripley/web-container-kiosk-runtime";
+import type { OperationViewState, RuntimeReadiness } from "@tripley-kit/web-container-kiosk-runtime";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "zustand";

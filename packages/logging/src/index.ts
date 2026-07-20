@@ -1,7 +1,7 @@
-import { FrameworkError } from "@tripley/web-container-errors";
-import type { JsonValue, Metadata } from "@tripley/web-container-types";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import type { JsonValue, Metadata } from "@tripley-kit/web-container-types";
 
-export const loggingPackageName = "@tripley/web-container-logging";
+export const loggingPackageName = "@tripley-kit/web-container-logging";
 
 export type LogLevel = "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
 

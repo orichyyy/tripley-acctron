@@ -1,5 +1,5 @@
-import type { CommandMiddleware } from "@tripley/web-container-command-system";
-import type { FlowPolicies } from "@tripley/web-container-flow-engine";
+import type { CommandMiddleware } from "@tripley-kit/web-container-command-system";
+import type { FlowPolicies } from "@tripley-kit/web-container-flow-engine";
 
 import { kioskStandardMigrations } from "./migrations";
 import type { HealthCheck } from "./services";

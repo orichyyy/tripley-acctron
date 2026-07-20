@@ -1,5 +1,5 @@
-import type { CommandRegistry } from "@tripley/web-container-command-system";
-import type { KioskRuntime, KioskRuntimeMode } from "@tripley/web-container-kiosk-runtime";
+import type { CommandRegistry } from "@tripley-kit/web-container-command-system";
+import type { KioskRuntime, KioskRuntimeMode } from "@tripley-kit/web-container-kiosk-runtime";
 import type { StoreApi } from "zustand";
 
 export interface ExampleDiagnostics {

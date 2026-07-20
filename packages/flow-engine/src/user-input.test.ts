@@ -3,9 +3,9 @@ import type {
   SecurePinInputResult,
   UserInputSourceDefinition,
   UserInputSourceResult,
-} from "@tripley/web-container-device-core";
-import { InputSourceRegistry } from "@tripley/web-container-device-core";
-import type { FrameworkLogMetadata, LoggerPort } from "@tripley/web-container-logging";
+} from "@tripley-kit/web-container-device-core";
+import { InputSourceRegistry } from "@tripley-kit/web-container-device-core";
+import type { FrameworkLogMetadata, LoggerPort } from "@tripley-kit/web-container-logging";
 import { describe, expect, it } from "vitest";
 
 import { defineFlow, defineUserInputNode } from "./dsl";

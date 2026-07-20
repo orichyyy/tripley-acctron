@@ -1,5 +1,5 @@
 {
-  "name": "@tripley/web-container-kiosk-runtime",
+  "name": "@tripley-kit/web-container-kiosk-runtime",
   "version": "0.1.0",
   "type": "module",
   "sideEffects": false,
@@ -19,15 +19,15 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@tripley/web-container-command-system": "workspace:*",
-    "@tripley/web-container-errors": "workspace:*",
-    "@tripley/web-container-flow-engine": "workspace:*",
-    "@tripley/web-container-kiosk-base": "workspace:*",
-    "@tripley/web-container-logging": "workspace:*",
-    "@tripley/web-container-prompt-presentation": "workspace:*",
-    "@tripley/web-container-scoped-store": "workspace:*",
-    "@tripley/web-container-types": "workspace:*",
-    "@tripley/web-container-ui-port": "workspace:*"
+    "@tripley-kit/web-container-command-system": "workspace:*",
+    "@tripley-kit/web-container-errors": "workspace:*",
+    "@tripley-kit/web-container-flow-engine": "workspace:*",
+    "@tripley-kit/web-container-kiosk-base": "workspace:*",
+    "@tripley-kit/web-container-logging": "workspace:*",
+    "@tripley-kit/web-container-prompt-presentation": "workspace:*",
+    "@tripley-kit/web-container-scoped-store": "workspace:*",
+    "@tripley-kit/web-container-types": "workspace:*",
+    "@tripley-kit/web-container-ui-port": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.3.5",

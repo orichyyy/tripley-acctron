@@ -1,8 +1,8 @@
-import { FrameworkError } from "@tripley/web-container-errors";
-import type { Metadata } from "@tripley/web-container-types";
-import type { Disposable, Subscription } from "@tripley/web-container-utils";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import type { Metadata } from "@tripley-kit/web-container-types";
+import type { Disposable, Subscription } from "@tripley-kit/web-container-utils";
 
-export const nativeAdapterPackageName = "@tripley/web-container-native-adapter";
+export const nativeAdapterPackageName = "@tripley-kit/web-container-native-adapter";
 
 export interface RuntimeInfo {
   readonly name?: string;

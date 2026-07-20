@@ -3,8 +3,8 @@ import type {
   InputSourceKind,
   InputSourceSession,
   UserInputSourceResult,
-} from "@tripley/web-container-device-core";
-import { FrameworkError } from "@tripley/web-container-errors";
+} from "@tripley-kit/web-container-device-core";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
 
 export interface BrokerInputOptions {
   readonly promptId?: string | undefined;

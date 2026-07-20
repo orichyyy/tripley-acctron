@@ -1,1 +1,1 @@
-export const reactAdapterPackageName = "@tripley/web-container-react-adapter";
+export const reactAdapterPackageName = "@tripley-kit/web-container-react-adapter";

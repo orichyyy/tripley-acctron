@@ -1,4 +1,4 @@
-import type { JsonValue } from "@tripley/web-container-types";
+import type { JsonValue } from "@tripley-kit/web-container-types";
 
 import type { AuditJournalRecord, AuditJournalRepository } from "../repositories";
 import type { Clock } from "./calendar";

@@ -1,4 +1,4 @@
-import { FrameworkError } from "@tripley/web-container-errors";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
 
 export const defaultXfsTimeoutMs = 30_000;
 export const defaultXfsAppId = "tripley-web-container";

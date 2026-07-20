@@ -1,4 +1,4 @@
-export const flowEnginePackageName = "@tripley/web-container-flow-engine";
+export const flowEnginePackageName = "@tripley-kit/web-container-flow-engine";
 
 export * from "./dsl";
 export * from "./registries";

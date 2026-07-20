@@ -42,6 +42,6 @@
     "build": "tsup for packages, Vite for example/project app",
     "lint": "Biome",
     "test": "Vitest",
-    "pkg": "@tripley/web-container-*"
+    "pkg": "@tripley-kit/web-container-*"
   }
 }

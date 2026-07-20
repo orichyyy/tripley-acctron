@@ -1,5 +1,5 @@
 {
-  "name": "@tripley/web-container-types",
+  "name": "@tripley-kit/web-container-types",
   "version": "0.1.0",
   "type": "module",
   "sideEffects": false,

@@ -1,5 +1,5 @@
-import { FrameworkError } from "@tripley/web-container-errors";
-import type { FrameworkSqliteConnection, Migration } from "@tripley/web-container-storage-core";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import type { FrameworkSqliteConnection, Migration } from "@tripley-kit/web-container-storage-core";
 
 import type {
   HostProtectionJournalRecord,
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS xfs_protection_recovery_projection (
 export const xfsProtectionRecoveryMigrations: readonly Migration[] = [
   {
     id: "xfs-device-service.002.protection-recovery",
-    packageId: "@tripley/web-container-xfs-device-service",
+    packageId: "@tripley-kit/web-container-xfs-device-service",
     up: (db) => db.executeBatch(protectionRecoverySchemaSql),
   },
 ];

@@ -168,7 +168,7 @@ Z9=3 full testing harness.
 Z10=2 pnpm workspaces.
 Z11=2 tsup packages + Vite apps.
 Z12=3 Biome.
-Z13=2 @tripley/web-container-*.
+Z13=2 @tripley-kit/web-container-*.
 Z14=1 Markdown folder + zip.
 ```
 

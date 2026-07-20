@@ -2,8 +2,8 @@ import type {
   DeviceLockManager,
   DeviceRegistry,
   InputSourceRegistry,
-} from "@tripley/web-container-device-core";
-import { FrameworkError } from "@tripley/web-container-errors";
+} from "@tripley-kit/web-container-device-core";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
 import {
   FlowTestRunner,
   type InputProfile,
@@ -11,8 +11,8 @@ import {
   type UserInputValidationDefinition,
   defineFlow,
   defineUserInputNode,
-} from "@tripley/web-container-flow-engine";
-import type { OperationExecutionContext } from "@tripley/web-container-kiosk-runtime";
+} from "@tripley-kit/web-container-flow-engine";
+import type { OperationExecutionContext } from "@tripley-kit/web-container-kiosk-runtime";
 
 export interface RunInputOptions {
   readonly id: string;

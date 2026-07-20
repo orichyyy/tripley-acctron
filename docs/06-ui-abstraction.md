@@ -86,7 +86,7 @@ Admin routes should use guards, but high-risk commands must also check policies 
 
 ## React adapter
 
-`@tripley/web-container-react-adapter` implements:
+`@tripley-kit/web-container-react-adapter` implements:
 
 - React root per native window.
 - React Router adapter.

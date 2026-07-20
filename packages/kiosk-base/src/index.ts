@@ -1,4 +1,4 @@
-export const kioskBasePackageName = "@tripley/web-container-kiosk-base";
+export const kioskBasePackageName = "@tripley-kit/web-container-kiosk-base";
 
 export * from "./migrations";
 export * from "./preset";

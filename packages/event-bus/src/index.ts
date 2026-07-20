@@ -1,4 +1,4 @@
-export const eventBusPackageName = "@tripley/web-container-event-bus";
+export const eventBusPackageName = "@tripley-kit/web-container-event-bus";
 
 export * from "./local-event-bus";
 export * from "./tracer";

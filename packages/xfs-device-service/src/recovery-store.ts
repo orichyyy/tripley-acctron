@@ -2,7 +2,7 @@ import type {
   FrameworkSqliteConnection,
   Migration,
   SqliteValue,
-} from "@tripley/web-container-storage-core";
+} from "@tripley-kit/web-container-storage-core";
 
 import type {
   CashRecoveryLeaseCreateInput,
@@ -44,12 +44,12 @@ ON xfs_cash_recovery_lease(logical_service) WHERE state <> 'closed';`;
 export const xfsCashRecoveryMigrations: readonly Migration[] = [
   {
     id: "xfs-device-service.001.cash-recovery-lease",
-    packageId: "@tripley/web-container-xfs-device-service",
+    packageId: "@tripley-kit/web-container-xfs-device-service",
     up: async (db) => db.executeBatch(cashRecoveryLeaseTableSql),
   },
   {
     id: "xfs-device-service.002.unresolved-lease-uniqueness",
-    packageId: "@tripley/web-container-xfs-device-service",
+    packageId: "@tripley-kit/web-container-xfs-device-service",
     up: async (db) => db.executeBatch(`DROP INDEX IF EXISTS idx_xfs_cash_recovery_unresolved;
 CREATE UNIQUE INDEX idx_xfs_cash_recovery_unresolved
 ON xfs_cash_recovery_lease(logical_service) WHERE state <> 'closed';`),

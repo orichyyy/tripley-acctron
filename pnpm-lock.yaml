@@ -32,46 +32,46 @@ importers:
 
   apps/kiosk-example:
     dependencies:
-      '@tripley/web-container-command-system':
+      '@tripley-kit/web-container-command-system':
         specifier: workspace:*
         version: link:../../packages/command-system
-      '@tripley/web-container-core':
+      '@tripley-kit/web-container-core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@tripley/web-container-device-core':
+      '@tripley-kit/web-container-device-core':
         specifier: workspace:*
         version: link:../../packages/device-core
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../../packages/errors
-      '@tripley/web-container-flow-engine':
+      '@tripley-kit/web-container-flow-engine':
         specifier: workspace:*
         version: link:../../packages/flow-engine
-      '@tripley/web-container-host-message':
+      '@tripley-kit/web-container-host-message':
         specifier: workspace:*
         version: link:../../packages/host-message
-      '@tripley/web-container-kiosk-base':
+      '@tripley-kit/web-container-kiosk-base':
         specifier: workspace:*
         version: link:../../packages/kiosk-base
-      '@tripley/web-container-kiosk-runtime':
+      '@tripley-kit/web-container-kiosk-runtime':
         specifier: workspace:*
         version: link:../../packages/kiosk-runtime
-      '@tripley/web-container-logging':
+      '@tripley-kit/web-container-logging':
         specifier: workspace:*
         version: link:../../packages/logging
-      '@tripley/web-container-prompt-presentation':
+      '@tripley-kit/web-container-prompt-presentation':
         specifier: workspace:*
         version: link:../../packages/prompt-presentation
-      '@tripley/web-container-scoped-store':
+      '@tripley-kit/web-container-scoped-store':
         specifier: workspace:*
         version: link:../../packages/scoped-store
-      '@tripley/web-container-tts':
+      '@tripley-kit/web-container-tts':
         specifier: workspace:*
         version: link:../../packages/tts
-      '@tripley/web-container-ui-port':
+      '@tripley-kit/web-container-ui-port':
         specifier: workspace:*
         version: link:../../packages/ui-port
-      '@tripley/web-container-xfs-device-service':
+      '@tripley-kit/web-container-xfs-device-service':
         specifier: workspace:*
         version: link:../../packages/xfs-device-service
       react:
@@ -105,16 +105,16 @@ importers:
 
   packages/command-system:
     dependencies:
-      '@tripley/web-container-condition-engine':
+      '@tripley-kit/web-container-condition-engine':
         specifier: workspace:*
         version: link:../condition-engine
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-tts':
+      '@tripley-kit/web-container-tts':
         specifier: workspace:*
         version: link:../tts
-      '@tripley/web-container-ui-port':
+      '@tripley-kit/web-container-ui-port':
         specifier: workspace:*
         version: link:../ui-port
     devDependencies:
@@ -130,10 +130,10 @@ importers:
 
   packages/condition-engine:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -149,13 +149,13 @@ importers:
 
   packages/configuration:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
-      '@tripley/web-container-utils':
+      '@tripley-kit/web-container-utils':
         specifier: workspace:*
         version: link:../utils
     devDependencies:
@@ -171,16 +171,16 @@ importers:
 
   packages/core:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-registry':
+      '@tripley-kit/web-container-registry':
         specifier: workspace:*
         version: link:../registry
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
-      '@tripley/web-container-utils':
+      '@tripley-kit/web-container-utils':
         specifier: workspace:*
         version: link:../utils
     devDependencies:
@@ -193,10 +193,10 @@ importers:
 
   packages/device-core:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -209,7 +209,7 @@ importers:
 
   packages/errors:
     dependencies:
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -222,13 +222,13 @@ importers:
 
   packages/event-bus:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
-      '@tripley/web-container-utils':
+      '@tripley-kit/web-container-utils':
         specifier: workspace:*
         version: link:../utils
     devDependencies:
@@ -244,19 +244,19 @@ importers:
 
   packages/flow-engine:
     dependencies:
-      '@tripley/web-container-device-core':
+      '@tripley-kit/web-container-device-core':
         specifier: workspace:*
         version: link:../device-core
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-logging':
+      '@tripley-kit/web-container-logging':
         specifier: workspace:*
         version: link:../logging
-      '@tripley/web-container-scoped-store':
+      '@tripley-kit/web-container-scoped-store':
         specifier: workspace:*
         version: link:../scoped-store
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -272,10 +272,10 @@ importers:
 
   packages/host-message:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -291,34 +291,34 @@ importers:
 
   packages/kiosk-base:
     dependencies:
-      '@tripley/web-container-command-system':
+      '@tripley-kit/web-container-command-system':
         specifier: workspace:*
         version: link:../command-system
-      '@tripley/web-container-condition-engine':
+      '@tripley-kit/web-container-condition-engine':
         specifier: workspace:*
         version: link:../condition-engine
-      '@tripley/web-container-device-core':
+      '@tripley-kit/web-container-device-core':
         specifier: workspace:*
         version: link:../device-core
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-flow-engine':
+      '@tripley-kit/web-container-flow-engine':
         specifier: workspace:*
         version: link:../flow-engine
-      '@tripley/web-container-logging':
+      '@tripley-kit/web-container-logging':
         specifier: workspace:*
         version: link:../logging
-      '@tripley/web-container-scoped-store':
+      '@tripley-kit/web-container-scoped-store':
         specifier: workspace:*
         version: link:../scoped-store
-      '@tripley/web-container-storage-core':
+      '@tripley-kit/web-container-storage-core':
         specifier: workspace:*
         version: link:../storage-core
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
-      '@tripley/web-container-ui-port':
+      '@tripley-kit/web-container-ui-port':
         specifier: workspace:*
         version: link:../ui-port
     devDependencies:
@@ -334,31 +334,31 @@ importers:
 
   packages/kiosk-runtime:
     dependencies:
-      '@tripley/web-container-command-system':
+      '@tripley-kit/web-container-command-system':
         specifier: workspace:*
         version: link:../command-system
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-flow-engine':
+      '@tripley-kit/web-container-flow-engine':
         specifier: workspace:*
         version: link:../flow-engine
-      '@tripley/web-container-kiosk-base':
+      '@tripley-kit/web-container-kiosk-base':
         specifier: workspace:*
         version: link:../kiosk-base
-      '@tripley/web-container-logging':
+      '@tripley-kit/web-container-logging':
         specifier: workspace:*
         version: link:../logging
-      '@tripley/web-container-prompt-presentation':
+      '@tripley-kit/web-container-prompt-presentation':
         specifier: workspace:*
         version: link:../prompt-presentation
-      '@tripley/web-container-scoped-store':
+      '@tripley-kit/web-container-scoped-store':
         specifier: workspace:*
         version: link:../scoped-store
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
-      '@tripley/web-container-ui-port':
+      '@tripley-kit/web-container-ui-port':
         specifier: workspace:*
         version: link:../ui-port
     devDependencies:
@@ -374,10 +374,10 @@ importers:
 
   packages/logging:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -393,13 +393,13 @@ importers:
 
   packages/native-adapter:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
-      '@tripley/web-container-utils':
+      '@tripley-kit/web-container-utils':
         specifier: workspace:*
         version: link:../utils
     devDependencies:
@@ -415,31 +415,31 @@ importers:
 
   packages/plugin-system:
     dependencies:
-      '@tripley/web-container-configuration':
+      '@tripley-kit/web-container-configuration':
         specifier: workspace:*
         version: link:../configuration
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-event-bus':
+      '@tripley-kit/web-container-event-bus':
         specifier: workspace:*
         version: link:../event-bus
-      '@tripley/web-container-logging':
+      '@tripley-kit/web-container-logging':
         specifier: workspace:*
         version: link:../logging
-      '@tripley/web-container-native-adapter':
+      '@tripley-kit/web-container-native-adapter':
         specifier: workspace:*
         version: link:../native-adapter
-      '@tripley/web-container-registry':
+      '@tripley-kit/web-container-registry':
         specifier: workspace:*
         version: link:../registry
-      '@tripley/web-container-storage-core':
+      '@tripley-kit/web-container-storage-core':
         specifier: workspace:*
         version: link:../storage-core
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
-      '@tripley/web-container-utils':
+      '@tripley-kit/web-container-utils':
         specifier: workspace:*
         version: link:../utils
     devDependencies:
@@ -455,10 +455,10 @@ importers:
 
   packages/prompt-presentation:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-tts':
+      '@tripley-kit/web-container-tts':
         specifier: workspace:*
         version: link:../tts
     devDependencies:
@@ -483,10 +483,10 @@ importers:
 
   packages/registry:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -499,7 +499,7 @@ importers:
 
   packages/scoped-store:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
     devDependencies:
@@ -515,13 +515,13 @@ importers:
 
   packages/storage-core:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
-      '@tripley/web-container-utils':
+      '@tripley-kit/web-container-utils':
         specifier: workspace:*
         version: link:../utils
     devDependencies:
@@ -537,10 +537,10 @@ importers:
 
   packages/storage-sqlite:
     dependencies:
-      '@tripley/web-container-native-adapter':
+      '@tripley-kit/web-container-native-adapter':
         specifier: workspace:*
         version: link:../native-adapter
-      '@tripley/web-container-storage-core':
+      '@tripley-kit/web-container-storage-core':
         specifier: workspace:*
         version: link:../storage-core
     devDependencies:
@@ -562,10 +562,10 @@ importers:
 
   packages/tts:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-native-adapter':
+      '@tripley-kit/web-container-native-adapter':
         specifier: workspace:*
         version: link:../native-adapter
     devDependencies:
@@ -590,7 +590,7 @@ importers:
 
   packages/ui-port:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
     devDependencies:
@@ -606,7 +606,7 @@ importers:
 
   packages/utils:
     dependencies:
-      '@tripley/web-container-types':
+      '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -619,10 +619,10 @@ importers:
 
   packages/window-manager:
     dependencies:
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-native-adapter':
+      '@tripley-kit/web-container-native-adapter':
         specifier: workspace:*
         version: link:../native-adapter
     devDependencies:
@@ -641,13 +641,13 @@ importers:
       '@tripley-kit/xfs-client':
         specifier: 0.1.4
         version: 0.1.4
-      '@tripley/web-container-device-core':
+      '@tripley-kit/web-container-device-core':
         specifier: workspace:*
         version: link:../device-core
-      '@tripley/web-container-errors':
+      '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
-      '@tripley/web-container-storage-core':
+      '@tripley-kit/web-container-storage-core':
         specifier: workspace:*
         version: link:../storage-core
     devDependencies:
@@ -669,10 +669,10 @@ importers:
       '@tripley-kit/xfs-control-client':
         specifier: file:../../../../front-end/tripley-kit/libs/xfs-control-client
         version: file:../../front-end/tripley-kit/libs/xfs-control-client
-      '@tripley/web-container-device-core':
+      '@tripley-kit/web-container-device-core':
         specifier: workspace:*
         version: link:../device-core
-      '@tripley/web-container-xfs-device-service':
+      '@tripley-kit/web-container-xfs-device-service':
         specifier: workspace:*
         version: link:../xfs-device-service
     devDependencies:

@@ -1,4 +1,4 @@
-import type { JsonValue, Metadata } from "@tripley/web-container-types";
+import type { JsonValue, Metadata } from "@tripley-kit/web-container-types";
 
 export type TransactionStatus = "started" | "authorized" | "completed" | "failed" | "cancelled";
 

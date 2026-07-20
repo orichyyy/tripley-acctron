@@ -1,4 +1,4 @@
-import { DeviceLockManager } from "@tripley/web-container-device-core";
+import { DeviceLockManager } from "@tripley-kit/web-container-device-core";
 import { describe, expect, it } from "vitest";
 
 import type {

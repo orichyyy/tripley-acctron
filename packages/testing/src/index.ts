@@ -1,1 +1,1 @@
-export const testingPackageName = "@tripley/web-container-testing";
+export const testingPackageName = "@tripley-kit/web-container-testing";

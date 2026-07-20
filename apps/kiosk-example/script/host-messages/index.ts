@@ -1,4 +1,4 @@
-import type { FieldCodec, HostMessageProfile } from "@tripley/web-container-host-message";
+import type { FieldCodec, HostMessageProfile } from "@tripley-kit/web-container-host-message";
 
 export const kioskHostProfiles: readonly HostMessageProfile[] = [
   {

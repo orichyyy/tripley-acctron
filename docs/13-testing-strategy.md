@@ -10,11 +10,11 @@
 ## Test packages
 
 ```text
-@tripley/web-container-testing
-@tripley/web-container-testing-native
-@tripley/web-container-testing-flow
-@tripley/web-container-testing-plugin
-@tripley/web-container-testing-device
+@tripley-kit/web-container-testing
+@tripley-kit/web-container-testing-native
+@tripley-kit/web-container-testing-flow
+@tripley-kit/web-container-testing-plugin
+@tripley-kit/web-container-testing-device
 ```
 
 ## Mock Native SDK

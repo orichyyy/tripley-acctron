@@ -1,5 +1,5 @@
-import { FrameworkError } from "@tripley/web-container-errors";
-import { BasicSubscription, type IdGenerator, systemClock } from "@tripley/web-container-utils";
+import { FrameworkError } from "@tripley-kit/web-container-errors";
+import { BasicSubscription, type IdGenerator, systemClock } from "@tripley-kit/web-container-utils";
 import { type EventTracer, MemoryEventTracer, traceEnvelope, traceHandler } from "./tracer";
 import type {
   CoreEventMap,
