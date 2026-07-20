@@ -1,17 +1,30 @@
 {
+  "schemaVersion": 2,
   "journalPath": "data/xfs-protection-real-smoke.db",
-  "defaultGraceMs": 1000,
-  "groups": [
+  "resourceGroups": [
     {
       "id": "cash-transport-1",
       "members": [
         { "logicalService": "CDM", "module": "cdm" },
         { "logicalService": "CIM", "module": "cim" }
       ],
-      "disconnectAction": {
-        "kind": "cimRollback",
-        "logicalService": "CIM",
-        "timeoutMs": 30000
+      "protectionProfileIds": ["real-smoke"]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "real-smoke",
+      "version": "1",
+      "suspectGraceMs": 1000,
+      "customerAccessTimeoutMs": 5000,
+      "commandSettlementTimeoutMs": 30000,
+      "actions": {
+        "cdm.cashHeld": { "kind": "cdmRetract", "logicalService": "CDM", "outputPosition": 2, "retractArea": 1, "index": 1, "timeoutMs": 30000 },
+        "cdm.customerAccessible": { "kind": "waitUntilDeadlineThenCdmRetract", "logicalService": "CDM", "outputPosition": 2, "retractArea": 1, "index": 1, "timeoutMs": 30000 },
+        "cim.cashInActive": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM", "timeoutMs": 30000 },
+        "cim.accepting": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM", "timeoutMs": 30000 },
+        "cim.escrowHeld": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM", "timeoutMs": 30000 },
+        "cim.customerAccessible": { "kind": "waitUntilDeadlineThenCimRetract", "logicalService": "CIM", "outputPosition": 512, "retractArea": 2, "index": 1, "timeoutMs": 30000 }
       }
     }
   ]

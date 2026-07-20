@@ -1,0 +1,3 @@
+# Disconnect protection runs until terminal custody
+
+Host Disconnect Protection is a bounded, journaled state machine whose completion requires a Custody Terminal Outcome rather than one successful XFS compensation command. A successful CIM rollback or CDM present leaves cash at the customer position and therefore transitions to awaiting take; hostd observes take until the original deadline, then may execute a core-approved retract, while missing, conflicting, or execution-unknown evidence enters intervention. Protection acknowledgement cannot clear unresolved awaiting-take custody and every decision, side-effect intent, native outcome, and custody observation remains append-only in the Protection Journal.

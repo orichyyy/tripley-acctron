@@ -1,0 +1,3 @@
+# Cash-affecting commands require durable host intent
+
+Hostd durably records an operation-scoped intent before dispatching every CDM or CIM command that may change Cash Custody, then records native outcome and relevant observations before advancing Protection Phase. If the Protection Journal Store is unavailable, cash-affecting commands fail closed while read-only commands remain available; this availability trade-off is required because host-owned crash recovery cannot safely infer whether an unjournaled physical command executed. The journal stores only safe protection facts and does not replace application transaction evidence or EJ.

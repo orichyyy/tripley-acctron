@@ -1,0 +1,3 @@
+# Operations bind host-defined protection profiles
+
+Each protected operation selects an allowlisted Protection Policy Profile by ID when acquiring its host command lease; hostd binds the profile version and configuration hash to the lease, operation, and journal. Profiles may provide approved standard or accessibility timing, but applications cannot submit arbitrary deadlines or actions, switch profiles after acquisition, or reset the customer-access deadline on reconnect. Hostd establishes the durable deadline when it observes media becoming customer-accessible and exposes that deadline for application UI coordination.

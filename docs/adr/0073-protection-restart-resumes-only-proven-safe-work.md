@@ -1,0 +1,3 @@
+# Protection restart resumes only proven-safe work
+
+After Tripley Native Host restarts, unresolved resource groups remain fenced under Protection Authority and may resume only passive, durably known work such as observing customer take and honoring the remaining persisted deadline. A new custody-reducing intent may be created only after fresh device observation confirms it is still applicable and no prior intent exists; an intent with unknown execution outcome is never redispatched and instead requires intervention. Restart continuation never resumes application Flow, financial posting, or business finalization.

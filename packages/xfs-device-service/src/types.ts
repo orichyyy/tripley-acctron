@@ -69,6 +69,8 @@ export interface XfsCdmOperationalPolicy {
   readonly commandLeaseTtlMs?: number | undefined;
   readonly statusPollMs?: number | undefined;
   readonly takenPresentStates?: readonly number[] | undefined;
+  readonly resourceGroup?: string | undefined;
+  readonly protectionPolicyProfileId?: string | undefined;
 }
 
 export interface XfsHealthCheck {

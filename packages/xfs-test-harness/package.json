@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@tripley-kit/xfs-control-client": "file:../../../../front-end/tripley-kit/libs/xfs-control-client",
-    "@tripley-kit/xfs-client": "file:../../../../front-end/tripley-kit/libs/xfs-client",
+    "@tripley-kit/xfs-client": "0.1.4",
     "@tripley/web-container-device-core": "workspace:*",
     "@tripley/web-container-xfs-device-service": "workspace:*"
   },

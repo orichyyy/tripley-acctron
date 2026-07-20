@@ -1,0 +1,3 @@
+# Protection profiles are exhaustive and fail safe
+
+Every enabled Protection Policy Profile must explicitly cover every supported non-terminal CDM and CIM Protection Phase with a decision permitted by the core safety envelope; omission is a startup error rather than an implicit intervention default. Terminal phases have core-owned `none` behavior, while runtime unknown phases, conflicting observations, unknown native outcomes, and invalid plugin decisions always retain fencing and enter intervention. Consequently, adding a new supported phase makes incompatible deployment profiles fail fast instead of silently acquiring new cash-handling behavior.

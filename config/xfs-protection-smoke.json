@@ -1,14 +1,31 @@
 {
+  "schemaVersion": 2,
   "journalPath": ".tmp/xfs-protection-smoke.db",
-  "defaultGraceMs": 50,
-  "groups": [
+  "resourceGroups": [
     {
       "id": "cash-transport-1",
       "members": [
         { "logicalService": "CDM30", "module": "cdm" },
         { "logicalService": "CIM30", "module": "cim" }
       ],
-      "disconnectAction": { "kind": "intervention" }
+      "protectionProfileIds": ["intervention-only"]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "intervention-only",
+      "version": "1",
+      "suspectGraceMs": 50,
+      "customerAccessTimeoutMs": 1000,
+      "commandSettlementTimeoutMs": 1000,
+      "actions": {
+        "cdm.cashHeld": { "kind": "intervention" },
+        "cdm.customerAccessible": { "kind": "intervention" },
+        "cim.cashInActive": { "kind": "intervention" },
+        "cim.accepting": { "kind": "intervention" },
+        "cim.escrowHeld": { "kind": "intervention" },
+        "cim.customerAccessible": { "kind": "intervention" }
+      }
     }
   ]
 }

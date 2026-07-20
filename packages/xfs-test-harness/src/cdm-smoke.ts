@@ -141,8 +141,9 @@ async function applyCashUnitProfile(
   requestedProfile?: string,
 ): Promise<string> {
   const profiles = await cdm.listCashUnitProfiles({});
-  const profileName = requestedProfile ?? profiles.profiles[0]?.name ?? DEFAULT_CDM_PROFILE;
-  if (!profiles.profiles.some((profile) => profile.name === profileName)) {
+  const profileName = requestedProfile ?? DEFAULT_CDM_PROFILE;
+  const profileExists = profiles.profiles.some((profile) => profile.name === profileName);
+  if (!requestedProfile || !profileExists) {
     await cdm.upsertCashUnitProfile({ profile: defaultCashUnitProfile(profileName) });
   }
   await cdm.applyCashUnitProfile({ logicalName, profileName });
@@ -157,7 +158,7 @@ function defaultCashUnitProfile(name: string): CdmCashUnitProfile {
       tellerId: 0,
       cashUnits: [{
         appLock: false,
-        cashUnitType: 2,
+        cashUnitType: 3,
         count: initialCount,
         currencyId: "CNY",
         dispensedCount: 0,
@@ -186,6 +187,37 @@ function defaultCashUnitProfile(name: string): CdmCashUnitProfile {
         status: 0,
         unitId,
         values: 100,
+      }, {
+        appLock: false,
+        cashUnitType: 6,
+        count: 0,
+        currencyId: "   ",
+        dispensedCount: 0,
+        initialCount: 0,
+        maximum: 100,
+        minimum: 0,
+        name: "Retract 1",
+        number: 2,
+        physical: [{
+          count: 0,
+          dispensedCount: 0,
+          hardwareSensor: true,
+          initialCount: 0,
+          maximum: 100,
+          physicalPositionName: "Retract Cassette 1",
+          presentedCount: 0,
+          rejectCount: 0,
+          retractedCount: 0,
+          status: 0,
+          unitId: "RTR01",
+        }],
+        presentedCount: 0,
+        rejectCount: 0,
+        retractedCount: 0,
+        serialNumberEnabled: false,
+        status: 0,
+        unitId: "RTR01",
+        values: 0,
       }],
     },
     description: "Tripley Acctron deterministic CDM contract profile",

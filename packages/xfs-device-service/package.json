@@ -19,7 +19,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@tripley-kit/xfs-client": "file:../../../../front-end/tripley-kit/libs/xfs-client",
+    "@tripley-kit/xfs-client": "0.1.4",
     "@tripley/web-container-device-core": "workspace:*",
     "@tripley/web-container-errors": "workspace:*",
     "@tripley/web-container-storage-core": "workspace:*"

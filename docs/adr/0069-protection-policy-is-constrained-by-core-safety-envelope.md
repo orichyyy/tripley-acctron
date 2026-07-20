@@ -1,0 +1,3 @@
+# Protection policy is constrained by a core safety envelope
+
+Project configuration and future protection-policy plugins may select only actions that core declares safe for the current cash-device module and Protection Phase. Hostd fails startup for an invalid configured mapping and rejects an illegal runtime decision; terminal, conflicting, insufficient, or execution-unknown evidence cannot be overridden into another physical command. This preserves bank-specific timing and retract choices without allowing deployment policy to dispense, present, physically commit CIM escrow, post financial messages, or otherwise expand Protection Authority.

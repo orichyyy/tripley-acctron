@@ -5,26 +5,12 @@ import type {
   CashAcceptanceLeaseSession,
 } from "./cash-acceptance-contracts";
 
-declare module "@tripley-kit/xfs-client" {
-  interface XfsCommandLeaseRequest {
-    resourceGroup?: string | undefined;
-    ownerInstanceId?: string | undefined;
-  }
-
-  interface XfsCommandLease {
-    resourceGroup: string;
-    ownerInstanceId: string;
-    reconnectProof: string;
-    state: "active" | "suspect" | "protection" | "intervention";
-    configHash: string;
-  }
-}
-
 type CommandLeaseClient = NonNullable<TripleyXfsClient["commandLeases"]>;
 
 export interface XfsCashAcceptanceLeaseAdapterOptions {
   readonly commandLeases: CommandLeaseClient;
   readonly ownerInstanceId: string;
+  readonly protectionPolicyProfileId: string;
   readonly ttlMs?: number | undefined;
   readonly nextFencingToken: (request: {
     readonly operationId: string;
@@ -37,14 +23,19 @@ export class XfsCashAcceptanceLeaseAdapter implements CashAcceptanceLeasePort {
   readonly #commandLeases: CommandLeaseClient;
   readonly #ownerInstanceId: string;
   readonly #ttlMs: number;
+  readonly #protectionPolicyProfileId: string;
   readonly #nextFencingToken: XfsCashAcceptanceLeaseAdapterOptions["nextFencingToken"];
 
   constructor(options: XfsCashAcceptanceLeaseAdapterOptions) {
     if (!options.ownerInstanceId.trim()) throw new Error("ownerInstanceId is required");
+    if (!options.protectionPolicyProfileId.trim()) {
+      throw new Error("protectionPolicyProfileId is required");
+    }
     const ttlMs = options.ttlMs ?? 30_000;
     if (!Number.isSafeInteger(ttlMs) || ttlMs <= 0) throw new Error("ttlMs must be positive");
     this.#commandLeases = options.commandLeases;
     this.#ownerInstanceId = options.ownerInstanceId;
+    this.#protectionPolicyProfileId = options.protectionPolicyProfileId;
     this.#ttlMs = ttlMs;
     this.#nextFencingToken = options.nextFencingToken;
   }
@@ -69,6 +60,7 @@ export class XfsCashAcceptanceLeaseAdapter implements CashAcceptanceLeasePort {
       ttlMs: this.#ttlMs,
       resourceGroup: request.resourceGroup,
       ownerInstanceId: this.#ownerInstanceId,
+      protectionPolicyProfileId: this.#protectionPolicyProfileId,
     });
     assertLeaseBinding(lease, request.resourceGroup, this.#ownerInstanceId);
     return new ActiveLeaseSession(this.#commandLeases, lease);

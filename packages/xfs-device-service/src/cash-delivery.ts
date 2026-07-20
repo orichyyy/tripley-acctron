@@ -150,6 +150,10 @@ export class XfsCashDeliveryPort implements CashDeliveryPort {
         logicalService: this.options.logicalName,
         operationId: request.operationId,
         ttlMs: this.options.policy.commandLeaseTtlMs ?? this.options.timeoutMs * 2,
+        resourceGroup: this.options.policy.resourceGroup ?? this.options.logicalName,
+        ownerInstanceId: request.ownerInstanceId,
+        protectionPolicyProfileId:
+          this.options.policy.protectionPolicyProfileId ?? "standard",
       });
       return { deviceLease, hostCommandLease, recoveryLease };
     } catch (error) {

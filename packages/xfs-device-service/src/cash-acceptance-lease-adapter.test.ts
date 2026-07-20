@@ -20,6 +20,7 @@ describe("XfsCashAcceptanceLeaseAdapter", () => {
         release,
       } as never,
       ownerInstanceId: "runtime-1",
+      protectionPolicyProfileId: "standard",
       nextFencingToken: async () => 41,
     });
 

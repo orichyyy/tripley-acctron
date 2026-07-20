@@ -1,17 +1,45 @@
 {
+  "schemaVersion": 2,
   "journalPath": "data/xfs-protection.db",
-  "defaultGraceMs": 5000,
-  "groups": [
+  "resourceGroups": [
     {
       "id": "cash-transport-1",
       "members": [
         { "logicalService": "CDM30", "module": "cdm" },
         { "logicalService": "CIM30", "module": "cim" }
       ],
-      "disconnectAction": {
-        "kind": "cimRollback",
-        "logicalService": "CIM30",
-        "timeoutMs": 30000
+      "protectionProfileIds": ["standard", "accessible"]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "standard",
+      "version": "1",
+      "suspectGraceMs": 5000,
+      "customerAccessTimeoutMs": 30000,
+      "commandSettlementTimeoutMs": 30000,
+      "actions": {
+        "cdm.cashHeld": { "kind": "cdmRetract", "logicalService": "CDM30", "outputPosition": 2, "retractArea": 1, "index": 1, "timeoutMs": 30000 },
+        "cdm.customerAccessible": { "kind": "waitUntilDeadlineThenCdmRetract", "logicalService": "CDM30", "outputPosition": 2, "retractArea": 1, "index": 1, "timeoutMs": 30000 },
+        "cim.cashInActive": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM30", "timeoutMs": 30000 },
+        "cim.accepting": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM30", "timeoutMs": 30000 },
+        "cim.escrowHeld": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM30", "timeoutMs": 30000 },
+        "cim.customerAccessible": { "kind": "waitUntilDeadlineThenCimRetract", "logicalService": "CIM30", "outputPosition": 512, "retractArea": 2, "index": 1, "timeoutMs": 30000 }
+      }
+    },
+    {
+      "id": "accessible",
+      "version": "1",
+      "suspectGraceMs": 5000,
+      "customerAccessTimeoutMs": 60000,
+      "commandSettlementTimeoutMs": 30000,
+      "actions": {
+        "cdm.cashHeld": { "kind": "cdmRetract", "logicalService": "CDM30", "outputPosition": 2, "retractArea": 1, "index": 1, "timeoutMs": 30000 },
+        "cdm.customerAccessible": { "kind": "waitUntilDeadlineThenCdmRetract", "logicalService": "CDM30", "outputPosition": 2, "retractArea": 1, "index": 1, "timeoutMs": 30000 },
+        "cim.cashInActive": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM30", "timeoutMs": 30000 },
+        "cim.accepting": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM30", "timeoutMs": 30000 },
+        "cim.escrowHeld": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM30", "timeoutMs": 30000 },
+        "cim.customerAccessible": { "kind": "waitUntilDeadlineThenCimRetract", "logicalService": "CIM30", "outputPosition": 512, "retractArea": 2, "index": 1, "timeoutMs": 30000 }
       }
     }
   ]

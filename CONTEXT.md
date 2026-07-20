@@ -409,6 +409,21 @@ The mode and command whitelist attached to a host-backed logical-service lease. 
 
 The host-owned, bounded physical-media safeguarding process activated when an application command owner is lost. It may only observe or reduce custody risk under frozen deployment policy and never resumes customer business, posts financial messages, presents cash, dispenses, or physically commits CIM escrow.
 
+### Protection Phase
+
+The host-observed physical stage of one fenced CDM or CIM session used solely to select a safe disconnect-protection action. It is derived from authorized command dispatch, native outcomes, and relevant device observations rather than application-reported workflow state.
+_Avoid_: Flow node, transaction status, application screen, unverified recovery hint
+
+### Protection Action Matrix
+
+The deployment-frozen mapping from cash-device module and Protection Phase to one core-approved safeguarding action, wait policy, or intervention outcome. Projects select only within the phase-specific safety envelope and cannot authorize arbitrary XFS commands or customer-business continuation.
+_Avoid_: One action per cash group, executable project script, unrestricted protection plugin
+
+### Protection Policy Profile
+
+A host-defined, versioned and allowlisted set of protection timing, action-matrix, and retract choices selected by identity when an operation acquires command authority. Its identity and configuration hash remain frozen for that operation and cannot be replaced or extended after physical custody begins.
+_Avoid_: Application timeout, runtime policy override, arbitrary protection parameters
+
 ### Protection Authority
 
 The internal host authority that atomically fences a lost transaction owner and permits only validated Host Disconnect Protection actions for its Cash Device Resource Group. Application owners may observe but cannot reclaim transaction authority after protection begins.
@@ -419,7 +434,12 @@ The irreversible transition from a suspected connection loss to Protection Autho
 
 ### Protection Journal
 
-The host-persisted, operation-scoped record of disconnect-protection trigger, policy identity, observations, dispatch intents, execution certainty, and safe physical outcomes. It is imported into application evidence after reconnect but does not replace the transaction database or EJ.
+The host-persisted, operation-scoped record of cash-affecting owner command intents and outcomes, Protection Phase transitions, disconnect trigger, policy identity, observations, protection intents, execution certainty, and safe physical outcomes. It is imported into application evidence after reconnect but does not replace the transaction database or EJ.
+
+### Cash-Affecting Command
+
+An authorized CDM or CIM command whose dispatch may move cash, expose it to a customer, alter escrow, or resolve Cash Custody even when its native outcome is later lost. Its durable host intent must exist before native dispatch.
+_Avoid_: Every XFS command, read-only device query, application business command
 
 ### Protection Journal Store
 
