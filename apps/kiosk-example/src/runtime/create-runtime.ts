@@ -9,9 +9,12 @@ import {
   InMemoryOperationLedger,
 } from "@tripley/web-container-kiosk-base";
 import {
+  type CashRuntimeSafetyPolicy,
   type CapabilityStatus,
+  type KioskLauncherSupervisionPort,
   type KioskRuntimeMode,
   type OperationViewState,
+  type RecoveryStartupBarrierPort,
   createKioskRuntime,
 } from "@tripley/web-container-kiosk-runtime";
 import { ConsoleLogger } from "@tripley/web-container-logging";
@@ -50,6 +53,9 @@ export interface CreateExampleRuntimeOptions {
   readonly healthPollIntervalMs?: number | undefined;
   readonly reservationEnabled?: boolean | undefined;
   readonly speechRequired?: boolean | undefined;
+  readonly cashSafety?: CashRuntimeSafetyPolicy | undefined;
+  readonly launcherSupervision?: KioskLauncherSupervisionPort | undefined;
+  readonly recoveryStartup?: RecoveryStartupBarrierPort | undefined;
   readonly extensions?: readonly ExampleRuntimeExtension[] | undefined;
   readonly onReboot?: ((mode: KioskRuntimeMode) => void | Promise<void>) | undefined;
 }
@@ -146,6 +152,7 @@ export const createExampleApplicationRuntime = async (
   ];
   const runtime = createKioskRuntime({
     authenticationChallenges: [createOnlinePinChallenge(dependencies)],
+    cashSafety: options.cashSafety,
     capabilities,
     entryMethods: entries,
     executeBusiness: async (_ctx, assessment) => ({
@@ -170,7 +177,9 @@ export const createExampleApplicationRuntime = async (
       audit: new AuditJournalService(new InMemoryAuditJournalRepository()),
       ledger: new InMemoryOperationLedger(),
       logger: typeof window === "undefined" ? undefined : new ConsoleLogger(),
+      launcherSupervision: options.launcherSupervision,
       prompt,
+      recoveryStartup: options.recoveryStartup,
       scopedStore,
       ui,
     },

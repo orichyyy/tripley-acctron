@@ -1,4 +1,9 @@
 import { describe, expect, it } from "vitest";
+import {
+  InMemoryProtectionRecoveryStore,
+  ProtectionRecoveryStartupBarrier,
+  type ProtectionRecoveryHostPort,
+} from "@tripley/web-container-xfs-device-service";
 
 import { createExampleApplicationRuntime } from "./create-runtime";
 import { createFakeNfcExtension } from "./fake-nfc-extension.fixture";
@@ -19,6 +24,33 @@ describe("kiosk example runtime", () => {
       expect.objectContaining({ available: false, id: "qr" }),
       expect.objectContaining({ available: true, id: "reservation" }),
     ]);
+  });
+
+  it("blocks runtime admission while any configured protection resource group is recovering", async () => {
+    const recoveryStartup = new ProtectionRecoveryStartupBarrier({
+      application: { reconcile: async () => undefined },
+      host: multiGroupProtectionHost(),
+      projections: [{ id: "auditEj", project: async () => undefined }],
+      resourceGroups: [{ id: "cash-a" }, { id: "cash-b" }],
+      store: new InMemoryProtectionRecoveryStore(),
+    });
+    const application = await createExampleApplicationRuntime({
+      cashSafety: { enabled: true, restartWindowMs: 30_000 },
+      launcherSupervision: {
+        observeStartup: async () => ({
+          runtimeInstanceId: "runtime-recovery-test",
+          startedAt: "2026-07-20T00:00:00.000Z",
+          watchdogHealthy: true,
+        }),
+      },
+      mode: "memory",
+      recoveryStartup,
+    });
+
+    expect(application.runtime.snapshot().readiness.status).toBe("recovering");
+    await expect(
+      application.runtime.start({ entryMethodId: "reservation", intentId: "barrier-blocked" }),
+    ).rejects.toMatchObject({ code: "command.blocked" });
   });
 
   it("removes the bank reservation contribution when its feature flag is disabled", async () => {
@@ -196,3 +228,56 @@ const waitUntil = async (predicate: () => boolean): Promise<void> => {
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
 };
+
+const multiGroupProtectionHost = (): ProtectionRecoveryHostPort => ({
+  acknowledgeProtection: async () => undefined,
+  getHostEpoch: async () => "epoch-runtime-test",
+  protectionJournal: async () => [
+    {
+      action: "waitUntilDeadlineThenCdmRetract",
+      executionCertainty: "known",
+      fencingToken: 9,
+      id: "journal-runtime-test",
+      logicalService: "CDM-B",
+      module: "cdm",
+      operationId: "operation-runtime-test",
+      outcome: "intent",
+      phase: "cdm.customerAccessible",
+      protectionPolicyProfileHash: "profile-hash",
+      protectionPolicyProfileId: "standard",
+      protectionPolicyProfileVersion: "1",
+      resourceGroup: "cash-b",
+      safeDetail: "waitingForCustomerAccessDeadline",
+    },
+  ],
+  protectionStatus: async (resourceGroup) =>
+    resourceGroup === "cash-a"
+      ? {
+          action: "none",
+          configHash: "config-hash",
+          custodyOutcome: "",
+          fencingToken: 0,
+          operationId: "",
+          phase: "idle",
+          protectionPolicyProfileHash: "",
+          protectionPolicyProfileId: "",
+          protectionPolicyProfileVersion: "",
+          reason: "",
+          resourceGroup,
+          state: "idle",
+        }
+      : {
+          action: "waitUntilDeadlineThenCdmRetract",
+          configHash: "config-hash",
+          custodyOutcome: "",
+          fencingToken: 9,
+          operationId: "operation-runtime-test",
+          phase: "cdm.customerAccessible",
+          protectionPolicyProfileHash: "profile-hash",
+          protectionPolicyProfileId: "standard",
+          protectionPolicyProfileVersion: "1",
+          reason: "ownerDisconnected",
+          resourceGroup,
+          state: "protection",
+        },
+});

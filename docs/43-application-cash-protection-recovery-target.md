@@ -69,6 +69,8 @@ The SQLite store and in-memory test store implement the same public port.
 - Host epoch change remains fail-closed.
 - The migration contains durable case, import, and projection checkpoint tables.
 - Barrier summaries expose counts only and omit operation identifiers and safe journal detail.
+- The example composes the bridge through the existing Recovery Startup Barrier port and blocks admission when one of multiple resource groups remains non-terminal.
+- An opt-in real simulator contract proves CDM disconnect retract, application import/projection/reconciliation, acknowledgement, and same-hostd resource-group reuse.
 
 ## Done when
 
