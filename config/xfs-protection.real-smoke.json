@@ -9,6 +9,13 @@
         { "logicalService": "CIM", "module": "cim" }
       ],
       "protectionProfileIds": ["real-smoke"]
+    },
+    {
+      "id": "card-transport-1",
+      "members": [
+        { "logicalService": "IDC", "module": "idc" }
+      ],
+      "protectionProfileIds": ["real-smoke"]
     }
   ],
   "profiles": [
@@ -24,7 +31,9 @@
         "cim.cashInActive": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM", "timeoutMs": 30000 },
         "cim.accepting": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM", "timeoutMs": 30000 },
         "cim.escrowHeld": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM", "timeoutMs": 30000 },
-        "cim.customerAccessible": { "kind": "waitUntilDeadlineThenCimRetract", "logicalService": "CIM", "outputPosition": 512, "retractArea": 2, "index": 1, "timeoutMs": 30000 }
+        "cim.customerAccessible": { "kind": "waitUntilDeadlineThenCimRetract", "logicalService": "CIM", "outputPosition": 512, "retractArea": 2, "index": 1, "timeoutMs": 30000 },
+        "idc.cardInside": { "kind": "idcEjectThenAwaitTake", "logicalService": "IDC", "ejectPosition": 1, "timeoutMs": 30000 },
+        "idc.customerAccessible": { "kind": "waitUntilDeadlineThenIdcRetain", "logicalService": "IDC", "timeoutMs": 30000 }
       }
     }
   ]

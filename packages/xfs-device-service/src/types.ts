@@ -17,6 +17,7 @@ import type {
   XfsIdcReadRawDataRequest,
   XfsIdcRequest,
   XfsOpenRequest,
+  XfsRegisterRequest,
   XfsPinBlockRequest,
   XfsPinGetDataRequest,
   XfsPinGetPinRequest,
@@ -109,6 +110,7 @@ export interface XfsManagerClientLike {
   startup(request: XfsStartupRequest): Promise<unknown>;
   open(request: XfsOpenRequest): Promise<XfsOpenResultLike>;
   close(request: { readonly sessionId: string }): Promise<unknown>;
+  registerEvents?(request: XfsRegisterRequest): Promise<unknown>;
   cancelAsyncRequest(request: {
     readonly sessionId: string;
     readonly requestId: number;
@@ -121,6 +123,11 @@ export interface XfsIdcClientLike {
   reset?(request: XfsSessionRequestLike): Promise<XfsNativeEnvelopeLike>;
   ejectCard?(request: XfsIdcEjectCardRequest): Promise<XfsNativeEnvelopeLike>;
   retainCard?(request: XfsIdcRequest): Promise<XfsNativeEnvelopeLike>;
+  subscribeEvent?(handler: (event: XfsIdcEventLike) => void | Promise<void>): unknown;
+}
+
+export interface XfsIdcEventLike {
+  readonly data?: { readonly kind?: string | undefined } | undefined;
 }
 
 export interface XfsPinClientLike {

@@ -1,4 +1,7 @@
 import {
+  XfsEventClassFromRaw,
+} from "@tripley-kit/xfs-client";
+import {
   createBarcodeQrInputSourceAdapter,
   createPinpadDataInputSourceAdapter,
   createPinpadPinInputSourceAdapter,
@@ -18,6 +21,12 @@ const idcAdapter: XfsDeviceModuleAdapter = {
   module: "idc",
   requiredModule: "idc",
   create: async ({ client, config, session, timeoutMs }) => {
+    if (client.manager.registerEvents) {
+      await client.manager.registerEvents({
+        eventClass: XfsEventClassFromRaw(2),
+        sessionId: session.id,
+      });
+    }
     const port = new XfsCardReaderDevicePort({
       client: client.idc,
       deviceId: config.deviceId,

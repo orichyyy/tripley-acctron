@@ -62,6 +62,10 @@ export class XfsHostdTestHarness {
     await this.control.idc.takeCardByLogicalService({ logicalName });
   }
 
+  public async cardMediaPosition(logicalName: string): Promise<number> {
+    return (await this.control.idc.getMediaState({ logicalName })).position;
+  }
+
   public async ensureNoCard(logicalName: string): Promise<void> {
     await this.control.idc.takeCardByLogicalService({ logicalName }).catch(() => undefined);
     const media = await this.control.idc.getMediaState({ logicalName });

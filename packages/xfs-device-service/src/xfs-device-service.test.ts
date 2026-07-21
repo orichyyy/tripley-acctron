@@ -205,10 +205,25 @@ describe("XfsDeviceService", () => {
 
     expect(await card.getMediaStatus()).toMatchObject({ state: "inside" });
     await card.ejectCard({ position: "exit" });
+    await fake.idc.eventHandler?.({ data: { kind: "mediaRemoved" } });
     const taken = await card.waitForTaken({ pollIntervalMs: 1, timeoutMs: 50 });
 
     expect(taken).toMatchObject({ safeSummary: { taken: true }, taken: true });
     expect(fake.idc.ejectCalls).toHaveLength(1);
+  });
+
+  it("does not treat NOT_PRESENT status alone as customer take evidence", async () => {
+    const fake = createFakeXfsClient();
+    const service = createXfsDeviceService(config(), { client: fake });
+    await service.connect();
+    const devices = new DeviceRegistry();
+    service.registerDevices(devices);
+    const card = devices.require<import("./ports").XfsCardReaderPort>("customCard");
+
+    await card.ejectCard({ position: "exit" });
+    const taken = await card.waitForTaken({ pollIntervalMs: 1, timeoutMs: 5 });
+
+    expect(taken).toMatchObject({ safeSummary: { taken: false }, taken: false });
   });
 
   it("closes sessions and disposes the XFS client", async () => {
@@ -277,6 +292,7 @@ const createFakeXfsClient = (options: { readonly idcFwDevice?: number } = {}) =>
     };
     idc: XfsRuntimeClientLike["idc"] & {
       ejectCalls: unknown[];
+      eventHandler?: ((event: { data: { kind: string } }) => void | Promise<void>) | undefined;
       statusCalls: number;
     };
   } = {
@@ -311,6 +327,10 @@ const createFakeXfsClient = (options: { readonly idcFwDevice?: number } = {}) =>
       },
       readRawData: async () => ({ native: { hResult: 0 } }),
       retainCard: async () => ({ native: { hResult: 0 } }),
+      subscribeEvent: (handler) => {
+        fake.idc.eventHandler = handler;
+        return {};
+      },
     },
     manager: {
       cancelCalls: [] as Array<{ requestId: number; sessionId: string }>,

@@ -638,9 +638,6 @@ importers:
 
   packages/xfs-device-service:
     dependencies:
-      '@tripley-kit/xfs-client':
-        specifier: 0.1.4
-        version: 0.1.4
       '@tripley-kit/web-container-device-core':
         specifier: workspace:*
         version: link:../device-core
@@ -650,6 +647,9 @@ importers:
       '@tripley-kit/web-container-storage-core':
         specifier: workspace:*
         version: link:../storage-core
+      '@tripley-kit/xfs-client':
+        specifier: 0.1.4
+        version: 0.1.4
     devDependencies:
       tsup:
         specifier: ^8.3.5
@@ -663,18 +663,18 @@ importers:
 
   packages/xfs-test-harness:
     dependencies:
-      '@tripley-kit/xfs-client':
-        specifier: 0.1.4
-        version: 0.1.4
-      '@tripley-kit/xfs-control-client':
-        specifier: file:../../../../front-end/tripley-kit/libs/xfs-control-client
-        version: file:../../front-end/tripley-kit/libs/xfs-control-client
       '@tripley-kit/web-container-device-core':
         specifier: workspace:*
         version: link:../device-core
       '@tripley-kit/web-container-xfs-device-service':
         specifier: workspace:*
         version: link:../xfs-device-service
+      '@tripley-kit/xfs-client':
+        specifier: 0.1.4
+        version: 0.1.4
+      '@tripley-kit/xfs-control-client':
+        specifier: file:../../../../front-end/tripley-kit/libs/xfs-control-client
+        version: file:../../front-end/tripley-kit/libs/xfs-control-client
     devDependencies:
       typescript:
         specifier: ^5.7.2

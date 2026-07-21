@@ -6,6 +6,12 @@ import {
 
 let fencingSequence = 0;
 
+export interface XfsTestCommandLeaseOptions {
+  readonly ownerInstanceId?: string | undefined;
+  readonly protectionPolicyProfileId?: string | undefined;
+  readonly resourceGroup?: string | undefined;
+}
+
 export class XfsTestCommandLeaseSet {
   private constructor(
     private readonly client: TripleyXfsClient,
@@ -16,6 +22,7 @@ export class XfsTestCommandLeaseSet {
     client: TripleyXfsClient,
     logicalServices: readonly string[],
     authority: XfsCommandAuthority = "transaction",
+    options: XfsTestCommandLeaseOptions = {},
   ): Promise<XfsTestCommandLeaseSet> {
     const leaseClient = client.commandLeases;
     if (!leaseClient) {
@@ -33,6 +40,11 @@ export class XfsTestCommandLeaseSet {
           hostEpoch,
           logicalService,
           operationId: `xfs-contract:${runId}:${logicalService}`,
+          ...(options.ownerInstanceId ? { ownerInstanceId: options.ownerInstanceId } : {}),
+          ...(options.protectionPolicyProfileId
+            ? { protectionPolicyProfileId: options.protectionPolicyProfileId }
+            : {}),
+          ...(options.resourceGroup ? { resourceGroup: options.resourceGroup } : {}),
           ttlMs: 60_000,
         }));
       }

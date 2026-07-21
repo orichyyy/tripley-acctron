@@ -62,7 +62,14 @@ export interface XfsCardReaderPort {
 }
 
 export class XfsCardReaderDevicePort implements XfsCardReaderPort {
-  public constructor(private readonly options: XfsDevicePortOptions<XfsIdcClientLike>) {}
+  private mediaRemovedSequence = 0;
+  private takeEvidenceBaseline = 0;
+
+  public constructor(private readonly options: XfsDevicePortOptions<XfsIdcClientLike>) {
+    options.client.subscribeEvent?.((event) => {
+      if (event.data?.kind === "mediaRemoved") this.mediaRemovedSequence += 1;
+    });
+  }
 
   public async readCard(
     options: XfsCardReadOptions = {},
@@ -90,27 +97,42 @@ export class XfsCardReaderDevicePort implements XfsCardReaderPort {
     };
   }
 
-  public async ejectCard(options: XfsCardEjectOptions = {}): Promise<void> {
+  public async ejectCard(
+    options: XfsCardEjectOptions = {},
+    context?: XfsDeviceOperationContext,
+  ): Promise<void> {
     if (!this.options.client.ejectCard) {
       throw missingCardCapability("ejectCard", this.metadata());
     }
-    const result = await this.options.client.ejectCard({
-      ...(options.position
-        ? { ejectPosition: XfsIdcEjectPositionFromRaw(options.position === "exit" ? 1 : 2) }
-        : {}),
-      sessionId: this.options.session.id,
-      timeoutMs: options.timeoutMs ?? this.options.timeoutMs,
+    this.takeEvidenceBaseline = this.mediaRemovedSequence;
+    const result = await runAbortableXfsCommand({
+      cancel: () => cancelSession(this.options.manager, this.options.session.id),
+      execute: () => this.options.client.ejectCard!({
+        ...(options.position
+          ? { ejectPosition: XfsIdcEjectPositionFromRaw(options.position === "exit" ? 1 : 2) }
+          : {}),
+        sessionId: this.options.session.id,
+        timeoutMs: options.timeoutMs ?? this.options.timeoutMs,
+      }),
+      signal: context?.signal,
     });
     assertXfsOk(result, "idc.ejectCard", this.metadata());
   }
 
-  public async retainCard(options: XfsCardRetainOptions = {}): Promise<void> {
+  public async retainCard(
+    options: XfsCardRetainOptions = {},
+    context?: XfsDeviceOperationContext,
+  ): Promise<void> {
     if (!this.options.client.retainCard) {
       throw missingCardCapability("retainCard", this.metadata());
     }
-    const result = await this.options.client.retainCard({
-      sessionId: this.options.session.id,
-      timeoutMs: options.timeoutMs ?? this.options.timeoutMs,
+    const result = await runAbortableXfsCommand({
+      cancel: () => cancelSession(this.options.manager, this.options.session.id),
+      execute: () => this.options.client.retainCard!({
+        sessionId: this.options.session.id,
+        timeoutMs: options.timeoutMs ?? this.options.timeoutMs,
+      }),
+      signal: context?.signal,
     });
     assertXfsOk(result, "idc.retainCard", this.metadata());
   }
@@ -140,7 +162,7 @@ export class XfsCardReaderDevicePort implements XfsCardReaderPort {
     const pollIntervalMs = options.pollIntervalMs ?? 100;
     const deadline = Date.now() + timeoutMs;
     let status = await this.getMediaStatus();
-    while (status.state !== "notPresent" && Date.now() < deadline) {
+    while (this.mediaRemovedSequence <= this.takeEvidenceBaseline && Date.now() < deadline) {
       if (context?.signal?.aborted) {
         throw new FrameworkError({
           category: "dependency",
@@ -153,9 +175,15 @@ export class XfsCardReaderDevicePort implements XfsCardReaderPort {
       status = await this.getMediaStatus();
     }
     return {
-      taken: status.state === "notPresent",
+      taken: this.mediaRemovedSequence > this.takeEvidenceBaseline,
       status,
-      safeSummary: { mediaState: status.state, taken: status.state === "notPresent" },
+      safeSummary: {
+        mediaState: status.state,
+        taken: this.mediaRemovedSequence > this.takeEvidenceBaseline,
+        takenEvidence: this.mediaRemovedSequence > this.takeEvidenceBaseline
+          ? "mediaRemovedEvent"
+          : "none",
+      },
     };
   }
 
