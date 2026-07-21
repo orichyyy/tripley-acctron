@@ -6,3 +6,5 @@ export * from "./health";
 export * from "./operation-ledger";
 export * from "./outbox";
 export * from "./prompt-catalog";
+export * from "./sqlite-operation-ledger";
+export * from "./sqlite-outbox";

@@ -30,6 +30,7 @@ describe("kiosk base", () => {
       "kiosk-base.001.transaction",
       "kiosk-base.002.audit-journal",
       "kiosk-base.003.operation-ledger-outbox",
+      "kiosk-base.004.durable-operation-ledger",
     ]);
     await expect(transactionRepository.listMessages(transaction.id)).resolves.toHaveLength(1);
   });

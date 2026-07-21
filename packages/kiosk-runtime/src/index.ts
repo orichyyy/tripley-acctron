@@ -4,6 +4,7 @@ export * from "./registries";
 export * from "./finalization-contracts";
 export * from "./finalization-store";
 export * from "./finalization-sql-store";
+export * from "./transaction-startup";
 export * from "./finalization-runner";
 export * from "./runtime";
 export * from "./types";

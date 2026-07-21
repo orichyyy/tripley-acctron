@@ -400,6 +400,34 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.0)
 
+  packages/kiosk-transaction-runtime:
+    dependencies:
+      '@tripley-kit/web-container-deposit-orchestration':
+        specifier: workspace:*
+        version: link:../deposit-orchestration
+      '@tripley-kit/web-container-kiosk-base':
+        specifier: workspace:*
+        version: link:../kiosk-base
+      '@tripley-kit/web-container-kiosk-runtime':
+        specifier: workspace:*
+        version: link:../kiosk-runtime
+      '@tripley-kit/web-container-storage-core':
+        specifier: workspace:*
+        version: link:../storage-core
+      '@tripley-kit/web-container-withdrawal-orchestration':
+        specifier: workspace:*
+        version: link:../withdrawal-orchestration
+    devDependencies:
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.0)
+
   packages/logging:
     dependencies:
       '@tripley-kit/web-container-errors':

@@ -33,4 +33,16 @@ export const kioskStandardMigrations: readonly Migration[] = [
       await db.executeBatch(kioskOutboxTableSql);
     },
   },
+  {
+    id: "kiosk-base.004.durable-operation-ledger",
+    packageId: kioskBasePackageId,
+    up: async (db) => {
+      await db.executeBatch(`
+        ALTER TABLE kiosk_operation_ledger ADD COLUMN operation_id TEXT;
+        ALTER TABLE kiosk_operation_ledger ADD COLUMN entry_method_id TEXT;
+        ALTER TABLE kiosk_operation_ledger ADD COLUMN phase TEXT;
+        ALTER TABLE kiosk_operation_ledger ADD COLUMN media_custody TEXT;
+      `);
+    },
+  },
 ];

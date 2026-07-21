@@ -5,4 +5,5 @@ export * from "./counter";
 export * from "./migrations";
 export * from "./repositories";
 export * from "./sqlite";
+export * from "./sqlite-migration-store";
 export * from "./storage-registry";
