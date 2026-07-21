@@ -6,9 +6,9 @@ import type {
   ManualHostResolution,
 } from "./contracts";
 import { systemHostDeliveryClock } from "./contracts";
-import { HostDeliveryPolicyRegistry } from "./policy";
-import { SqliteHostReconciliationStore } from "./sqlite-reconciliation";
-import { SqliteHostDeliveryStore } from "./sqlite-store";
+import type { HostDeliveryPolicyRegistry } from "./policy";
+import type { SqliteHostReconciliationStore } from "./sqlite-reconciliation";
+import type { SqliteHostDeliveryStore } from "./sqlite-store";
 
 export class HostResponseReconciliationService {
   public constructor(
@@ -27,6 +27,13 @@ export class HostResponseReconciliationService {
       source: input.source,
     });
   }
+
+  public async read(outboxId: string) {
+    const response = await this.store.getResponse(outboxId);
+    if (!response) return undefined;
+    const payload = await this.vault.get(response.payloadRef);
+    return payload ? { ...response, payload } : undefined;
+  }
 }
 
 export class HostUncertainReconciliationService {
@@ -38,10 +45,13 @@ export class HostUncertainReconciliationService {
     private readonly clock: HostDeliveryClock = systemHostDeliveryClock,
   ) {}
 
-  public async reconcile(outboxId: string): Promise<"reconciled" | "retryScheduled" | "manualRequired" | "unavailable"> {
+  public async reconcile(
+    outboxId: string,
+  ): Promise<"reconciled" | "retryScheduled" | "manualRequired" | "unavailable"> {
     const record = await this.deliveries.get(outboxId);
     if (!record) throw new Error(`Host delivery record not found: ${outboxId}`);
-    if (record.status !== "uncertain") throw new Error(`Host delivery is not uncertain: ${outboxId}`);
+    if (record.status !== "uncertain")
+      throw new Error(`Host delivery is not uncertain: ${outboxId}`);
     const policy = this.policies.require(record.policyId);
     if (policy.version !== record.policyVersion || policy.uncertainStrategy === "manual") {
       return "manualRequired";

@@ -59,6 +59,9 @@ importers:
       '@tripley-kit/web-container-kiosk-host-delivery':
         specifier: workspace:*
         version: link:../../packages/kiosk-host-delivery
+      '@tripley-kit/web-container-kiosk-host-integration':
+        specifier: workspace:*
+        version: link:../../packages/kiosk-host-integration
       '@tripley-kit/web-container-kiosk-runtime':
         specifier: workspace:*
         version: link:../../packages/kiosk-runtime
@@ -387,6 +390,34 @@ importers:
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.0
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.0)
+
+  packages/kiosk-host-integration:
+    dependencies:
+      '@tripley-kit/web-container-deposit-orchestration':
+        specifier: workspace:*
+        version: link:../deposit-orchestration
+      '@tripley-kit/web-container-host-message':
+        specifier: workspace:*
+        version: link:../host-message
+      '@tripley-kit/web-container-kiosk-host-delivery':
+        specifier: workspace:*
+        version: link:../kiosk-host-delivery
+      '@tripley-kit/web-container-native-adapter':
+        specifier: workspace:*
+        version: link:../native-adapter
+      '@tripley-kit/web-container-withdrawal-orchestration':
+        specifier: workspace:*
+        version: link:../withdrawal-orchestration
+    devDependencies:
       tsup:
         specifier: ^8.3.5
         version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)

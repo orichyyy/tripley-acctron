@@ -1,12 +1,8 @@
-import type {
-  HostDeliveryClock,
-  HostPayloadVault,
-  HostTransportPort,
-} from "./contracts";
+import type { HostDeliveryClock, HostPayloadVault, HostTransportPort } from "./contracts";
 import { systemHostDeliveryClock } from "./contracts";
-import { HostDeliveryPolicyRegistry } from "./policy";
-import { HostResponseReconciliationService } from "./reconciliation";
-import { SqliteHostDeliveryStore } from "./sqlite-store";
+import type { HostDeliveryPolicyRegistry } from "./policy";
+import type { HostResponseReconciliationService } from "./reconciliation";
+import type { SqliteHostDeliveryStore } from "./sqlite-store";
 
 export interface HostDeliveryWorkResult {
   readonly status: "idle" | "reconciled" | "retryScheduled" | "uncertain" | "failed";
@@ -24,8 +20,10 @@ export class HostDeliveryWorker {
     private readonly clock: HostDeliveryClock = systemHostDeliveryClock,
   ) {}
 
-  public async runOnce(): Promise<HostDeliveryWorkResult> {
-    const record = await this.deliveries.claimNext(this.ownerId, this.policies);
+  public async runOnce(outboxId?: string): Promise<HostDeliveryWorkResult> {
+    const record = outboxId
+      ? await this.deliveries.claim(outboxId, this.ownerId, this.policies)
+      : await this.deliveries.claimNext(this.ownerId, this.policies);
     if (!record) return { status: "idle" };
     const payload = await this.vault.get(record.payloadRef);
     if (!payload) {
@@ -68,9 +66,8 @@ export class HostDeliveryWorker {
       await this.deliveries.markFailed(record.id, result.errorCode);
       return { outboxId: record.id, status: "failed" };
     }
-    const delay = policy.retryDelaysMs[
-      Math.min(record.attemptCount - 1, policy.retryDelaysMs.length - 1)
-    ]!;
+    const delay =
+      policy.retryDelaysMs[Math.min(record.attemptCount - 1, policy.retryDelaysMs.length - 1)]!;
     const nextAttempt = new Date(this.clock.now().getTime() + delay).toISOString();
     await this.deliveries.scheduleRetry(record.id, nextAttempt, result.errorCode);
     return { outboxId: record.id, status: "retryScheduled" };

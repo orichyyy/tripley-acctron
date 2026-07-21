@@ -26,18 +26,30 @@
       "@tripley-kit/web-container-configuration": ["packages/configuration/src/index.ts"],
       "@tripley-kit/web-container-core": ["packages/core/src/index.ts"],
       "@tripley-kit/web-container-device-core": ["packages/device-core/src/index.ts"],
+      "@tripley-kit/web-container-deposit-orchestration": [
+        "packages/deposit-orchestration/src/index.ts"
+      ],
       "@tripley-kit/web-container-errors": ["packages/errors/src/index.ts"],
       "@tripley-kit/web-container-event-bus": ["packages/event-bus/src/index.ts"],
       "@tripley-kit/web-container-flow-engine": ["packages/flow-engine/src/index.ts"],
       "@tripley-kit/web-container-host-message": ["packages/host-message/src/index.ts"],
       "@tripley-kit/web-container-kiosk-base": ["packages/kiosk-base/src/index.ts"],
-      "@tripley-kit/web-container-kiosk-host-delivery": ["packages/kiosk-host-delivery/src/index.ts"],
+      "@tripley-kit/web-container-kiosk-host-delivery": [
+        "packages/kiosk-host-delivery/src/index.ts"
+      ],
+      "@tripley-kit/web-container-kiosk-host-integration": [
+        "packages/kiosk-host-integration/src/index.ts"
+      ],
       "@tripley-kit/web-container-kiosk-runtime": ["packages/kiosk-runtime/src/index.ts"],
-      "@tripley-kit/web-container-kiosk-transaction-runtime": ["packages/kiosk-transaction-runtime/src/index.ts"],
+      "@tripley-kit/web-container-kiosk-transaction-runtime": [
+        "packages/kiosk-transaction-runtime/src/index.ts"
+      ],
       "@tripley-kit/web-container-logging": ["packages/logging/src/index.ts"],
       "@tripley-kit/web-container-native-adapter": ["packages/native-adapter/src/index.ts"],
       "@tripley-kit/web-container-plugin-system": ["packages/plugin-system/src/index.ts"],
-      "@tripley-kit/web-container-prompt-presentation": ["packages/prompt-presentation/src/index.ts"],
+      "@tripley-kit/web-container-prompt-presentation": [
+        "packages/prompt-presentation/src/index.ts"
+      ],
       "@tripley-kit/web-container-react-adapter": ["packages/react-adapter/src/index.ts"],
       "@tripley-kit/web-container-registry": ["packages/registry/src/index.ts"],
       "@tripley-kit/web-container-scoped-store": ["packages/scoped-store/src/index.ts"],
@@ -49,7 +61,10 @@
       "@tripley-kit/web-container-types": ["packages/types/src/index.ts"],
       "@tripley-kit/web-container-ui-port": ["packages/ui-port/src/index.ts"],
       "@tripley-kit/web-container-utils": ["packages/utils/src/index.ts"],
-      "@tripley-kit/web-container-window-manager": ["packages/window-manager/src/index.ts"]
+      "@tripley-kit/web-container-window-manager": ["packages/window-manager/src/index.ts"],
+      "@tripley-kit/web-container-withdrawal-orchestration": [
+        "packages/withdrawal-orchestration/src/index.ts"
+      ]
     },
     "resolveJsonModule": true,
     "skipLibCheck": true,

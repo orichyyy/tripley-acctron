@@ -1,4 +1,7 @@
-import type { FrameworkSqliteConnection, FrameworkSqliteTransaction } from "@tripley-kit/web-container-storage-core";
+import type {
+  FrameworkSqliteConnection,
+  FrameworkSqliteTransaction,
+} from "@tripley-kit/web-container-storage-core";
 
 import type {
   HostDeliveryClock,
@@ -10,7 +13,21 @@ import type {
 import { systemHostDeliveryClock } from "./contracts";
 
 interface ResponseRow {
+  readonly response_id: string;
   readonly outbox_id: string;
+  readonly payload_ref: string;
+  readonly safe_summary_json: string;
+  readonly source: HostResponseInput["source"];
+  readonly created_at: string;
+}
+
+export interface StoredHostResponse {
+  readonly responseId: string;
+  readonly outboxId: string;
+  readonly payloadRef: string;
+  readonly safeSummary: HostResponseInput["safeSummary"];
+  readonly source: HostResponseInput["source"];
+  readonly createdAt: string;
 }
 
 interface OutboxProjectionRow {
@@ -47,17 +64,27 @@ export class SqliteHostReconciliationStore {
         `INSERT INTO kiosk_host_response
          (response_id, outbox_id, payload_ref, safe_summary_json, source, created_at)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [input.responseId, input.outboxId, input.payloadRef,
-          JSON.stringify(input.safeSummary), input.source, now],
+        [
+          input.responseId,
+          input.outboxId,
+          input.payloadRef,
+          JSON.stringify(input.safeSummary),
+          input.source,
+          now,
+        ],
       );
       await appendInboundMessage(tx, outbox, input, now);
-      await appendAudit(tx, {
-        data: { responseId: input.responseId, source: input.source },
-        eventId: "host.delivery.reconciled",
-        id: `host-reconciliation:${input.responseId}`,
-        message: "Host delivery response reconciled",
-        transactionId: outbox.transaction_id,
-      }, now);
+      await appendAudit(
+        tx,
+        {
+          data: { responseId: input.responseId, source: input.source },
+          eventId: "host.delivery.reconciled",
+          id: `host-reconciliation:${input.responseId}`,
+          message: "Host delivery response reconciled",
+          transactionId: outbox.transaction_id,
+        },
+        now,
+      );
       await tx.run(
         `UPDATE kiosk_host_outbox SET status = 'reconciled', response_id = ?, resolution = ?,
          lease_owner = NULL, lease_until = NULL, updated_at = ? WHERE id = ?`,
@@ -65,6 +92,22 @@ export class SqliteHostReconciliationStore {
       );
       return { outboxId: input.outboxId, status: "reconciled" };
     });
+  }
+
+  public async getResponse(outboxId: string): Promise<StoredHostResponse | undefined> {
+    const row = await this.db.queryOne<ResponseRow>(
+      "SELECT * FROM kiosk_host_response WHERE outbox_id = ?",
+      [outboxId],
+    );
+    if (!row) return undefined;
+    return {
+      createdAt: row.created_at,
+      outboxId: row.outbox_id,
+      payloadRef: row.payload_ref,
+      responseId: row.response_id,
+      safeSummary: JSON.parse(row.safe_summary_json) as HostResponseInput["safeSummary"],
+      source: row.source,
+    };
   }
 
   public async applyManualResolution(input: {
@@ -93,17 +136,21 @@ export class SqliteHostReconciliationStore {
          WHERE id = ?`,
         [status, `manual:${input.resolution}`, input.retryAt ?? null, now, input.outboxId],
       );
-      await appendAudit(tx, {
-        data: {
-          operatorId: input.operatorId,
-          reasonCode: input.reasonCode,
-          resolution: input.resolution,
+      await appendAudit(
+        tx,
+        {
+          data: {
+            operatorId: input.operatorId,
+            reasonCode: input.reasonCode,
+            resolution: input.resolution,
+          },
+          eventId: "host.delivery.manual-resolution",
+          id: `host-manual:${input.outboxId}:${now}`,
+          message: "Host delivery manually resolved",
+          transactionId: outbox.transaction_id,
         },
-        eventId: "host.delivery.manual-resolution",
-        id: `host-manual:${input.outboxId}:${now}`,
-        message: "Host delivery manually resolved",
-        transactionId: outbox.transaction_id,
-      }, now);
+        now,
+      );
     });
   }
 }
@@ -135,9 +182,16 @@ const appendInboundMessage = async (
      (id, transaction_id, seq, direction, message_type, channel, status,
       request_id, payload_json, created_at)
      VALUES (?, ?, ?, 'inbound', ?, ?, 'received', ?, ?, ?)`,
-    [`host-response:${input.responseId}`, outbox.transaction_id, sequence?.next_seq ?? 1,
-      `${outbox.message_type}.response`, outbox.channel, outbox.id,
-      JSON.stringify(input.safeSummary), now],
+    [
+      `host-response:${input.responseId}`,
+      outbox.transaction_id,
+      sequence?.next_seq ?? 1,
+      `${outbox.message_type}.response`,
+      outbox.channel,
+      outbox.id,
+      JSON.stringify(input.safeSummary),
+      now,
+    ],
   );
 };
 
