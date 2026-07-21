@@ -380,6 +380,9 @@ importers:
       '@tripley-kit/web-container-scoped-store':
         specifier: workspace:*
         version: link:../scoped-store
+      '@tripley-kit/web-container-storage-core':
+        specifier: workspace:*
+        version: link:../storage-core
       '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
@@ -713,9 +716,15 @@ importers:
 
   packages/xfs-test-harness:
     dependencies:
+      '@tripley-kit/web-container-deposit-orchestration':
+        specifier: workspace:*
+        version: link:../deposit-orchestration
       '@tripley-kit/web-container-device-core':
         specifier: workspace:*
         version: link:../device-core
+      '@tripley-kit/web-container-kiosk-runtime':
+        specifier: workspace:*
+        version: link:../kiosk-runtime
       '@tripley-kit/web-container-xfs-device-service':
         specifier: workspace:*
         version: link:../xfs-device-service

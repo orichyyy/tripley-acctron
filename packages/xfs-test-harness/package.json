@@ -11,6 +11,8 @@
     "@tripley-kit/xfs-control-client": "file:../../../../front-end/tripley-kit/libs/xfs-control-client",
     "@tripley-kit/xfs-client": "0.1.4",
     "@tripley-kit/web-container-device-core": "workspace:*",
+    "@tripley-kit/web-container-deposit-orchestration": "workspace:*",
+    "@tripley-kit/web-container-kiosk-runtime": "workspace:*",
     "@tripley-kit/web-container-xfs-device-service": "workspace:*"
   },
   "devDependencies": {

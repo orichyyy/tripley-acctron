@@ -14,7 +14,28 @@ export interface CimModuleClientFacade {
 }
 
 export type XfsCimRpcClient = Pick<TripleyXfsClient["cim"],
-  "cashInStart" | "cashIn" | "getCashInStatus" | "cashInEnd" | "cashInRollback" | "retract">;
+  "cashInStart" | "cashIn" | "getCashInStatus" | "cashInEnd" | "cashInRollback" |
+  "getCashUnitInfo" | "retract">;
+
+export interface CimInventoryCapture {
+  readonly revision: string;
+  readonly capturedAt: string;
+  readonly safeSummary: Readonly<Record<string, string | number | boolean>>;
+}
+
+export interface CimRefusedMediaRequest {
+  readonly outputPosition: number;
+  readonly takeTimeoutMs: number;
+  readonly retractTimeoutMs: number;
+  readonly retractArea?: number | undefined;
+  readonly retractIndex?: number | undefined;
+  readonly signal?: AbortSignal | undefined;
+}
+
+export interface CimRefusedMediaResult {
+  readonly status: "taken" | "retracted" | "cancelled" | "unknown";
+  readonly safeSummary: Readonly<Record<string, string | number | boolean>>;
+}
 
 export interface CimModuleAdapterContext {
   readonly client: CimModuleClientFacade;
@@ -28,6 +49,8 @@ export interface CimModuleContribution {
 
 export interface CimCashAcceptanceDevicePort {
   createService(dependencies: Omit<CashAcceptanceServiceDependencies, "client">): CashAcceptanceService;
+  captureInventory(): Promise<CimInventoryCapture>;
+  resolveRefusedMedia(request: CimRefusedMediaRequest): Promise<CimRefusedMediaResult>;
 }
 
 export function createCimModuleContribution(context: CimModuleAdapterContext): CimModuleContribution {
@@ -44,10 +67,11 @@ export const cimDeviceModuleAdapter: XfsDeviceModuleAdapter = {
   create: async (context) => {
     const rpcClient = context.client.cim;
     if (!rpcClient) throw new Error("The XFS client does not provide the required CIM module");
-    const client = createCimCashInClient(rpcClient, context.session.id);
-    const port: CimCashAcceptanceDevicePort = {
-      createService: (dependencies) => new CashAcceptanceService({ ...dependencies, client }),
-    };
+    const port = createCimDepositDevicePort(
+      rpcClient,
+      context.session.id,
+      context.timeoutMs,
+    );
     const id = context.config.deviceId ?? context.config.logicalName;
     return {
       descriptor: { id, type: "cash.acceptance", capabilities: ["cash.acceptance", "cash.escrow"] },
@@ -55,13 +79,27 @@ export const cimDeviceModuleAdapter: XfsDeviceModuleAdapter = {
       healthCheck: {
         id: `xfs.cim.${id}`,
         check: async () => {
-          const status = await client.getCashInStatus();
+          const status = await createCimCashInClient(rpcClient, context.session.id).getCashInStatus();
           return { id: `xfs.cim.${id}`, status: status.status === "unknown" ? "degraded" : "healthy" };
         },
       },
     };
   },
 };
+
+export function createCimDepositDevicePort(
+  rpcClient: XfsCimRpcClient,
+  sessionId: string,
+  timeoutMs = 5_000,
+  now: () => Date = () => new Date(),
+): CimCashAcceptanceDevicePort {
+  const client = createCimCashInClient(rpcClient, sessionId);
+  return {
+    createService: (dependencies) => new CashAcceptanceService({ ...dependencies, client }),
+    captureInventory: async () => captureInventory(rpcClient, sessionId, timeoutMs, now),
+    resolveRefusedMedia: async (request) => resolveRefusedMedia(client, request),
+  };
+}
 
 export function createCimCashInClient(client: XfsCimRpcClient, sessionId: string): CimCashInClient {
   return {
@@ -124,3 +162,78 @@ function number(value: unknown): number {
 function delay(milliseconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
+
+async function captureInventory(
+  client: XfsCimRpcClient,
+  sessionId: string,
+  timeoutMs: number,
+  now: () => Date,
+): Promise<CimInventoryCapture> {
+  const response = await client.getCashUnitInfo({ sessionId, timeoutMs });
+  const units = array(object(response).cashUnits).map(object).map((unit) => ({
+    cashInCount: finiteNumber(unit.cashInCount),
+    count: finiteNumber(unit.count),
+    number: finiteNumber(unit.number),
+    rejectCount: finiteNumber(unit.rejectCount),
+    retractedCount: finiteNumber(unit.retractedCount),
+    status: finiteNumber(unit.status),
+  }));
+  const content = JSON.stringify(units);
+  return {
+    capturedAt: now().toISOString(),
+    revision: `cim-${fnv1a(content)}`,
+    safeSummary: {
+      cashInCount: sum(units, "cashInCount"),
+      cashUnitCount: units.length,
+      noteCount: sum(units, "count"),
+      rejectCount: sum(units, "rejectCount"),
+      retractedCount: sum(units, "retractedCount"),
+    },
+  };
+}
+
+async function resolveRefusedMedia(
+  client: CimCashInClient,
+  request: CimRefusedMediaRequest,
+): Promise<CimRefusedMediaResult> {
+  const taken = await client.waitForCashTaken?.({
+    signal: request.signal,
+    timeoutMs: request.takeTimeoutMs,
+  });
+  if (taken) return refusedResult("taken");
+  if (request.signal?.aborted) return refusedResult("cancelled");
+  if (!client.retract) return refusedResult("unknown");
+  await client.retract({
+    index: request.retractIndex,
+    outputPosition: request.outputPosition,
+    retractArea: request.retractArea,
+    timeoutMs: request.retractTimeoutMs,
+  });
+  return refusedResult("retracted");
+}
+
+const refusedResult = (status: CimRefusedMediaResult["status"]): CimRefusedMediaResult => ({
+  safeSummary: { mediaKind: "refusedCash", status },
+  status,
+});
+
+const array = (value: unknown): readonly unknown[] => Array.isArray(value) ? value : [];
+
+const finiteNumber = (value: unknown): number => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const sum = (
+  units: readonly Record<string, number>[],
+  key: string,
+): number => units.reduce((total, unit) => total + (unit[key] ?? 0), 0);
+
+const fnv1a = (value: string): string => {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
+};
