@@ -15,6 +15,8 @@ export interface HostdCdmSmokeOptions {
   readonly url?: string;
   readonly logicalName?: string;
   readonly profileName?: string;
+  readonly protectionPolicyProfileId?: string;
+  readonly resourceGroup?: string;
 }
 
 export interface HostdCdmSmokeSummary {
@@ -61,11 +63,13 @@ export async function prepareHostdCdmSimulator(
     sessionId = opened.session.id;
     const hostEpoch = await xfs.commandLeases!.getHostEpoch();
     const operationId = `xfs-test-harness:${process.pid}:${Date.now()}`;
-    const fencingToken = Date.now();
+    const fencingToken = Date.now() * 1_000;
     lease = await xfs.commandLeases!.acquire({
       hostEpoch,
       logicalService: logicalName,
       operationId,
+      protectionPolicyProfileId: options.protectionPolicyProfileId ?? "real-smoke",
+      resourceGroup: options.resourceGroup ?? "cash-transport-1",
       fencingToken,
       authority: "transaction",
       ttlMs: 5_000,

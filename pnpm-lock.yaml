@@ -38,6 +38,9 @@ importers:
       '@tripley-kit/web-container-core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@tripley-kit/web-container-deposit-orchestration':
+        specifier: workspace:*
+        version: link:../../packages/deposit-orchestration
       '@tripley-kit/web-container-device-core':
         specifier: workspace:*
         version: link:../../packages/device-core
@@ -56,6 +59,9 @@ importers:
       '@tripley-kit/web-container-kiosk-runtime':
         specifier: workspace:*
         version: link:../../packages/kiosk-runtime
+      '@tripley-kit/web-container-kiosk-transaction-runtime':
+        specifier: workspace:*
+        version: link:../../packages/kiosk-transaction-runtime
       '@tripley-kit/web-container-logging':
         specifier: workspace:*
         version: link:../../packages/logging
@@ -65,12 +71,18 @@ importers:
       '@tripley-kit/web-container-scoped-store':
         specifier: workspace:*
         version: link:../../packages/scoped-store
+      '@tripley-kit/web-container-storage-sqlite':
+        specifier: workspace:*
+        version: link:../../packages/storage-sqlite
       '@tripley-kit/web-container-tts':
         specifier: workspace:*
         version: link:../../packages/tts
       '@tripley-kit/web-container-ui-port':
         specifier: workspace:*
         version: link:../../packages/ui-port
+      '@tripley-kit/web-container-withdrawal-orchestration':
+        specifier: workspace:*
+        version: link:../../packages/withdrawal-orchestration
       '@tripley-kit/web-container-xfs-device-service':
         specifier: workspace:*
         version: link:../../packages/xfs-device-service
@@ -600,6 +612,9 @@ importers:
         specifier: workspace:*
         version: link:../storage-core
     devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.0
       tsup:
         specifier: ^8.3.5
         version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)
@@ -753,6 +768,12 @@ importers:
       '@tripley-kit/web-container-kiosk-runtime':
         specifier: workspace:*
         version: link:../kiosk-runtime
+      '@tripley-kit/web-container-kiosk-transaction-runtime':
+        specifier: workspace:*
+        version: link:../kiosk-transaction-runtime
+      '@tripley-kit/web-container-storage-sqlite':
+        specifier: workspace:*
+        version: link:../storage-sqlite
       '@tripley-kit/web-container-xfs-device-service':
         specifier: workspace:*
         version: link:../xfs-device-service

@@ -18,6 +18,7 @@ import {
 } from "@tripley-kit/web-container-kiosk-base";
 import {
   OperationFinalizationRunner,
+  OperationFinalizationRecoveryRegistry,
   OperationFinalizerRegistry,
   SqliteOperationFinalizationStore,
   TransactionStartupCoordinator,
@@ -41,6 +42,8 @@ import {
   registerWithdrawalLocalFinalizers,
 } from "@tripley-kit/web-container-withdrawal-orchestration";
 
+import { createKioskOutcomeRecoveryProjector } from "./recovery-context";
+
 export interface DurableWithdrawalComposition
   extends Omit<WithdrawalOrchestratorOptions, "transactions" | "audit" | "finalization"> {
   readonly scopedState: WithdrawalScopedStatePort;
@@ -56,10 +59,18 @@ export interface DurableDepositComposition
 export interface DurableKioskTransactionRuntimeOptions {
   readonly db: FrameworkSqliteConnection;
   readonly protection: TransactionProtectionRecoveryPort;
-  readonly finalizationRecovery: TransactionFinalizationRecoveryPort;
+  readonly finalizationRecovery?: TransactionFinalizationRecoveryPort | undefined;
+  readonly configureFinalizationRecovery?:
+    | ((context: DurableFinalizationRecoveryConfiguration) => void)
+    | undefined;
   readonly migrations?: readonly Migration[] | undefined;
   readonly withdrawal?: DurableWithdrawalComposition | undefined;
   readonly deposit?: DurableDepositComposition | undefined;
+}
+
+export interface DurableFinalizationRecoveryConfiguration {
+  readonly registry: OperationFinalizationRecoveryRegistry;
+  readonly store: SqliteOperationFinalizationStore;
 }
 
 export interface ReadyTransactionExecutor<TRequest, TResult> {
@@ -77,9 +88,24 @@ export const createDurableKioskTransactionRuntime = (
     ...(options.migrations ?? []),
   ]) migrationRunner.register(migration);
   const finalizationStore = new SqliteOperationFinalizationStore(options.db);
+  const recoveryRegistry = new OperationFinalizationRecoveryRegistry();
+  const transactions = new SqliteTransactionRepository(options.db);
+  const messages = new SqliteTransactionMessageRepository(options.db);
+  const audit = new AuditJournalService(new SqliteAuditJournalRepository(options.db));
+  const ledger = new SqliteOperationLedger(options.db);
+  const outbox = new SqliteOutbox(options.db);
+  const withdrawal = options.withdrawal
+    ? createWithdrawal(options.withdrawal, transactions, audit, finalizationStore)
+    : undefined;
+  const deposit = options.deposit
+    ? createDeposit(options.deposit, transactions, audit, finalizationStore)
+    : undefined;
+  if (withdrawal) recoveryRegistry.register(withdrawal.finalization);
+  if (deposit) recoveryRegistry.register(deposit.finalization);
+  options.configureFinalizationRecovery?.({ registry: recoveryRegistry, store: finalizationStore });
   const startup = new TransactionStartupCoordinator({
     db: options.db,
-    finalizationRecovery: options.finalizationRecovery,
+    finalizationRecovery: options.finalizationRecovery ?? recoveryRegistry,
     finalizations: finalizationStore,
     migrations: {
       runPending: async (db) => {
@@ -89,35 +115,32 @@ export const createDurableKioskTransactionRuntime = (
     },
     protection: options.protection,
   });
-  const transactions = new SqliteTransactionRepository(options.db);
-  const messages = new SqliteTransactionMessageRepository(options.db);
-  const audit = new AuditJournalService(new SqliteAuditJournalRepository(options.db));
-  const ledger = new SqliteOperationLedger(options.db);
-  const outbox = new SqliteOutbox(options.db);
 
   return {
     audit,
-    deposit: options.deposit
-      ? gate(startup, createDeposit(options.deposit, transactions, audit, finalizationStore))
-      : undefined,
+    deposit: deposit ? gate(startup, deposit.orchestrator) : undefined,
+    finalizationRecovery: recoveryRegistry,
     finalizationStore,
     ledger,
     messages,
     outbox,
     startup,
     transactions,
-    withdrawal: options.withdrawal
-      ? gate(startup, createWithdrawal(options.withdrawal, transactions, audit, finalizationStore))
-      : undefined,
+    withdrawal: withdrawal ? gate(startup, withdrawal.orchestrator) : undefined,
   };
 };
+
+interface OrchestratorComposition<T> {
+  readonly finalization: OperationFinalizationRunner;
+  readonly orchestrator: T;
+}
 
 const createWithdrawal = (
   options: DurableWithdrawalComposition,
   transactions: SqliteTransactionRepository,
   audit: AuditJournalService,
   store: SqliteOperationFinalizationStore,
-): WithdrawalOrchestrator => {
+): OrchestratorComposition<WithdrawalOrchestrator> => {
   const transactionPort = createKioskBaseWithdrawalTransactionAdapter(transactions);
   const auditPort = createKioskBaseWithdrawalAuditAdapter(audit);
   const registry = registerWithdrawalLocalFinalizers(new OperationFinalizerRegistry(), {
@@ -127,12 +150,18 @@ const createWithdrawal = (
   });
   if (options.hostFinancialCompletion) registry.register(createHostFinancialCompletionFinalizer(options.host));
   const { hostFinancialCompletion: _completion, scopedState: _scopedState, ...orchestrator } = options;
-  return new WithdrawalOrchestrator({
+  const finalization = new OperationFinalizationRunner(
+    registry,
+    store,
+    () => new Date(),
+    createKioskOutcomeRecoveryProjector("withdrawal.outcome"),
+  );
+  return { finalization, orchestrator: new WithdrawalOrchestrator({
     ...orchestrator,
     audit: auditPort,
-    finalization: new OperationFinalizationRunner(registry, store),
+    finalization,
     transactions: transactionPort,
-  });
+  }) };
 };
 
 const createDeposit = (
@@ -140,7 +169,7 @@ const createDeposit = (
   transactions: SqliteTransactionRepository,
   audit: AuditJournalService,
   store: SqliteOperationFinalizationStore,
-): DepositOrchestrator => {
+): OrchestratorComposition<DepositOrchestrator> => {
   const transactionPort = createKioskBaseDepositTransactionAdapter(transactions);
   const auditPort = createKioskBaseDepositAuditAdapter(audit);
   const registry = registerDepositLocalFinalizers(new OperationFinalizerRegistry(), {
@@ -152,12 +181,18 @@ const createDeposit = (
     registry.register(createDepositHostFinancialCompletionFinalizer(options.host));
   }
   const { hostFinancialCompletion: _completion, scopedState: _scopedState, ...orchestrator } = options;
-  return new DepositOrchestrator({
+  const finalization = new OperationFinalizationRunner(
+    registry,
+    store,
+    () => new Date(),
+    createKioskOutcomeRecoveryProjector("deposit.outcome"),
+  );
+  return { finalization, orchestrator: new DepositOrchestrator({
     ...orchestrator,
     audit: auditPort,
-    finalization: new OperationFinalizationRunner(registry, store),
+    finalization,
     transactions: transactionPort,
-  });
+  }) };
 };
 
 const gate = <TRequest, TResult>(
@@ -169,4 +204,3 @@ const gate = <TRequest, TResult>(
     return executor.execute(request);
   },
 });
-

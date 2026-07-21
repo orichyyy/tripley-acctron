@@ -8,6 +8,17 @@ export interface OperationFinalizationContext {
   readonly metadata?: Readonly<Record<string, unknown>> | undefined;
 }
 
+export interface OperationFinalizationRecoveryContext {
+  readonly operationId: string;
+  readonly flowId?: string | undefined;
+  readonly result?: unknown;
+  readonly metadata?: Readonly<Record<string, unknown>> | undefined;
+}
+
+export interface OperationFinalizationContextProjector {
+  project(context: OperationFinalizationContext): OperationFinalizationRecoveryContext;
+}
+
 export interface OperationFinalizer {
   readonly id: string;
   readonly version: string;
@@ -28,6 +39,7 @@ export interface OperationFinalizationRecord {
   readonly planVersion: string;
   readonly status: "pending" | "running" | "completed" | "failed";
   readonly steps: readonly FrozenFinalizationStep[];
+  readonly recoveryContext?: OperationFinalizationRecoveryContext | undefined;
   readonly updatedAt: string;
 }
 

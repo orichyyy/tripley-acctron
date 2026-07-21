@@ -12,7 +12,9 @@
     "@tripley-kit/xfs-client": "0.1.4",
     "@tripley-kit/web-container-device-core": "workspace:*",
     "@tripley-kit/web-container-deposit-orchestration": "workspace:*",
+    "@tripley-kit/web-container-kiosk-transaction-runtime": "workspace:*",
     "@tripley-kit/web-container-kiosk-runtime": "workspace:*",
+    "@tripley-kit/web-container-storage-sqlite": "workspace:*",
     "@tripley-kit/web-container-xfs-device-service": "workspace:*"
   },
   "devDependencies": {

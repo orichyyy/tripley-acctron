@@ -6,5 +6,6 @@ export * from "./finalization-store";
 export * from "./finalization-sql-store";
 export * from "./transaction-startup";
 export * from "./finalization-runner";
+export * from "./finalization-recovery";
 export * from "./runtime";
 export * from "./types";

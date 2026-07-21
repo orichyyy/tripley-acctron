@@ -42,6 +42,7 @@
       "@tripley-kit/web-container-scoped-store": ["packages/scoped-store/src/index.ts"],
       "@tripley-kit/web-container-storage-core": ["packages/storage-core/src/index.ts"],
       "@tripley-kit/web-container-storage-sqlite": ["packages/storage-sqlite/src/index.ts"],
+      "@tripley-kit/web-container-storage-sqlite/node": ["packages/storage-sqlite/src/node.ts"],
       "@tripley-kit/web-container-testing": ["packages/testing/src/index.ts"],
       "@tripley-kit/web-container-tts": ["packages/tts/src/index.ts"],
       "@tripley-kit/web-container-types": ["packages/types/src/index.ts"],

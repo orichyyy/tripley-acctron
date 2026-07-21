@@ -1,6 +1,6 @@
 import type {
-  FrozenFinalizationStep, OperationFinalizationContext, OperationFinalizationRecord,
-  OperationFinalizationStore, OperationFinalizer,
+  FrozenFinalizationStep, OperationFinalizationContext, OperationFinalizationContextProjector,
+  OperationFinalizationRecord, OperationFinalizationStore, OperationFinalizer,
 } from "./finalization-contracts";
 
 export class OperationFinalizerRegistry {
@@ -28,15 +28,47 @@ export class OperationFinalizationRunner {
     registry: OperationFinalizerRegistry,
     private readonly store: OperationFinalizationStore,
     private readonly now: () => Date = () => new Date(),
+    private readonly contextProjector?: OperationFinalizationContextProjector,
   ) {
     this.#plan = registry.freeze();
     this.#planVersion = this.#plan.map((item) => `${item.id}@${item.version}`).join("|");
   }
 
+  public get planVersion(): string {
+    return this.#planVersion;
+  }
+
+  public canResume(record: OperationFinalizationRecord): boolean {
+    return record.planVersion === this.#planVersion;
+  }
+
   async run(context: OperationFinalizationContext): Promise<OperationFinalizationRecord> {
     let record = await this.store.load(context.operationId) ?? this.#newRecord(context.operationId);
     this.#assertCompatible(record);
-    record = await this.#save({ ...record, status: "running" });
+    if (!record.recoveryContext && this.contextProjector) {
+      record = await this.#save({
+        ...record,
+        recoveryContext: this.contextProjector.project(context),
+      });
+    }
+    return this.#execute(record, context);
+  }
+
+  public async resume(record: OperationFinalizationRecord): Promise<OperationFinalizationRecord> {
+    this.#assertCompatible(record);
+    const latest = await this.store.load(record.operationId) ?? record;
+    this.#assertCompatible(latest);
+    if (!latest.recoveryContext) {
+      throw new Error(`Finalization recovery context is unavailable for ${record.operationId}`);
+    }
+    return this.#execute(latest, latest.recoveryContext);
+  }
+
+  async #execute(
+    source: OperationFinalizationRecord,
+    context: OperationFinalizationContext,
+  ): Promise<OperationFinalizationRecord> {
+    let record = await this.#save({ ...source, status: "running" });
 
     for (const finalizer of this.#plan) {
       const step = record.steps.find((candidate) => candidate.id === finalizer.id);
