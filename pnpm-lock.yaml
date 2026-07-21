@@ -56,6 +56,9 @@ importers:
       '@tripley-kit/web-container-kiosk-base':
         specifier: workspace:*
         version: link:../../packages/kiosk-base
+      '@tripley-kit/web-container-kiosk-host-delivery':
+        specifier: workspace:*
+        version: link:../../packages/kiosk-host-delivery
       '@tripley-kit/web-container-kiosk-runtime':
         specifier: workspace:*
         version: link:../../packages/kiosk-runtime
@@ -359,6 +362,31 @@ importers:
         specifier: workspace:*
         version: link:../ui-port
     devDependencies:
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.0)
+
+  packages/kiosk-host-delivery:
+    dependencies:
+      '@tripley-kit/web-container-storage-core':
+        specifier: workspace:*
+        version: link:../storage-core
+    devDependencies:
+      '@tripley-kit/web-container-kiosk-base':
+        specifier: workspace:*
+        version: link:../kiosk-base
+      '@tripley-kit/web-container-storage-sqlite':
+        specifier: workspace:*
+        version: link:../storage-sqlite
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.0
       tsup:
         specifier: ^8.3.5
         version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)

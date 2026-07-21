@@ -31,6 +31,7 @@
       "@tripley-kit/web-container-flow-engine": ["packages/flow-engine/src/index.ts"],
       "@tripley-kit/web-container-host-message": ["packages/host-message/src/index.ts"],
       "@tripley-kit/web-container-kiosk-base": ["packages/kiosk-base/src/index.ts"],
+      "@tripley-kit/web-container-kiosk-host-delivery": ["packages/kiosk-host-delivery/src/index.ts"],
       "@tripley-kit/web-container-kiosk-runtime": ["packages/kiosk-runtime/src/index.ts"],
       "@tripley-kit/web-container-kiosk-transaction-runtime": ["packages/kiosk-transaction-runtime/src/index.ts"],
       "@tripley-kit/web-container-logging": ["packages/logging/src/index.ts"],
