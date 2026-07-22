@@ -1,8 +1,9 @@
-# Target 53 Findings
+# Target 54 Findings
 
-- Target 52 exposes structural `NativeTcpApi` and `HostFrameCodec` contracts suitable for reuse.
-- Target 51 consumes only `HostWireTransportAdapter`, so a persistent session can replace the atomic adapter without changing durable delivery.
-- The existing native TCP API emits connection, data, close, and error events keyed by socket id.
-- The BSP simulator and specification have both ATM-to-FEP and FEP-to-ATM directions; unsolicited inbound routing is a real production boundary.
-- Message recognition must remain application-owned. The session requires an injected frame router rather than inspecting BSP `TXCODE`.
-- The host wire contract permits one response or a conservative failure result. Serializing outbound exchanges avoids generic correlation assumptions while still allowing inbound frames during a pending exchange.
+- Target 53 exposes a structural persistent session port with lifecycle, generation, exchange, and
+  disposal operations; Target 54 can remain independent of its concrete native implementation.
+- Target 51 durable delivery is appropriate for financial requests, but sign-on and heartbeat are
+  session-control traffic and must not create financial outbox records.
+- The Condition Engine and kiosk health contracts are small edge adapters; importing them does not
+  require host session core to depend on UI or diagnostics implementations.
+- The Taiwan BSP documents define project protocol details. Those details remain outside core.

@@ -1,41 +1,33 @@
-# Target 53: Persistent Duplex Host Session Runtime
+# Target 54: Host Session Supervisor
 
 ## Objective
 
-Add a persistent, duplex native TCP host session that implements the existing host wire transport contract while supporting unsolicited host messages, bounded reconnect, generation fencing, safe lifecycle events, and project-owned frame routing.
+Implement transport-neutral host protocol supervision above persistent duplex sessions.
 
 ## Phases
 
-1. **Session and extension contracts** - complete
-2. **Persistent exchange and frame processing** - complete
-3. **Inbound registry and same-session reply** - complete
-4. **Reconnect, generation fencing, and shutdown** - complete
-5. **Composition and simulator vertical smoke** - complete
-6. **Validation, review, commit, and publish** - complete
+1. **Contracts and package boundary** - complete
+2. **State machine, control timeout, and generation fencing** - complete
+3. **Heartbeat, retry, registry, and runtime** - complete
+4. **Condition, health, and project extension tests** - complete
+5. **Validation, review, commit, and publish** - complete
 
 ## Required behavior
 
-- Core never recognizes BSP transaction codes or message fields.
-- A project-supplied router classifies complete frames as responses, inbound messages, or ignored frames.
-- One persistent socket supports multiple serialized exchanges.
-- Fragmented and coalesced frames are decoded without losing frame boundaries.
-- Unsolicited inbound frames are dispatched while an outbound response is pending.
-- Inbound handlers can reply on the same fenced connection generation.
-- Connect failures before dispatch are `notSent`; write, disconnect, timeout, and shutdown after dispatch are `unknown`.
-- Reconnect uses bounded backoff and rejects retired or stale socket events.
-- Lifecycle events contain only safe metadata and never raw payloads.
-- Existing Target 52 per-exchange adapters remain behaviorally compatible.
+- Core does not contain BSP transaction codes or message fields.
+- Connected is distinct from ready.
+- Disconnect and disposal cancel active work.
+- Late operations are fenced by generation and operation epoch.
+- Events contain safe metadata only.
+- Optional and required startup policies are explicit.
 
 ## Errors
 
 | Error | Attempts | Resolution |
 |---|---:|---|
-| Persistent session tracer could not resolve the new modules | 1 | Expected RED; implement the public contracts, inbound registry, and minimum persistent session. |
-| Typecheck narrowed an empty receive buffer to `Uint8Array<ArrayBuffer>` | 1 | Widen the persistent receive buffer with an explicit `Uint8Array` annotation. |
-| Late-connect RED test attached its rejection assertion after advancing fake time | 1 | Attach the rejection assertion before advancing time, then implement late-socket close. |
-| Router-failure containment patch had a malformed cross-file hunk | 1 | Split implementation and progress updates into independent patches. |
-| Inbound-reply certainty patch repeated the cross-file hunk parse failure | 1 | Apply contract, implementation, and planning changes as separate patches. |
-| PowerShell did not expand the Vitest `persistent-*.test.ts` argument | 1 | Run Vitest against the package `src` directory instead of a shell glob. |
-| Persistent simulator smoke patch did not match Biome-formatted context | 1 | Re-read only the failed script and apply the exact persistent-session replacement. |
-| Biome rejected an implicitly typed router result local | 1 | Annotate the catch-boundary local with `PersistentHostFrameRoute`. |
-| The guessed kiosk-example package-name filter matched no workspace project | 1 | Rely on root recursive typecheck, which includes the application by path. |
+| Initial package typecheck rejected boolean unsubscribe results and exact optional assignments | 1 | Return void from subscriptions and declare clearable fields with explicit undefined unions. |
+| Timeout abort ordering reported cancellation instead of timeout | 1 | Settle the timeout result before aborting the project hook signal. |
+| Vitest could not resolve the new package's workspace dependencies | 1 | Run a normal workspace install instead of lockfile-only installation. |
+| Heartbeat test observed state before the async control chain settled | 1 | Drain the deterministic test scheduler's complete microtask chain. |
+| Biome rejected formatting and a fixture assignment expression | 1 | Use an explicit cancel body and apply repository formatting. |
+| Full validation was initially launched with a one-second process timeout | 1 | Re-run with the normal 120-second limit; typecheck, tests, and builds passed. |
