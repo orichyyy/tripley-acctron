@@ -2,4 +2,8 @@ export * from "./contracts";
 export * from "./framing";
 export * from "./native-tcp";
 export * from "./native-websocket";
+export * from "./inbound-registry";
+export * from "./persistent-contracts";
+export * from "./persistent-runtime";
+export * from "./persistent-session";
 export * from "./runtime";

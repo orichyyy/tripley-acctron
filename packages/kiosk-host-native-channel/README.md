@@ -58,3 +58,42 @@ const frame = createLengthPrefixFrameCodec({
 ```
 
 Custom protocols can implement `HostFrameCodec` and use the same native TCP adapter without core changes.
+
+## Persistent duplex session
+
+Use `registerPersistentNativeHostSessions` when the host requires a long-lived TCP connection or can send unsolicited messages. Project code supplies the frame router and inbound handlers:
+
+```ts
+const inbound = new HostInboundMessageRegistry()
+  .register({
+    id: "project.command",
+    type: "CMD",
+    async handle(message, context) {
+      const reply = buildProjectReply(message.payload);
+      await context.respond(reply);
+    },
+  })
+  .freeze();
+
+const runtime = registerPersistentNativeHostSessions({
+  native: { tcp: native.tcp },
+  registry,
+  tcp: [{
+    id: "native.tcp.persistent",
+    host: "127.0.0.1",
+    port: 12008,
+    security: { mode: "plain" },
+    connectTimeoutMs: 5_000,
+    writeTimeoutMs: 5_000,
+    responseTimeoutMs: 15_000,
+    frame,
+    inbound,
+    reconnect: { initialDelayMs: 500, maxDelayMs: 30_000, multiplier: 2 },
+    routeFrame: projectFrameRouter,
+  }],
+});
+
+await runtime.start();
+```
+
+The router receives complete payloads and optional pending-exchange metadata. It returns `response`, `inbound`, or `ignore`; transport core never inspects bank message fields.
