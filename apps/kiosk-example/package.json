@@ -20,6 +20,7 @@
     "@tripley-kit/web-container-kiosk-base": "workspace:*",
     "@tripley-kit/web-container-kiosk-host-delivery": "workspace:*",
     "@tripley-kit/web-container-kiosk-host-integration": "workspace:*",
+    "@tripley-kit/web-container-kiosk-host-native-channel": "workspace:*",
     "@tripley-kit/web-container-kiosk-runtime": "workspace:*",
     "@tripley-kit/web-container-kiosk-transaction-runtime": "workspace:*",
     "@tripley-kit/web-container-logging": "workspace:*",

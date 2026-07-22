@@ -40,6 +40,9 @@
       "@tripley-kit/web-container-kiosk-host-integration": [
         "packages/kiosk-host-integration/src/index.ts"
       ],
+      "@tripley-kit/web-container-kiosk-host-native-channel": [
+        "packages/kiosk-host-native-channel/src/index.ts"
+      ],
       "@tripley-kit/web-container-kiosk-runtime": ["packages/kiosk-runtime/src/index.ts"],
       "@tripley-kit/web-container-kiosk-transaction-runtime": [
         "packages/kiosk-transaction-runtime/src/index.ts"
