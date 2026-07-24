@@ -1,8 +1,11 @@
 export * from "./composition";
 export * from "./contracts";
 export * from "./control-registry";
+export * from "./credential-mapper-registry";
 export * from "./framing";
 export * from "./oex";
+export * from "./operation-context-assembler";
+export * from "./operation-context-contracts";
 export * from "./profile";
 export * from "./router";
 export * from "./withdrawal-contracts";
@@ -11,3 +14,4 @@ export * from "./withdrawal-profile";
 export * from "./withdrawal-projector";
 export * from "./withdrawal-router";
 export * from "./withdrawal-runtime";
+export * from "./xfs-idc-credential-mapper";
