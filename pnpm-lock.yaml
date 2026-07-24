@@ -65,6 +65,9 @@ importers:
       '@tripley-kit/web-container-kiosk-host-native-channel':
         specifier: workspace:*
         version: link:../../packages/kiosk-host-native-channel
+      '@tripley-kit/web-container-kiosk-host-session':
+        specifier: workspace:*
+        version: link:../../packages/kiosk-host-session
       '@tripley-kit/web-container-kiosk-runtime':
         specifier: workspace:*
         version: link:../../packages/kiosk-runtime

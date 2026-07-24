@@ -1,33 +1,31 @@
-# Target 54: Host Session Supervisor
+# Target 55: Taiwan BSP ATM v2.43 Session Profile
 
 ## Objective
 
-Implement transport-neutral host protocol supervision above persistent duplex sessions.
+Implement application-owned OEX session establishment and host-control routing from the BSP v2.43
+specification.
 
 ## Phases
 
-1. **Contracts and package boundary** - complete
-2. **State machine, control timeout, and generation fencing** - complete
-3. **Heartbeat, retry, registry, and runtime** - complete
-4. **Condition, health, and project extension tests** - complete
-5. **Validation, review, commit, and publish** - complete
+1. **Specification extraction and protocol correction** - complete
+2. **Fixed-field profile and OEX establishment** - complete
+3. **Frame router and host-control registry** - complete
+4. **Golden vectors and extension tests** - complete
+5. **Validation, review, and commit** - complete
 
 ## Required behavior
 
-- Core does not contain BSP transaction codes or message fields.
-- Connected is distinct from ready.
-- Disconnect and disposal cancel active work.
-- Late operations are fenced by generation and operation epoch.
-- Events contain safe metadata only.
-- Optional and required startup policies are explicit.
+- Profile source is compiled application TypeScript.
+- OEX B001, not AEX, establishes ATM service readiness.
+- SNS is host-initiated and has no invented reply.
+- RBT and other high-risk controls require explicit project contributions.
+- Safe summaries contain no raw body or exception text.
 
 ## Errors
 
 | Error | Attempts | Resolution |
 |---|---:|---|
-| Initial package typecheck rejected boolean unsubscribe results and exact optional assignments | 1 | Return void from subscriptions and declare clearable fields with explicit undefined unions. |
-| Timeout abort ordering reported cancellation instead of timeout | 1 | Settle the timeout result before aborting the project hook signal. |
-| Vitest could not resolve the new package's workspace dependencies | 1 | Run a normal workspace install instead of lockfile-only installation. |
-| Heartbeat test observed state before the async control chain settled | 1 | Drain the deterministic test scheduler's complete microtask chain. |
-| Biome rejected formatting and a fixture assignment expression | 1 | Use an explicit cancel body and apply repository formatting. |
-| Full validation was initially launched with a one-second process timeout | 1 | Re-run with the normal 120-second limit; typecheck, tests, and builds passed. |
+| Initial typecheck rejected an explicit undefined optional callback and widened mock literals | 1 | Conditionally spread the callback and preserve sent as a literal result. |
+| Golden test placed the country field three bytes late | 1 | Correct the independently asserted OEX country offset to bytes 126 through 128. |
+| Biome requested import ordering and line wrapping | 1 | Apply repository-safe formatting to Target 55 files. |
+| Full validation was initially started with a one-second shell timeout | 1 | Re-run with 120 seconds; workspace typecheck, tests, and builds passed. |
