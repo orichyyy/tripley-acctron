@@ -11,6 +11,7 @@ import {
 import {
   type CashRuntimeSafetyPolicy,
   type CapabilityStatus,
+  type CredentialAssessment,
   type KioskLauncherSupervisionPort,
   type KioskRuntimeMode,
   type OperationViewState,
@@ -44,6 +45,7 @@ import {
   connectHostdDevices,
 } from "./hostd";
 import { UiInputBroker } from "./input-broker";
+import type { ExampleWithdrawalBusiness } from "./operation-business";
 import type { ExampleApplicationRuntime } from "./types";
 
 export interface CreateExampleRuntimeOptions {
@@ -56,6 +58,7 @@ export interface CreateExampleRuntimeOptions {
   readonly cashSafety?: CashRuntimeSafetyPolicy | undefined;
   readonly launcherSupervision?: KioskLauncherSupervisionPort | undefined;
   readonly recoveryStartup?: RecoveryStartupBarrierPort | undefined;
+  readonly withdrawalBusiness?: ExampleWithdrawalBusiness | undefined;
   readonly extensions?: readonly ExampleRuntimeExtension[] | undefined;
   readonly onReboot?: ((mode: KioskRuntimeMode) => void | Promise<void>) | undefined;
 }
@@ -90,6 +93,7 @@ export const createExampleApplicationRuntime = async (
   let healthSnapshot: HostdHealthSnapshot | undefined;
   let capabilities: Readonly<Record<string, CapabilityStatus>> = {};
   const hostd = hostdConfig(options.hostd);
+  const operationAmounts = new Map<string, number>();
 
   if (options.mode === "memory") {
     inputSources.register(broker.createAdapter("barcodeReader.qr"));
@@ -121,6 +125,7 @@ export const createExampleApplicationRuntime = async (
     inputSources,
     locks,
     mode: options.mode,
+    operationMaterial: options.withdrawalBusiness?.operationMaterial,
     pinOptions: {
       activeKeys: 0x07ff,
       customerData: hostd.pinCustomerData,
@@ -155,11 +160,13 @@ export const createExampleApplicationRuntime = async (
     cashSafety: options.cashSafety,
     capabilities,
     entryMethods: entries,
-    executeBusiness: async (_ctx, assessment) => ({
-      approved: true,
-      entryMethodId: assessment.credential.entryMethodId,
-    }),
+    executeBusiness: (ctx, assessment) =>
+      executeWithdrawalBusiness(options.withdrawalBusiness, operationAmounts, ctx, assessment),
     mode: options.mode,
+    onOperationExit: (context) => {
+      operationAmounts.delete(context.operationId);
+      options.withdrawalBusiness?.onOperationExit?.(context);
+    },
     operationIdFactory: createOperationId,
     promptIntent: createPromptIntent,
     requiredCapabilities: options.speechRequired ? ["prompt.presentation"] : [],
@@ -185,6 +192,7 @@ export const createExampleApplicationRuntime = async (
     },
     prepareOperation: async (ctx) => {
       const amount = await collectWithdrawalAmount(ctx, dependencies);
+      operationAmounts.set(ctx.operationId, amount);
       scopedStore.scope("transaction", ctx.operationId).set("withdrawal.amount", amount);
     },
   });
@@ -360,3 +368,22 @@ const createPromptIntent = (state: OperationViewState) => {
 };
 
 const audiblePromptIds = new Set(["card.take", "pin.enter"]);
+
+const executeWithdrawalBusiness = (
+  business: ExampleWithdrawalBusiness | undefined,
+  amounts: ReadonlyMap<string, number>,
+  context: Parameters<ExampleWithdrawalBusiness["execute"]>[0]["context"],
+  assessment: CredentialAssessment,
+) => {
+  if (!business) {
+    return Promise.resolve({
+      approved: true,
+      entryMethodId: assessment.credential.entryMethodId,
+    });
+  }
+  const amount = amounts.get(context.operationId);
+  if (amount === undefined) {
+    throw new Error("withdrawal.amount.missing");
+  }
+  return business.execute({ amount, assessment, context });
+};

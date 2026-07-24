@@ -12,6 +12,7 @@ import type { XfsCardReaderPort } from "@tripley-kit/web-container-xfs-device-se
 
 import type { UiInputBroker } from "./input-broker";
 import { type InputRunnerDependencies, runUserInput } from "./input-runner";
+import type { OperationMaterialCapturePort } from "./operation-material";
 
 export interface ContributionDependencies extends InputRunnerDependencies {
   readonly broker: UiInputBroker;
@@ -21,6 +22,7 @@ export interface ContributionDependencies extends InputRunnerDependencies {
   readonly pinOptions: Readonly<Record<string, unknown>>;
   readonly barcodeDeviceId: string;
   readonly reservationVerification: ReservationVerificationPort;
+  readonly operationMaterial?: OperationMaterialCapturePort | undefined;
 }
 
 export interface ReservationVerificationPort {
@@ -36,15 +38,19 @@ export const createContactCardEntry = (
   acquisition: {
     flow: { flowId: "bank.withdrawal.card.acquire", version: "1.0.0" },
     acquire: async (ctx) => {
-      if (dependencies.mode === "hostd") {
-        const port = dependencies.devices.require<XfsCardReaderPort>(dependencies.cardDeviceId);
-        await port.readCard(
-          { dataSources: 2 },
-          { operationId: ctx.operationId, signal: ctx.signal },
-        );
-      } else {
-        await acquireUiValue(ctx, dependencies, "card.present", "action");
-      }
+      const material = dependencies.mode === "hostd"
+        ? await dependencies.devices.require<XfsCardReaderPort>(
+            dependencies.cardDeviceId,
+          ).readCard(
+            { dataSources: 2 },
+            { operationId: ctx.operationId, signal: ctx.signal },
+          )
+        : await acquireUiValue(ctx, dependencies, "card.present", "action");
+      await dependencies.operationMaterial?.captureCredential({
+        entryMethodId: "card.contact",
+        material,
+        operationId: ctx.operationId,
+      });
       await ctx.setMediaCustody("acquired");
       return safeAssessment(ctx, "card.contact", ["pin.online"]);
     },
@@ -62,7 +68,7 @@ export const createQrEntry = (dependencies: ContributionDependencies): EntryMeth
   acquisition: {
     flow: { flowId: "bank.withdrawal.qr.acquire", version: "1.0.0" },
     acquire: async (ctx) => {
-      await runUserInput(ctx, dependencies, {
+      const material = await runUserInput(ctx, dependencies, {
         id: "acquireQr",
         profile: { id: "qr", promptKey: "entry.qr.scan" },
         promptId: "entry.qr.scan",
@@ -74,6 +80,11 @@ export const createQrEntry = (dependencies: ContributionDependencies): EntryMeth
             required: true,
           },
         ],
+      });
+      await dependencies.operationMaterial?.captureCredential({
+        entryMethodId: "qr",
+        material,
+        operationId: ctx.operationId,
       });
       return safeAssessment(ctx, "qr", ["pin.online"]);
     },
@@ -121,6 +132,11 @@ export const createReservationEntry = (
         }),
       );
       await dependencies.reservationVerification.verify({ reservationNumber, secret }, ctx.signal);
+      await dependencies.operationMaterial?.captureCredential({
+        entryMethodId: "reservation",
+        material: { reservationNumber, secret },
+        operationId: ctx.operationId,
+      });
       return safeAssessment(ctx, "reservation", []);
     },
   },
@@ -157,6 +173,11 @@ export const createOnlinePinChallenge = (
           secure: true,
         },
       ],
+    });
+    await dependencies.operationMaterial?.captureAuthentication({
+      challengeId: "pin.online",
+      material: result,
+      operationId: ctx.operationId,
     });
     return {
       authenticated: Boolean(result),
@@ -301,6 +322,7 @@ export const createContributionDependencies = (input: {
   devices: DeviceRegistry;
   locks: DeviceLockManager;
   inputSources: InputSourceRegistry;
+  operationMaterial?: OperationMaterialCapturePort | undefined;
   reservationVerification?: ReservationVerificationPort | undefined;
   pinOptions?: Readonly<Record<string, unknown>> | undefined;
 }): ContributionDependencies => ({

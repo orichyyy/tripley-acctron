@@ -196,6 +196,12 @@ export interface CustomerOperationResult {
   readonly reasonCode?: string | undefined;
 }
 
+export interface CustomerOperationExitContext {
+  readonly entryMethodId: string;
+  readonly operationId: string;
+  readonly outcome: "completed" | "failed" | "interrupted";
+}
+
 export interface KioskAuditPort {
   append(input: {
     readonly eventId: string;
@@ -267,6 +273,7 @@ export interface KioskRuntimeOptions {
     ctx: OperationExecutionContext,
     assessment: CredentialAssessment,
   ): Promise<JsonValue | undefined>;
+  onOperationExit?(context: CustomerOperationExitContext): void;
 }
 
 export interface KioskRuntimeSnapshot {

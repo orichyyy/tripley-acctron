@@ -309,10 +309,20 @@ export class CustomerOperationCoordinator {
       return this.result(operationId, entry.id, outcome, undefined, reasonCode);
     } finally {
       clearTimeout(deadline);
-      await this.options.ports.prompt?.cancelOperation(operationId, "operation.exit");
-      await this.options.ports.scopedStore.resetTransaction(`operation.${outcome}`);
-      compensationAbort.abort("operation.compensationComplete");
-      this.active = undefined;
+      try {
+        await this.options.ports.prompt?.cancelOperation(operationId, "operation.exit");
+      } finally {
+        try {
+          this.options.onOperationExit?.({ entryMethodId: entry.id, operationId, outcome });
+        } finally {
+          try {
+            await this.options.ports.scopedStore.resetTransaction(`operation.${outcome}`);
+          } finally {
+            compensationAbort.abort("operation.compensationComplete");
+            this.active = undefined;
+          }
+        }
+      }
     }
   }
 
@@ -377,8 +387,15 @@ export class CustomerOperationCoordinator {
     ctx: OperationExecutionContext,
     outcome: "completed" | "failed" | "interrupted",
   ): Promise<MediaCustodyResolution> {
-    if (entry.mediaCustody.kind === "none" || ctx.getMediaCustody() === "none") {
+    const custody = ctx.getMediaCustody();
+    if (entry.mediaCustody.kind === "none" || custody === "none") {
       return Promise.resolve({ status: "none" });
+    }
+    if (custody === "returned" || custody === "retained") {
+      return Promise.resolve({ status: custody });
+    }
+    if (custody === "unknown") {
+      return Promise.resolve({ reasonCode: "custody.unknown", status: "unknown" });
     }
     return entry.mediaCustody.resolve(ctx, outcome);
   }
