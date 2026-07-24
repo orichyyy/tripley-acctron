@@ -1,3 +1,4 @@
+import { XfsEventClassFromRaw } from "@tripley-kit/xfs-client";
 import { FrameworkError } from "@tripley-kit/web-container-errors";
 
 import { createStatusHealthCheck } from "./adapter-utils";
@@ -18,6 +19,12 @@ export const xfsCdmDeviceModuleAdapter: XfsDeviceModuleAdapter = {
     const commandLeases = client.commandLeases;
     if (!cdm || !commandLeases || !cash || !config.cdm) {
       throw configError("xfs.cdm.dependencies.missing", config.deviceId);
+    }
+    if (client.manager.registerEvents) {
+      await client.manager.registerEvents({
+        eventClass: XfsEventClassFromRaw(2),
+        sessionId: session.id,
+      });
     }
     const request = { sessionId: session.id, timeoutMs };
     const capabilities = await cdm.getCapabilities(request);

@@ -200,6 +200,8 @@ interface CashDeliverySessionOptions extends CashDeliveryPortOptions {
 }
 
 export class CashDeliverySession {
+  private takeEventObserved = false;
+  private takeSubscription?: { unsubscribe(): void } | undefined;
   private currentPhase: CashDeliveryPhase = "planned";
   private sequence = 1;
   private planConsumed = false;
@@ -253,6 +255,7 @@ export class CashDeliverySession {
     this.consumedAuthorizations.add(authorization.id);
     this.currentPhase = "presenting";
     await this.recordSafely("cash.present.intent", "policy", "observed");
+    this.startTakeObservation();
     try {
       const result = await this.options.client.present(this.positionRequest());
       assertXfsOk(result, "cdm.present", this.metadata());
@@ -260,6 +263,7 @@ export class CashDeliverySession {
       await this.recordSafely("cash.present.completed", "device", "deviceReported", hResultOf(result));
       await this.updateRecovery();
     } catch (error) {
+      this.stopTakeObservation();
       this.currentPhase = "reconciling";
       this.reconciliationRequired = true;
       await this.recordSafely("cash.present.executionUnknown", "device", "unknown");
@@ -272,17 +276,17 @@ export class CashDeliverySession {
     this.requirePhase("awaitingTake");
     const deadline = Date.now() + this.options.presentationPolicy.takeTimeoutMs;
     while (Date.now() < deadline) {
+      if (this.takeEventObserved) {
+        return this.confirmTake("itemsTakenEvent");
+      }
       const status = await readWithRetry(() =>
-        this.options.client.getPresentStatus(this.positionRequest()), 2);
-      assertXfsOk(status, "cdm.getPresentStatus", this.metadata());
-      if ((this.options.policy.takenPresentStates ?? [2]).includes(status.presentState ?? -1)) {
-        await this.recordSafely(
-          "cash.take.confirmed",
-          "device",
-          "observed",
-          status.presentState ?? undefined,
-        );
-        return this.finish("taken");
+        this.options.client.getStatus(this.sessionRequest()), 2);
+      assertXfsOk(status, "cdm.getStatus", this.metadata());
+      const output = status.positions?.find(
+        ({ fwPosition }) => fwPosition === this.outputPosition(),
+      );
+      if (output?.fwPositionStatus === WFS_CDM_PSEMPTY) {
+        return this.confirmTake(output.fwPositionStatus);
       }
       await delay(this.options.policy.statusPollMs ?? 100);
     }
@@ -362,6 +366,7 @@ export class CashDeliverySession {
 
   private async finish(outcome: CashCustodyOutcome): Promise<CashDeliveryTerminalResult> {
     if (this.terminal) return this.terminal;
+    this.stopTakeObservation();
     let after: CashInventorySnapshot | undefined;
     try {
       after = await captureSnapshot(
@@ -487,10 +492,52 @@ export class CashDeliverySession {
 
   private positionRequest() {
     return {
-      position: this.options.policy.outputPosition ?? 2,
+      position: this.outputPosition(),
       sessionId: this.options.session.id,
       timeoutMs: this.options.timeoutMs,
     };
+  }
+
+  private sessionRequest() {
+    return {
+      sessionId: this.options.session.id,
+      timeoutMs: this.options.timeoutMs,
+    };
+  }
+
+  private outputPosition(): number {
+    return this.options.policy.outputPosition ?? 2;
+  }
+
+  private startTakeObservation(): void {
+    if (!this.options.client.subscribeEvent || this.takeSubscription) return;
+    try {
+      this.takeSubscription = this.options.client.subscribeEvent((event) => {
+        if (
+          event.data?.kind === "itemsTaken" &&
+          eventPosition(event.data.value) === this.outputPosition()
+        ) {
+          this.takeEventObserved = true;
+        }
+      });
+    } catch {
+      this.takeSubscription = undefined;
+    }
+  }
+
+  private stopTakeObservation(): void {
+    this.takeSubscription?.unsubscribe();
+    this.takeSubscription = undefined;
+  }
+
+  private async confirmTake(resultCode: string | number): Promise<CashDeliveryTerminalResult> {
+    await this.recordSafely(
+      "cash.take.confirmed",
+      "device",
+      "observed",
+      resultCode,
+    );
+    return this.finish("taken");
   }
 
   private metadata(): Record<string, unknown> {
@@ -500,6 +547,15 @@ export class CashDeliverySession {
   private newId(): string {
     return this.options.dependencies.idFactory?.() ?? defaultId();
   }
+}
+
+function eventPosition(value: unknown): number | undefined {
+  if (typeof value !== "object" || value === null || !("position" in value)) {
+    return undefined;
+  }
+
+  const position = (value as { readonly position?: unknown }).position;
+  return typeof position === "number" ? position : undefined;
 }
 
 const captureSnapshot = async (
@@ -612,6 +668,8 @@ const cashError = (code: string, message: string): FrameworkError =>
 
 const delay = (milliseconds: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+const WFS_CDM_PSEMPTY = 0;
 
 const defaultId = (): string =>
   globalThis.crypto?.randomUUID?.() ?? `cash-${Date.now()}-${Math.random()}`;

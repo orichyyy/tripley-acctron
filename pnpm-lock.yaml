@@ -111,6 +111,9 @@ importers:
         specifier: ^5.0.5
         version: 5.0.14(@types/react@19.2.17)(react@19.2.7)
     devDependencies:
+      '@tripley-kit/web-container-xfs-test-harness':
+        specifier: workspace:*
+        version: link:../../packages/xfs-test-harness
       '@types/react':
         specifier: ^19.1.0
         version: 19.2.17

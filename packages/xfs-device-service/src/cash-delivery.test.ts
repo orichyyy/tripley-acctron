@@ -61,6 +61,50 @@ describe("XfsCashDeliveryPort", () => {
     expect(result.safeSummary).not.toHaveProperty("cashUnits");
   });
 
+  it("does not treat NOTPRESENTED as taken while the output position is not empty", async () => {
+    const fixture = createFixture({ outputPositionStatus: 1 });
+    const started = await fixture.port.start(request(1_000));
+    await started.session.dispense(started.plan);
+    const authorization = await new CashPresentationAuthorizer(
+      new CashPresentationGateRegistry().register({
+        id: "bank.mobileOtp",
+        evaluate: async () => true,
+      }),
+    ).authorize({
+      cashSessionId: started.session.id,
+      operationId: "operation-1",
+      policy,
+    });
+    await started.session.present(authorization);
+
+    const result = await started.session.waitForTake();
+
+    expect(result.outcome).toBe("retracted");
+    expect(fixture.calls.retract).toBe(1);
+  });
+
+  it("confirms customer custody from a matching items-taken event", async () => {
+    const fixture = createFixture({ emitItemsTaken: true, outputPositionStatus: 1 });
+    const started = await fixture.port.start(request(1_000));
+    await started.session.dispense(started.plan);
+    const authorization = await new CashPresentationAuthorizer(
+      new CashPresentationGateRegistry().register({
+        id: "bank.mobileOtp",
+        evaluate: async () => true,
+      }),
+    ).authorize({
+      cashSessionId: started.session.id,
+      operationId: "operation-1",
+      policy,
+    });
+    await started.session.present(authorization);
+
+    const result = await started.session.waitForTake();
+
+    expect(result.outcome).toBe("taken");
+    expect(fixture.calls.retract).toBe(0);
+  });
+
   it("rejects a plan bound to another operation and an expired authorization", async () => {
     const fixture = createFixture();
     const first = await fixture.port.start(request(1_000));
@@ -118,12 +162,17 @@ const request = (minorUnits: number) => ({
 });
 
 const createFixture = (options: {
+  readonly emitItemsTaken?: boolean;
   readonly failBefore?: boolean;
+  readonly outputPositionStatus?: number;
   readonly recoveryTransfer?: CashDeliveryDependencies["recoveryTransfer"];
 } = {}) => {
   const calls = { denominate: 0, dispense: 0, present: 0, retract: 0, releaseLease: 0 };
   const evidence: CashOperationEvidence[] = [];
   let nextId = 0;
+  let eventHandler:
+    | ((event: { data: { kind: string; value: { position: number } } }) => void | Promise<void>)
+    | undefined;
   const dependencies: CashDeliveryDependencies = {
     deviceLocks: new DeviceLockManager(),
     emergencySpool: { append: async (item) => { evidence.push(item); } },
@@ -151,6 +200,13 @@ const createFixture = (options: {
       return { denomination, native: { hResult: 0 } };
     },
     dispense: async () => { calls.dispense += 1; return { native: { hResult: 0 } }; },
+    getStatus: async () => ({
+      native: { hResult: 0 },
+      positions: [{
+        fwPosition: 2,
+        fwPositionStatus: options.outputPositionStatus ?? 0,
+      }],
+    }),
     getCashUnitInfo: async () => ({
       cashUnits: [{
         cashUnitType: 3,
@@ -171,8 +227,26 @@ const createFixture = (options: {
       tellerId: 0,
     }),
     getPresentStatus: async () => ({ native: { hResult: 0 }, position: 2, presentState: 2 }),
-    present: async () => { calls.present += 1; return { hResult: 0 }; },
+    present: async () => {
+      calls.present += 1;
+      if (options.emitItemsTaken) {
+        await eventHandler?.({ data: { kind: "itemsTaken", value: { position: 2 } } });
+      }
+      return { hResult: 0 };
+    },
     retract: async () => { calls.retract += 1; return { native: { hResult: 0 } }; },
+    subscribeEvent: (
+      handler: (event: {
+        data: { kind: string; value: { position: number } };
+      }) => void | Promise<void>,
+    ) => {
+      eventHandler = handler;
+      return {
+        unsubscribe: () => {
+          eventHandler = undefined;
+        },
+      };
+    },
   };
   const commandLeases = {
     acquire: async (input: Record<string, unknown>) => ({ ...input, expiresAt: Date.now() + 10_000 }),

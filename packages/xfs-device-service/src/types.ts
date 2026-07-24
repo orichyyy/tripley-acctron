@@ -69,7 +69,6 @@ export interface XfsCdmOperationalPolicy {
   readonly planTtlMs?: number | undefined;
   readonly commandLeaseTtlMs?: number | undefined;
   readonly statusPollMs?: number | undefined;
-  readonly takenPresentStates?: readonly number[] | undefined;
   readonly resourceGroup?: string | undefined;
   readonly protectionPolicyProfileId?: string | undefined;
 }
@@ -145,7 +144,7 @@ export interface XfsBcrClientLike {
 }
 
 export interface XfsCdmClientLike {
-  getStatus(request: XfsCdmRequest): Promise<XfsNativeEnvelopeLike>;
+  getStatus(request: XfsCdmRequest): Promise<XfsCdmStatusLike>;
   getCapabilities(request: XfsCdmRequest): Promise<XfsCdmCapabilities>;
   getCashUnitInfo(request: XfsCdmRequest): Promise<XfsCdmCashUnitInfo>;
   getPresentStatus(request: XfsCdmPositionRequest): Promise<XfsCdmPresentStatus>;
@@ -153,6 +152,27 @@ export interface XfsCdmClientLike {
   dispense(request: XfsCdmDispenseRequest): Promise<XfsCdmDenominationResult>;
   present(request: XfsCdmPositionRequest): Promise<XfsNativeEnvelopeLike>;
   retract(request: XfsCdmRetractRequest): Promise<XfsNativeEnvelopeLike>;
+  subscribeEvent?(
+    handler: (event: XfsCdmEventLike) => void | Promise<void>,
+  ): XfsEventSubscriptionLike;
+}
+
+export interface XfsCdmStatusLike extends XfsNativeEnvelopeLike {
+  readonly positions?: readonly {
+    readonly fwPosition: number;
+    readonly fwPositionStatus: number;
+  }[] | undefined;
+}
+
+export interface XfsCdmEventLike {
+  readonly data?: {
+    readonly kind?: string | undefined;
+    readonly value?: unknown;
+  } | undefined;
+}
+
+export interface XfsEventSubscriptionLike {
+  unsubscribe(): void;
 }
 
 export interface XfsCommandLeaseClientLike {

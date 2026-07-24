@@ -78,6 +78,7 @@ export async function prepareHostdCdmSimulator(
       sessionId,
       timeoutMs: 5_000,
     });
+    assertDispensableCashUnit(cashUnitInfo, logicalName);
     lease = await xfs.commandLeases!.transition({
       fencingToken: lease.fencingToken,
       fromAuthority: "transaction",
@@ -156,7 +157,7 @@ async function applyCashUnitProfile(
 
 function defaultCashUnitProfile(name: string): CdmCashUnitProfile {
   const initialCount = 1_000;
-  const unitId = "CNY01";
+  const unitId = "CNY03";
   return {
     cashUnitInfo: {
       tellerId: 0,
@@ -170,14 +171,14 @@ function defaultCashUnitProfile(name: string): CdmCashUnitProfile {
         maximum: initialCount,
         minimum: 10,
         name: "CNY 100",
-        number: 1,
+        number: 3,
         physical: [{
           count: initialCount,
           dispensedCount: 0,
           hardwareSensor: true,
           initialCount,
           maximum: initialCount,
-          physicalPositionName: "Cassette 1",
+          physicalPositionName: "Cassette 3",
           presentedCount: 0,
           rejectCount: 0,
           retractedCount: 0,
@@ -228,6 +229,23 @@ function defaultCashUnitProfile(name: string): CdmCashUnitProfile {
     mediaKind: "cash",
     name,
   };
+}
+
+function assertDispensableCashUnit(
+  info: XfsCdmCashUnitInfo,
+  logicalName: string,
+): void {
+  const available = info.cashUnits?.some((unit) =>
+    unit.currencyId.trim().length === 3 &&
+    unit.values > 0 &&
+    unit.count > 0 &&
+    unit.cashUnitType !== 6
+  );
+  if (!available) {
+    throw new Error(
+      `CDM logical service ${logicalName} has no dispensable cash unit after profile apply.`,
+    );
+  }
 }
 
 function summarize(
