@@ -1,11 +1,11 @@
 import { createHostMessageService } from "@tripley-kit/web-container-host-message";
-import { createLengthPrefixFrameCodec } from "@tripley-kit/web-container-kiosk-host-native-channel";
 import type {
   HostSessionPolicy,
   HostSessionTransportPort,
 } from "@tripley-kit/web-container-kiosk-host-session";
 import { HostSessionSupervisor } from "@tripley-kit/web-container-kiosk-host-session";
 
+import { createBspV243FrameCodec } from "./bsp-frame";
 import type {
   BspV243HostControlContribution,
   BspV243PendingResponseInput,
@@ -39,14 +39,7 @@ export const createBspV243SessionProfile = (
   for (const contribution of options.controls ?? []) controls.register(contribution);
   const inbound = controls.createInboundRegistry();
   return {
-    frame: createLengthPrefixFrameCodec({
-      fixedHeader: Uint8Array.of(0x0f, 0x0f, 0x0f),
-      lengthBytes: 3,
-      lengthEncoding: "bcd",
-      lengthIncludesFixedHeader: true,
-      lengthIncludesLengthField: true,
-      maxFrameBytes: 2_048,
-    }),
+    frame: createBspV243FrameCodec(),
     inbound,
     messages,
     protocol: createBspV243OexProtocol({
