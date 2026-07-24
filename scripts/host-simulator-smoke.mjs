@@ -80,6 +80,10 @@ try {
 
 function createBspAexSmokeBody() {
   const body = new Uint8Array(726).fill(0x20);
+  body[0] = 0x01;
+  body.set(new TextEncoder().encode("000"), 1);
+  body[4] = 0x0f;
+  body[5] = 0x0f;
   body.set(new TextEncoder().encode("AEX"), 8);
   return body;
 }

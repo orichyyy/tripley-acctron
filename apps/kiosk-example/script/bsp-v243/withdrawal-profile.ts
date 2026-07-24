@@ -10,6 +10,7 @@ interface WireField {
   readonly id: string;
   readonly bytes: number;
   readonly numeric?: boolean;
+  readonly numericPadding?: "space" | "zero";
   readonly classification?: DataClassification;
   readonly summary?: SafeSummaryPolicy;
 }
@@ -118,7 +119,7 @@ const requestTailLayout = [
   { id: "inTailFiller", bytes: 58 },
 ] as const satisfies readonly WireField[];
 
-export const bspWithdrawalResponseLayout = [
+const responseHeaderLayout = [
   { id: "outTransactionCode", bytes: 3, classification: "public", summary: value },
   { id: "outDate", bytes: 8, numeric: true },
   { id: "outTime", bytes: 6, numeric: true },
@@ -129,6 +130,9 @@ export const bspWithdrawalResponseLayout = [
   { id: "outSystemDate", bytes: 8, numeric: true, summary: value },
   { id: "outSequence", bytes: 8, numeric: true, summary: value },
   { id: "outRejectCode", bytes: 4, classification: "public", summary: value },
+] as const satisfies readonly WireField[];
+
+const iwdResponseBodyLayout = [
   { id: "outCenterSequence", bytes: 7, numeric: true, summary: value },
   { id: "outCustomerFee", bytes: 3, numeric: true },
   { id: "outUnpostedCount", bytes: 2, numeric: true },
@@ -141,11 +145,17 @@ export const bspWithdrawalResponseLayout = [
     numeric: true,
     classification: "sensitive",
   },
-  { id: "outDestinationBank", bytes: 3, numeric: true },
+  {
+    id: "outDestinationBank",
+    bytes: 3,
+    numeric: true,
+    numericPadding: "space",
+  },
   {
     id: "outDestinationAccount",
     bytes: 16,
     numeric: true,
+    numericPadding: "space",
     classification: "sensitive",
   },
   { id: "outTransactionAmount", bytes: 8, numeric: true },
@@ -179,7 +189,36 @@ export const bspWithdrawalResponseLayout = [
   { id: "outDispenseCount8", bytes: 4, numeric: true },
   { id: "outBalanceCurrency", bytes: 3 },
   { id: "outFeeCurrency", bytes: 3 },
-  { id: "outBodyFiller", bytes: 375 },
+] as const satisfies readonly WireField[];
+
+const iwfAdditionalResponseFields = [
+  { id: "outTransferOutCount", bytes: 2, numeric: true },
+  { id: "outTransferInCount", bytes: 2, numeric: true },
+  { id: "outAccountCount", bytes: 1, numeric: true },
+  { id: "outAccounts", bytes: 440, classification: "sensitive" },
+  { id: "outUnitNumber", bytes: 11 },
+  { id: "outSelfService", bytes: 1, numeric: true },
+] as const satisfies readonly WireField[];
+
+export const bspWithdrawalResponseLayout = [
+  ...responseHeaderLayout,
+  ...iwdResponseBodyLayout,
+] as const satisfies readonly WireField[];
+
+export const bspWithdrawalCompletionResponseLayout = [
+  ...responseHeaderLayout,
+  iwdResponseBodyLayout[0],
+  iwdResponseBodyLayout[1],
+  iwdResponseBodyLayout[2],
+  iwdResponseBodyLayout[3],
+  iwdResponseBodyLayout[4],
+  iwdResponseBodyLayout[5],
+  iwdResponseBodyLayout[14],
+  ...iwfAdditionalResponseFields.slice(0, 4),
+  iwdResponseBodyLayout[23],
+  iwdResponseBodyLayout[24],
+  iwdResponseBodyLayout[25],
+  ...iwfAdditionalResponseFields.slice(4),
 ] as const satisfies readonly WireField[];
 
 export type BspWithdrawalIciFieldId = (typeof bspWithdrawalIciLayout)[number]["id"];
@@ -189,10 +228,12 @@ const fieldDefinitions = [
   ...bspWithdrawalIciLayout,
   ...requestTailLayout,
   ...bspWithdrawalResponseLayout,
+  ...iwfAdditionalResponseFields,
 ].map((field) =>
   bspField(field.id, field.bytes, {
     ...("classification" in field ? { classification: field.classification } : {}),
     ...("numeric" in field ? { numeric: field.numeric } : {}),
+    ...("numericPadding" in field ? { numericPadding: field.numericPadding } : {}),
     ...("summary" in field ? { summary: field.summary } : {}),
   }),
 );
@@ -203,15 +244,18 @@ const usesLayout = (layout: readonly WireField[]) =>
 const requestPrefix = [...usesLayout(requestHeaderLayout), ...usesLayout(bspWithdrawalIciLayout)];
 const requestSuffix = usesLayout(requestTailLayout.slice(3));
 const responseFields = usesLayout(bspWithdrawalResponseLayout);
+const completionResponseFields = usesLayout(bspWithdrawalCompletionResponseLayout);
 
 export const BSP_V243_WITHDRAWAL_PROFILE_ID = "taiwan.bsp.v243.withdrawal";
 export const BSP_V243_WITHDRAWAL_PROFILE_VERSION = "2.43";
+export const BSP_V243_IWD_RESPONSE_BYTES = 373;
+export const BSP_V243_IWF_RESPONSE_BYTES = 656;
 
 export const bspV243WithdrawalProfile: HostMessageProfile = {
   codecId: "fixed-field",
   fieldDefinitions,
   id: BSP_V243_WITHDRAWAL_PROFILE_ID,
-  maxMessageBytes: 748,
+  maxMessageBytes: 720,
   messages: [
     {
       direction: "request",
@@ -238,10 +282,9 @@ export const bspV243WithdrawalProfile: HostMessageProfile = {
     },
     {
       direction: "response",
-      fields: responseFields,
+      fields: completionResponseFields,
       id: "iwf.response",
     },
   ],
   version: BSP_V243_WITHDRAWAL_PROFILE_VERSION,
 };
-

@@ -42,10 +42,10 @@ exception codes. Neither requires changes to framework packages.
 ## Acceptance
 
 - IWD and IWF requests pack to 720 bytes.
-- IWD and IWF replies unpack from 748 bytes.
+- IWD replies unpack from 373-byte payloads carried in 385-byte wire frames.
+- IWF replies unpack from 656-byte FISC-II payloads carried in 668-byte wire frames.
 - Host approval and decline replies map to the withdrawal orchestration contract.
 - Authorization-only projects expose no completion operation.
 - Completion-enabled projects send IWF with original request references and
   project-mapped terminal evidence.
 - Safe summaries contain no secure financial values.
-

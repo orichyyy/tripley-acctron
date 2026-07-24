@@ -5,7 +5,7 @@ import type {
 
 import type { BspV243PendingResponseInput } from "./contracts";
 import type { BspV243HostControlRegistry } from "./control-registry";
-import { BSP_V243_HOST_MESSAGE_BYTES } from "./profile";
+import { BSP_V243_ATM_MESSAGE_BYTES } from "./profile";
 
 export interface BspV243FrameRouterOptions {
   readonly controls: Pick<BspV243HostControlRegistry, "typeFor">;
@@ -17,7 +17,7 @@ export interface BspV243FrameRouterOptions {
 export const createBspV243FrameRouter =
   (options: BspV243FrameRouterOptions) =>
   (input: PersistentHostFrameRouteInput): PersistentHostFrameRoute => {
-    if (input.payload.length !== BSP_V243_HOST_MESSAGE_BYTES) {
+    if (input.payload.length < 3) {
       return { kind: "ignore", reason: "bsp.v243.host-frame-length-invalid" };
     }
     const code = readAscii(input.payload, 0, 3);
@@ -26,6 +26,9 @@ export const createBspV243FrameRouter =
       return { kind: "inbound", messageId: hostMessageId(input.payload), type };
     }
     if (input.pending?.idempotencyKey.startsWith("bsp-v243:oex:") && code === "OEX") {
+      if (input.payload.length !== BSP_V243_ATM_MESSAGE_BYTES) {
+        return { kind: "ignore", reason: "bsp.v243.host-frame-length-invalid" };
+      }
       return { kind: "response", responseId: hostMessageId(input.payload) };
     }
     if (input.pending && options.resolvePendingResponse) {

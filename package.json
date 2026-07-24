@@ -9,6 +9,7 @@
     "check": "biome check .",
     "format": "biome format --write .",
     "test": "vitest run --passWithNoTests",
+    "test:bsp-v243-host-simulator": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-bsp-v243-host-simulator.ps1",
     "test:host-simulator": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-host-simulator.ps1",
     "test:xfs-hostd": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-xfs-hostd.ps1",
     "test:xfs-hostd:contract": "pnpm --filter @tripley-kit/web-container-kiosk-runtime build && pnpm --filter @tripley-kit/web-container-xfs-device-service build && vitest run --config packages/xfs-test-harness/vitest.config.ts",

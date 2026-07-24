@@ -16,12 +16,15 @@ import {
   createBspV243WithdrawalHostContribution,
 } from "./withdrawal-host";
 import {
+  BSP_V243_IWD_RESPONSE_BYTES,
+  BSP_V243_IWF_RESPONSE_BYTES,
+  bspWithdrawalCompletionResponseLayout,
   bspV243WithdrawalProfile,
   bspWithdrawalResponseLayout,
 } from "./withdrawal-profile";
 
 describe("Taiwan BSP v2.43 withdrawal host integration", () => {
-  it("packs 720-byte IWD/IWF requests and 748-byte replies", () => {
+  it("packs 720-byte IWD/IWF requests and replies", () => {
     const messages = createHostMessageService({
       profiles: [bspV243WithdrawalProfile],
     }).service;
@@ -41,8 +44,12 @@ describe("Taiwan BSP v2.43 withdrawal host integration", () => {
 
     expect(pack(messages, "iwd.request", authorization)).toHaveLength(720);
     expect(pack(messages, "iwf.request", completion ?? {})).toHaveLength(720);
-    expect(pack(messages, "iwd.response", responseFields("IWD"))).toHaveLength(748);
-    expect(pack(messages, "iwf.response", responseFields("IWF"))).toHaveLength(748);
+    expect(pack(messages, "iwd.response", responseFields("IWD"))).toHaveLength(
+      BSP_V243_IWD_RESPONSE_BYTES,
+    );
+    expect(pack(messages, "iwf.response", responseFields("IWF"))).toHaveLength(
+      BSP_V243_IWF_RESPONSE_BYTES,
+    );
   });
 
   it("maps authorization approval and decline using project reject codes", () => {
@@ -288,7 +295,12 @@ const responseFields = (
   code: "IWD" | "IWF",
   overrides: Readonly<Record<string, string>> = {},
 ): Record<string, string> => ({
-  ...Object.fromEntries(bspWithdrawalResponseLayout.map(({ id }) => [id, ""])),
+  ...Object.fromEntries(
+    (code === "IWD"
+      ? bspWithdrawalResponseLayout
+      : bspWithdrawalCompletionResponseLayout
+    ).map(({ id }) => [id, ""]),
+  ),
   outAtmId: "00001",
   outBusinessDate: "20260724",
   outCenterSequence: "1234567",

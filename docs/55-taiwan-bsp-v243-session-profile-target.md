@@ -1,5 +1,24 @@
 # Target 55: Taiwan BSP ATM v2.43 Session Profile
 
+## Shared Transport Header
+
+Every BSP request and response uses one shared 12-byte transport header before
+the documented message body:
+
+| Field | Bytes | Value |
+|---|---:|---|
+| `HEADER_1` | 3 | `0F 0F 0F` |
+| `HEADER_2` | 3 | six-digit BCD complete wire-buffer length |
+| `HEADER_3` | 1 | `01` |
+| `HEADER_4` | 3 | ASCII counter `000..999`, wrapping to `000` |
+| `HEADER_5` | 1 | `0F` |
+| `HEADER_6` | 1 | `0F` |
+
+The shared application frame codec owns these fields. Individual OEX, control,
+and financial message profiles define only their documented 720-byte request or
+720-byte OEX response body. A 720-byte request or OEX response occupies 732 wire bytes and encodes
+`HEADER_2` as `00 07 32`.
+
 ## Objective
 
 Implement the first bank-project host profile as application-owned TypeScript scripts. Bind the
@@ -11,7 +30,7 @@ supervision without adding bank fields to framework core.
 - ATM-to-host source: `BSP_FEP_RCV_ATM_20260317V2.43.docx`.
 - Host-to-ATM source: `BSP_FEP_TO_ATM_20260317V2.43.docx`.
 - Profile version: `2.43-20260317`.
-- ATM messages are 720 bytes. Host messages are 748 bytes.
+- OEX requests and responses are 720 bytes after the shared transport header is removed. Other host responses use their message-specific fixed length.
 - Transport framing remains three-byte `0F 0F 0F`, three-byte BCD length, and length includes both
   fixed header and length bytes.
 
@@ -37,7 +56,7 @@ supervision without adding bank fields to framework core.
 ## Acceptance
 
 - OEX request packs to an independently asserted 720-byte layout.
-- OEX response strictly decodes 748 bytes and gates readiness.
+- OEX response strictly decodes 720 bytes and gates readiness.
 - Malformed, mismatched, rejected, not-sent, and uncertain outcomes remain distinguishable by safe
   reason codes.
 - SNS and other built-in host controls route as inbound messages.

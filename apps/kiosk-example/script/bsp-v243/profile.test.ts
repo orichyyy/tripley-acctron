@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import { decodeBspV243OexResponse, packBspV243OexRequest } from "./oex";
 import {
   BSP_V243_ATM_MESSAGE_BYTES,
-  BSP_V243_HOST_MESSAGE_BYTES,
   bspV243OexRequestReference,
   bspV243Profile,
 } from "./profile";
@@ -40,11 +39,11 @@ describe("Taiwan BSP v2.43 OEX profile", () => {
     });
   });
 
-  it("strictly validates the 748-byte OEX response and safe reject code", () => {
+  it("strictly validates the 720-byte OEX response and safe reject code", () => {
     const { service } = createHostMessageService({ profiles: [bspV243Profile] });
     const response = packOexResponse(service);
 
-    expect(response).toHaveLength(BSP_V243_HOST_MESSAGE_BYTES);
+    expect(response).toHaveLength(BSP_V243_ATM_MESSAGE_BYTES);
     expect(decodeBspV243OexResponse(service, response, terminalSnapshot.atmId).status).toBe(
       "accepted",
     );

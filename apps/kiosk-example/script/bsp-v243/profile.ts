@@ -8,7 +8,6 @@ import { bspField, uses } from "./profile-fields";
 export const BSP_V243_PROFILE_ID = "taiwan.bsp.atm";
 export const BSP_V243_PROFILE_VERSION = "2.43-20260317";
 export const BSP_V243_ATM_MESSAGE_BYTES = 720;
-export const BSP_V243_HOST_MESSAGE_BYTES = 748;
 
 export const bspV243OexRequestReference: HostMessageReference = {
   messageId: "oex.request",
@@ -125,8 +124,8 @@ export const bspV243Profile: HostMessageProfile = {
     bspField("hostSystemDate", 8, { numeric: true }),
     bspField("hostSequence", 8, { numeric: true }),
     bspField("oexRejectCode", 4, { summary: { mode: "value" } }),
-    bspField("oexReplyFiller", 696),
-    bspField("hostControlBody", 700),
+    bspField("oexReplyFiller", 668),
+    bspField("hostControlBody", 672),
   ],
   id: BSP_V243_PROFILE_ID,
   maxMessageBytes: 1_024,

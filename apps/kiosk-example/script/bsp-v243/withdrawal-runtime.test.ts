@@ -17,6 +17,8 @@ import {
   BSP_V243_IWF_BINDING_ID,
 } from "./withdrawal-host";
 import {
+  BSP_V243_IWD_RESPONSE_BYTES,
+  BSP_V243_IWF_RESPONSE_BYTES,
   bspWithdrawalResponseLayout,
 } from "./withdrawal-profile";
 import {
@@ -33,17 +35,17 @@ describe("Taiwan BSP v2.43 withdrawal host runtime", () => {
 
     expect(resolveBspV243WithdrawalResponse({
       code: "IWD",
-      payload: new Uint8Array(748),
+      payload: new Uint8Array(BSP_V243_IWD_RESPONSE_BYTES),
       pending: pending(BSP_V243_IWD_BINDING_ID),
     })).toEqual({});
     expect(resolveBspV243WithdrawalResponse({
       code: "IWF",
-      payload: new Uint8Array(748),
+      payload: new Uint8Array(BSP_V243_IWD_RESPONSE_BYTES),
       pending: pending(BSP_V243_IWD_BINDING_ID),
     })).toBeUndefined();
     expect(resolveBspV243WithdrawalResponse({
       code: "IWF",
-      payload: new Uint8Array(748),
+      payload: new Uint8Array(BSP_V243_IWF_RESPONSE_BYTES),
       pending: pending(BSP_V243_IWF_BINDING_ID),
     })).toEqual({});
   });
