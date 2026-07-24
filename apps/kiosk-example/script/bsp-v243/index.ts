@@ -8,3 +8,5 @@ export * from "./withdrawal-contracts";
 export * from "./withdrawal-host";
 export * from "./withdrawal-profile";
 export * from "./withdrawal-projector";
+export * from "./withdrawal-router";
+export * from "./withdrawal-runtime";
