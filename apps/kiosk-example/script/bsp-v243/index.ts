@@ -4,3 +4,7 @@ export * from "./control-registry";
 export * from "./oex";
 export * from "./profile";
 export * from "./router";
+export * from "./withdrawal-contracts";
+export * from "./withdrawal-host";
+export * from "./withdrawal-profile";
+export * from "./withdrawal-projector";

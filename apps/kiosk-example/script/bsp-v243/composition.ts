@@ -16,6 +16,7 @@ import { BspV243HostControlRegistry } from "./control-registry";
 import { createBspV243OexProtocol } from "./oex";
 import { bspV243Profile } from "./profile";
 import { createBspV243FrameRouter } from "./router";
+import { bspV243WithdrawalProfile } from "./withdrawal-profile";
 
 export interface CreateBspV243SessionProfileOptions {
   readonly terminalState: BspV243TerminalStateProvider;
@@ -31,7 +32,9 @@ export interface CreateBspV243SessionProfileOptions {
 export const createBspV243SessionProfile = (
   options: CreateBspV243SessionProfileOptions,
 ): BspV243SessionProfile => {
-  const { service: messages } = createHostMessageService({ profiles: [bspV243Profile] });
+  const { service: messages } = createHostMessageService({
+    profiles: [bspV243Profile, bspV243WithdrawalProfile],
+  });
   const controls = new BspV243HostControlRegistry(messages);
   for (const contribution of options.controls ?? []) controls.register(contribution);
   const inbound = controls.createInboundRegistry();
