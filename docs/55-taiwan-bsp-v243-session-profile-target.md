@@ -12,21 +12,8 @@ supervision without adding bank fields to framework core.
 - Host-to-ATM source: `BSP_FEP_TO_ATM_20260317V2.43.docx`.
 - Profile version: `2.43-20260317`.
 - ATM messages are 720 bytes. Host messages are 748 bytes.
-- The shared transport header follows the RHProxy `MessageFiles/RequestHeader.xml` layout:
-
-| Field | Bytes | Encoding and value |
-| --- | ---: | --- |
-| `HEADER_1` | 3 | Fixed binary `0F 0F 0F` |
-| `HEADER_2` | 3 | BCD total buffer length, including all six Header fields |
-| `HEADER_3` | 1 | Fixed binary `01` |
-| `HEADER_4` | 3 | ASCII decimal send counter `000` through `999` |
-| `HEADER_5` | 1 | Fixed binary `0F` |
-| `HEADER_6` | 1 | Fixed binary `0F` |
-
-- The send counter starts at `000`, increments once per successfully framed outbound message, and
-  wraps from `999` to `000`. The total buffer length includes all 12 shared header bytes.
-- Every BSP request uses the shared frame codec; individual request profiles contain only their
-  720-byte message body and cannot redefine the common header.
+- Transport framing remains three-byte `0F 0F 0F`, three-byte BCD length, and length includes both
+  fixed header and length bytes.
 
 ## Protocol decisions
 
@@ -50,8 +37,6 @@ supervision without adding bank fields to framework core.
 ## Acceptance
 
 - OEX request packs to an independently asserted 720-byte layout.
-- A framed 720-byte request is 732 bytes and begins
-  `0F 0F 0F 00 07 32 01 30 30 30 0F 0F`.
 - OEX response strictly decodes 748 bytes and gates readiness.
 - Malformed, mismatched, rejected, not-sent, and uncertain outcomes remain distinguishable by safe
   reason codes.
