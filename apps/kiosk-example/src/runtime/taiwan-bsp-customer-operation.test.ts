@@ -71,6 +71,14 @@ describe("Taiwan BSP customer operation bridge", () => {
         kind: "securePin",
       });
       expect(materials.has(result.operationId)).toBe(false);
+      expect(application.diagnostics.withdrawal.snapshot().latest).toMatchObject({
+        card: { status: "returned" },
+        cash: { custody: "taken", presented: true, taken: true },
+        failureReason: "completed",
+        host: { status: "approved" },
+        operationId: result.operationId,
+        status: "completed",
+      });
       expect(application.runtime.snapshot().operation.promptId).not.toBe("card.take");
       const observable = JSON.stringify({
         operation: application.runtime.snapshot().operation,

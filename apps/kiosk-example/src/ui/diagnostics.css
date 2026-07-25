@@ -1,0 +1,158 @@
+.diagnostics-shell {
+  min-height: 100vh;
+  padding: clamp(24px, 5vw, 72px);
+}
+
+.diagnostics-shell header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin-bottom: 48px;
+}
+
+.diagnostics-shell h1 {
+  font-size: clamp(3rem, 8vw, 7rem);
+}
+
+.diagnostic-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.diagnostic-grid article,
+.method-table,
+.evidence-panel {
+  border: 1px solid rgb(232 241 239 / 25%);
+  padding: 22px;
+  background: rgb(255 255 255 / 3%);
+}
+
+.diagnostic-grid article {
+  display: grid;
+  min-height: 150px;
+  align-content: space-between;
+  overflow-wrap: anywhere;
+}
+
+.diagnostic-grid span,
+.diagnostic-grid small,
+.method-table span {
+  color: #8eaaa9;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.method-table {
+  margin-top: 16px;
+}
+
+.method-table h2,
+.evidence-panel h2 {
+  font-family: "Archivo Black", sans-serif;
+  text-transform: uppercase;
+}
+
+.method-table div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 0;
+  border-top: 1px solid rgb(232 241 239 / 15%);
+}
+
+.evidence-panel {
+  position: relative;
+  margin-top: 16px;
+  overflow: hidden;
+}
+
+.evidence-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 7px;
+  background: var(--signal);
+}
+
+.evidence-panel--failed::before,
+.evidence-panel--intervention::before {
+  background: var(--danger);
+}
+
+.evidence-panel--completed::before {
+  background: var(--cyan);
+}
+
+.evidence-panel--empty {
+  color: #8eaaa9;
+}
+
+.evidence-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: start;
+}
+
+.evidence-heading h2 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 4rem);
+}
+
+.evidence-operation {
+  color: var(--signal);
+  font-family: "IBM Plex Mono", monospace;
+  overflow-wrap: anywhere;
+}
+
+.evidence-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 28px 0 0;
+  background: rgb(232 241 239 / 18%);
+}
+
+.evidence-facts div {
+  min-height: 112px;
+  padding: 16px;
+  background: #0a2029;
+}
+
+.evidence-facts dt {
+  color: #8eaaa9;
+  font: .66rem "IBM Plex Mono", monospace;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.evidence-facts dd {
+  margin: 14px 0 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.diagnostic-note {
+  max-width: 70ch;
+  color: #8eaaa9;
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  .evidence-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .diagnostics-shell header,
+  .evidence-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .diagnostic-grid,
+  .evidence-facts {
+    grid-template-columns: 1fr;
+  }
+}

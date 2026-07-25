@@ -8,6 +8,10 @@ import {
   SensitiveOperationMaterialVault,
   type OperationMaterialSnapshot,
 } from "./operation-material";
+import {
+  WithdrawalDiagnosticsStore,
+  type WithdrawalDiagnosticsPort,
+} from "./operator-diagnostics";
 import type { TaiwanBspWithdrawalInput } from "./taiwan-bsp-withdrawal";
 
 export interface TaiwanBspOperationContextAssembly {
@@ -34,6 +38,7 @@ export interface TaiwanBspCustomerOperationOptions {
   readonly application: TaiwanBspWithdrawalApplicationPort;
   readonly assembler: TaiwanBspOperationContextAssembler;
   readonly currency: string;
+  readonly diagnostics?: WithdrawalDiagnosticsPort | undefined;
   readonly materials?: SensitiveOperationMaterialVault | undefined;
   readonly minorUnitFactor: number;
 }
@@ -43,7 +48,9 @@ export const createTaiwanBspCustomerOperation = (
 ): ExampleWithdrawalBusiness => {
   assertAmountPolicy(options.currency, options.minorUnitFactor);
   const materials = options.materials ?? new SensitiveOperationMaterialVault();
+  const diagnostics = options.diagnostics ?? new WithdrawalDiagnosticsStore();
   return {
+    diagnostics,
     operationMaterial: materials,
     execute: async ({ amount, assessment, context }) => {
       try {
@@ -65,6 +72,7 @@ export const createTaiwanBspCustomerOperation = (
           ...(assembly.safeMetadata ? { safeMetadata: assembly.safeMetadata } : {}),
           signal: context.signal,
         });
+        diagnostics.publish(result);
         await projectMediaCustody(context, result);
         if (result.outcome.status !== "completed") {
           throw withdrawalFailure(result);

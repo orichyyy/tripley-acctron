@@ -242,61 +242,6 @@ footer {
   padding-top: 18px;
   font-size: .65rem;
 }
-.diagnostics-shell {
-  min-height: 100vh;
-  padding: clamp(24px, 5vw, 72px);
-}
-.diagnostics-shell header {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  margin-bottom: 48px;
-}
-.diagnostics-shell h1 {
-  font-size: clamp(3rem, 8vw, 7rem);
-}
-.diagnostic-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-}
-.diagnostic-grid article,
-.method-table {
-  border: 1px solid rgb(232 241 239 / 25%);
-  padding: 22px;
-  background: rgb(255 255 255 / 3%);
-}
-.diagnostic-grid article {
-  display: grid;
-  min-height: 150px;
-  align-content: space-between;
-  overflow-wrap: anywhere;
-}
-.diagnostic-grid span,
-.diagnostic-grid small,
-.method-table span {
-  color: #8eaaa9;
-  font-family: "IBM Plex Mono", monospace;
-}
-.method-table {
-  margin-top: 16px;
-}
-.method-table h2 {
-  font-family: "Archivo Black", sans-serif;
-  text-transform: uppercase;
-}
-.method-table div {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 14px 0;
-  border-top: 1px solid rgb(232 241 239 / 15%);
-}
-.diagnostic-note {
-  max-width: 70ch;
-  color: #8eaaa9;
-  line-height: 1.7;
-}
 @keyframes pulse {
   0%,
   100% {
@@ -325,8 +270,7 @@ footer {
     min-height: 560px;
     padding: 32px 22px;
   }
-  .entry-grid,
-  .diagnostic-grid {
+  .entry-grid {
     grid-template-columns: 1fr;
   }
   .terminal-header nav {

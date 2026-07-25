@@ -46,6 +46,7 @@ import {
 } from "./hostd";
 import { UiInputBroker } from "./input-broker";
 import type { ExampleWithdrawalBusiness } from "./operation-business";
+import { WithdrawalDiagnosticsStore } from "./operator-diagnostics";
 import type { ExampleApplicationRuntime } from "./types";
 
 export interface CreateExampleRuntimeOptions {
@@ -94,6 +95,8 @@ export const createExampleApplicationRuntime = async (
   let capabilities: Readonly<Record<string, CapabilityStatus>> = {};
   const hostd = hostdConfig(options.hostd);
   const operationAmounts = new Map<string, number>();
+  const withdrawalDiagnostics =
+    options.withdrawalBusiness?.diagnostics ?? new WithdrawalDiagnosticsStore();
 
   if (options.mode === "memory") {
     inputSources.register(broker.createAdapter("barcodeReader.qr"));
@@ -287,6 +290,7 @@ export const createExampleApplicationRuntime = async (
         ...(hostd.pinLogicalName ? { pin: hostd.pinLogicalName } : {}),
         ...(hostd.bcrLogicalName ? { bcr: hostd.bcrLogicalName } : {}),
       },
+      withdrawal: withdrawalDiagnostics,
     },
     dispose: disposeApplication,
     mode: options.mode,

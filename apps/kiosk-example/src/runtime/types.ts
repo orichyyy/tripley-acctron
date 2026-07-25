@@ -2,6 +2,8 @@ import type { CommandRegistry } from "@tripley-kit/web-container-command-system"
 import type { KioskRuntime, KioskRuntimeMode } from "@tripley-kit/web-container-kiosk-runtime";
 import type { StoreApi } from "zustand";
 
+import type { WithdrawalDiagnosticsSource } from "./operator-diagnostics";
+
 export interface ExampleDiagnostics {
   readonly bootstrapError?: string | undefined;
   readonly health?:
@@ -12,6 +14,7 @@ export interface ExampleDiagnostics {
     | undefined;
   readonly hostdUrl?: string | undefined;
   readonly logicalServices: Readonly<Record<string, string>>;
+  readonly withdrawal: WithdrawalDiagnosticsSource;
 }
 
 export interface ExampleApplicationRuntime {
