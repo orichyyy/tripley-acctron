@@ -278,6 +278,18 @@ const executionContext = (devices: DeviceRegistry) => ({
   nodeId: "node",
 });
 
+it("registers IDC service events for card removal evidence", async () => {
+  const fake = createFakeXfsClient();
+  const service = createXfsDeviceService(config(), { client: fake });
+
+  await service.connect();
+
+  expect(fake.manager.registerEventsCalls).toContainEqual({
+    eventClass: 11,
+    sessionId: "customCard-session",
+  });
+});
+
 const createFakeXfsClient = (options: { readonly idcFwDevice?: number } = {}) => {
   const fake: XfsRuntimeClientLike & {
     connected: boolean;
@@ -285,6 +297,7 @@ const createFakeXfsClient = (options: { readonly idcFwDevice?: number } = {}) =>
     manager: XfsRuntimeClientLike["manager"] & {
       cancelCalls: Array<{ requestId: number; sessionId: string }>;
       closeCalls: Array<{ sessionId: string }>;
+      registerEventsCalls: Array<{ eventClass: number; sessionId: string }>;
     };
     pin: XfsRuntimeClientLike["pin"] & {
       getPinCalls: unknown[];
@@ -335,6 +348,7 @@ const createFakeXfsClient = (options: { readonly idcFwDevice?: number } = {}) =>
     manager: {
       cancelCalls: [] as Array<{ requestId: number; sessionId: string }>,
       closeCalls: [] as Array<{ sessionId: string }>,
+      registerEventsCalls: [] as Array<{ eventClass: number; sessionId: string }>,
       cancelAsyncRequest: async (request: { requestId: number; sessionId: string }) => {
         fake.manager.cancelCalls.push(request);
         return { hResult: 0 };
@@ -349,6 +363,10 @@ const createFakeXfsClient = (options: { readonly idcFwDevice?: number } = {}) =>
           id: `${deviceIdForLogicalName(request.logicalName)}-session`,
         },
       }),
+      registerEvents: async (request: { eventClass: number; sessionId: string }) => {
+        fake.manager.registerEventsCalls.push(request);
+        return {};
+      },
       startup: async () => ({ hResult: 0 }),
     },
     pin: {

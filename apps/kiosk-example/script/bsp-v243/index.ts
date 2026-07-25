@@ -8,6 +8,7 @@ export * from "./operation-context-assembler";
 export * from "./operation-context-contracts";
 export * from "./profile";
 export * from "./router";
+export * from "./taiwan-contact-card-context";
 export * from "./withdrawal-contracts";
 export * from "./withdrawal-host";
 export * from "./withdrawal-profile";

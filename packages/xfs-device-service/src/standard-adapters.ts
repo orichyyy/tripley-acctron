@@ -1,4 +1,5 @@
 import {
+  XfsEventClass,
   XfsEventClassFromRaw,
 } from "@tripley-kit/xfs-client";
 import {
@@ -23,7 +24,9 @@ const idcAdapter: XfsDeviceModuleAdapter = {
   create: async ({ client, config, session, timeoutMs }) => {
     if (client.manager.registerEvents) {
       await client.manager.registerEvents({
-        eventClass: XfsEventClassFromRaw(2),
+        eventClass: XfsEventClassFromRaw(
+          XfsEventClass.Service | XfsEventClass.User | XfsEventClass.Execute,
+        ),
         sessionId: session.id,
       });
     }

@@ -15,6 +15,8 @@ export interface HostdCdmSmokeOptions {
   readonly url?: string;
   readonly logicalName?: string;
   readonly profileName?: string;
+  readonly currencyId?: string;
+  readonly denomination?: number;
   readonly protectionPolicyProfileId?: string;
   readonly resourceGroup?: string;
 }
@@ -24,6 +26,7 @@ export interface HostdCdmSmokeSummary {
   readonly profileName: string;
   readonly cashUnitCount: number;
   readonly hostEpoch: string;
+  readonly tellerId: number;
 }
 
 /**
@@ -50,7 +53,7 @@ export async function prepareHostdCdmSimulator(
     const profileName = await applyCashUnitProfile(
       control.cdm,
       logicalName,
-      options.profileName,
+      options,
     );
     await xfs.manager.startup({ versionsRequired: xfsVersionRange });
     const opened = await xfs.manager.open({
@@ -143,21 +146,31 @@ export async function simulateCdmItemsTaken(
 async function applyCashUnitProfile(
   cdm: CdmControlClient,
   logicalName: string,
-  requestedProfile?: string,
+  options: HostdCdmSmokeOptions,
 ): Promise<string> {
   const profiles = await cdm.listCashUnitProfiles({});
-  const profileName = requestedProfile ?? DEFAULT_CDM_PROFILE;
+  const profileName = options.profileName ?? DEFAULT_CDM_PROFILE;
   const profileExists = profiles.profiles.some((profile) => profile.name === profileName);
-  if (!requestedProfile || !profileExists) {
-    await cdm.upsertCashUnitProfile({ profile: defaultCashUnitProfile(profileName) });
+  if (options.currencyId || options.denomination || !options.profileName || !profileExists) {
+    await cdm.upsertCashUnitProfile({
+      profile: defaultCashUnitProfile(
+        profileName,
+        options.currencyId ?? "CNY",
+        options.denomination ?? 100,
+      ),
+    });
   }
   await cdm.applyCashUnitProfile({ logicalName, profileName });
   return profileName;
 }
 
-function defaultCashUnitProfile(name: string): CdmCashUnitProfile {
+function defaultCashUnitProfile(
+  name: string,
+  currencyId: string,
+  denomination: number,
+): CdmCashUnitProfile {
   const initialCount = 1_000;
-  const unitId = "CNY03";
+  const unitId = `${currencyId}03`;
   return {
     cashUnitInfo: {
       tellerId: 0,
@@ -165,12 +178,12 @@ function defaultCashUnitProfile(name: string): CdmCashUnitProfile {
         appLock: false,
         cashUnitType: 3,
         count: initialCount,
-        currencyId: "CNY",
+        currencyId,
         dispensedCount: 0,
         initialCount,
         maximum: initialCount,
         minimum: 10,
-        name: "CNY 100",
+        name: `${currencyId} ${denomination}`,
         number: 3,
         physical: [{
           count: initialCount,
@@ -191,7 +204,7 @@ function defaultCashUnitProfile(name: string): CdmCashUnitProfile {
         serialNumberEnabled: false,
         status: 0,
         unitId,
-        values: 100,
+        values: denomination,
       }, {
         appLock: false,
         cashUnitType: 6,
@@ -259,6 +272,7 @@ function summarize(
     profileName,
     cashUnitCount: info.cashUnits?.length ?? 0,
     hostEpoch,
+    tellerId: info.tellerId,
   };
 }
 
