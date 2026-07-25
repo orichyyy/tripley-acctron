@@ -21,11 +21,13 @@ import { WithdrawalOrchestrator } from "./orchestrator";
 import { WithdrawalPolicyRegistry, WithdrawalPrePresentGateRegistry } from "./policy";
 
 export interface FixtureOptions {
+  readonly authorization?: "approved" | "declined" | "unavailable";
   readonly cardAvailable?: boolean;
   readonly cardOrder?: "return-before-cash-present" | "return-after-cash-terminal";
   readonly cardResult?: CardCustodyResult;
   readonly cashTerminal?: CashDeliveryTerminalResult;
   readonly completion?: boolean;
+  readonly dispenseError?: Error;
   readonly entryMode?: "contact-card" | "cardless-reservation";
   readonly gateResult?: WithdrawalPrePresentGateResult;
   readonly protocolMode?: WithdrawalHostProtocolMode;
@@ -48,6 +50,12 @@ export const createFixture = (options: FixtureOptions = {}) => {
   const host = {
     authorize: vi.fn(async () => {
       events.push("host.authorize");
+      if (options.authorization === "unavailable") {
+        throw new Error("simulated host unavailable");
+      }
+      if (options.authorization === "declined") {
+        return { reasonCode: "DECLINED", status: "declined" as const };
+      }
       return { authorizationReference: "host-auth-1", status: "approved" as const };
     }),
     complete: vi.fn(async () => { events.push("host.complete"); }),
@@ -62,7 +70,10 @@ export const createFixture = (options: FixtureOptions = {}) => {
       session.isTerminal = true;
       return terminal("retracted", "after-abort");
     }),
-    dispense: vi.fn(async () => { events.push("cash.dispense"); }),
+    dispense: vi.fn(async () => {
+      events.push("cash.dispense");
+      if (options.dispenseError) throw options.dispenseError;
+    }),
     exit: vi.fn(async () => {
       events.push("cash.exit");
       return {

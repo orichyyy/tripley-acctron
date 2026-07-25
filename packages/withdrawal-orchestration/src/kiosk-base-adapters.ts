@@ -13,6 +13,7 @@ import type {
   WithdrawalRequest,
   WithdrawalTransactionPort,
 } from "./contracts";
+import { createWithdrawalInvestigationRecord } from "./investigation";
 
 export const createKioskBaseWithdrawalTransactionAdapter = (
   repository: TransactionRepository,
@@ -73,6 +74,10 @@ const transactionStatus = (outcome: WithdrawalOutcome): TransactionStatus => {
 };
 
 const outcomeMetadata = (outcome: WithdrawalOutcome): Metadata => ({
+  withdrawalFailureReason:
+    createWithdrawalInvestigationRecord(outcome).failureReason,
+  withdrawalManualReconciliation:
+    createWithdrawalInvestigationRecord(outcome).requiresManualReconciliation,
   withdrawalStatus: outcome.status,
   withdrawalReason: outcome.reason,
   hostAuthorizationStatus: outcome.host.status,

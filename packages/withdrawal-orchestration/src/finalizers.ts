@@ -11,6 +11,7 @@ import type {
   WithdrawalScopedStatePort,
   WithdrawalTransactionPort,
 } from "./contracts";
+import { createWithdrawalInvestigationRecord } from "./investigation";
 
 export interface WithdrawalLocalFinalizerPorts {
   readonly transactions: WithdrawalTransactionPort;
@@ -65,7 +66,7 @@ const createAuditFinalizer = (audit: WithdrawalAuditPort): OperationFinalizer =>
   execute: async (context) => {
     const outcome = requireOutcome(context);
     await audit.append({
-      data: outcome.safeSummary,
+      data: createWithdrawalInvestigationRecord(outcome).safeSummary,
       eventId: "withdrawal.terminal",
       message: "Withdrawal reached a terminal application outcome",
       operationId: outcome.operationId,
