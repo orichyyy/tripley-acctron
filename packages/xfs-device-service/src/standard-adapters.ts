@@ -27,6 +27,7 @@ const idcAdapter: XfsDeviceModuleAdapter = {
         authority: "transaction",
         logicalService: config.logicalName,
         operationId: `${config.deviceId}.register-events`,
+        resourceGroup: config.resourceGroup,
         ttlMs: timeoutMs,
       }, () => client.manager.registerEvents!({
           eventClass: XfsEventClassFromRaw(
@@ -41,6 +42,7 @@ const idcAdapter: XfsDeviceModuleAdapter = {
       logicalName: config.logicalName,
       manager: client.manager,
       commandLeases,
+      resourceGroup: config.resourceGroup,
       session,
       timeoutMs,
     });
@@ -54,6 +56,7 @@ const idcAdapter: XfsDeviceModuleAdapter = {
           authority: "observation",
           logicalService: config.logicalName,
           operationId: `${config.deviceId}.health`,
+          resourceGroup: config.resourceGroup,
           ttlMs: timeoutMs,
         }, () => client.idc.getStatus({ sessionId: session.id, timeoutMs })),
       }),
@@ -72,6 +75,7 @@ const pinAdapter: XfsDeviceModuleAdapter = {
       logicalName: config.logicalName,
       manager: client.manager,
       commandLeases,
+      resourceGroup: config.resourceGroup,
       session,
       timeoutMs,
     });
@@ -85,6 +89,7 @@ const pinAdapter: XfsDeviceModuleAdapter = {
           authority: "observation",
           logicalService: config.logicalName,
           operationId: `${config.deviceId}.health`,
+          resourceGroup: config.resourceGroup,
           ttlMs: timeoutMs,
         }, () => client.pin.getStatus({ sessionId: session.id, timeoutMs })),
       }),
@@ -107,6 +112,7 @@ const bcrAdapter: XfsDeviceModuleAdapter = {
       logicalName: config.logicalName,
       manager: client.manager,
       commandLeases,
+      resourceGroup: config.resourceGroup,
       session,
       timeoutMs,
     });
@@ -120,6 +126,7 @@ const bcrAdapter: XfsDeviceModuleAdapter = {
           authority: "observation",
           logicalService: config.logicalName,
           operationId: `${config.deviceId}.health`,
+          resourceGroup: config.resourceGroup,
           ttlMs: timeoutMs,
         }, () => client.bcr.getStatus({ sessionId: session.id, timeoutMs })),
       }),

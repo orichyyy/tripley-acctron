@@ -21,6 +21,7 @@ describe("HostCommandLeaseExecutor", () => {
       logicalService: "IDC",
       operationId: "operation-1",
       ownerInstanceId: "owner-1",
+      resourceGroup: "card-transport-1",
     });
   });
 
@@ -70,6 +71,7 @@ const execution = (operationId: string) => ({
   authority: "transaction" as const,
   logicalService: "IDC",
   operationId,
+  resourceGroup: "card-transport-1",
   ttlMs: 30_000,
 });
 

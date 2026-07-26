@@ -44,6 +44,7 @@ interface XfsDevicePortOptions<TClient> {
   readonly deviceId: string;
   readonly logicalName: string;
   readonly manager: XfsManagerClientLike;
+  readonly resourceGroup?: string | undefined;
   readonly session: XfsSessionLike;
   readonly timeoutMs: number;
 }
@@ -451,6 +452,7 @@ const runLeasedCommand = <T>(
     logicalService: options.logicalName,
     operationId: context?.operationId ??
       `${options.deviceId}.${action}.${crypto.randomUUID()}`,
+    resourceGroup: options.resourceGroup,
     ttlMs: options.timeoutMs + 5_000,
   }, command);
 

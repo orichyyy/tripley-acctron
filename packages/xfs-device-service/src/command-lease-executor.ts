@@ -6,6 +6,7 @@ export interface XfsCommandLeaseExecution {
   readonly authority: XfsCommandLeaseRequest["authority"];
   readonly logicalService: string;
   readonly operationId: string;
+  readonly resourceGroup?: string | undefined;
   readonly ttlMs: number;
 }
 
@@ -71,6 +72,7 @@ export class HostCommandLeaseExecutor implements XfsCommandLeaseExecutor {
       logicalService: execution.logicalService,
       operationId: execution.operationId,
       ownerInstanceId: this.ownerInstanceId,
+      ...(execution.resourceGroup ? { resourceGroup: execution.resourceGroup } : {}),
       ttlMs: execution.ttlMs,
     });
     this.fencingTokens.set(tokenKey, lease.fencingToken);
