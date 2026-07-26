@@ -21,20 +21,26 @@ import {
 const idcAdapter: XfsDeviceModuleAdapter = {
   module: "idc",
   requiredModule: "idc",
-  create: async ({ client, config, session, timeoutMs }) => {
+  create: async ({ client, commandLeases, config, session, timeoutMs }) => {
     if (client.manager.registerEvents) {
-      await client.manager.registerEvents({
-        eventClass: XfsEventClassFromRaw(
-          XfsEventClass.Service | XfsEventClass.User | XfsEventClass.Execute,
-        ),
-        sessionId: session.id,
-      });
+      await commandLeases.run({
+        authority: "transaction",
+        logicalService: config.logicalName,
+        operationId: `${config.deviceId}.register-events`,
+        ttlMs: timeoutMs,
+      }, () => client.manager.registerEvents!({
+          eventClass: XfsEventClassFromRaw(
+            XfsEventClass.Service | XfsEventClass.User | XfsEventClass.Execute,
+          ),
+          sessionId: session.id,
+        }));
     }
     const port = new XfsCardReaderDevicePort({
       client: client.idc,
       deviceId: config.deviceId,
       logicalName: config.logicalName,
       manager: client.manager,
+      commandLeases,
       session,
       timeoutMs,
     });
@@ -44,7 +50,12 @@ const idcAdapter: XfsDeviceModuleAdapter = {
         deviceId: config.deviceId,
         logicalName: config.logicalName,
         module: "idc",
-        status: () => client.idc.getStatus({ sessionId: session.id, timeoutMs }),
+        status: () => commandLeases.run({
+          authority: "observation",
+          logicalService: config.logicalName,
+          operationId: `${config.deviceId}.health`,
+          ttlMs: timeoutMs,
+        }, () => client.idc.getStatus({ sessionId: session.id, timeoutMs })),
       }),
       port,
     };
@@ -54,12 +65,13 @@ const idcAdapter: XfsDeviceModuleAdapter = {
 const pinAdapter: XfsDeviceModuleAdapter = {
   module: "pin",
   requiredModule: "pin",
-  create: async ({ client, config, session, timeoutMs }) => {
+  create: async ({ client, commandLeases, config, session, timeoutMs }) => {
     const port = new XfsPinpadDevicePort({
       client: client.pin,
       deviceId: config.deviceId,
       logicalName: config.logicalName,
       manager: client.manager,
+      commandLeases,
       session,
       timeoutMs,
     });
@@ -69,7 +81,12 @@ const pinAdapter: XfsDeviceModuleAdapter = {
         deviceId: config.deviceId,
         logicalName: config.logicalName,
         module: "pin",
-        status: () => client.pin.getStatus({ sessionId: session.id, timeoutMs }),
+        status: () => commandLeases.run({
+          authority: "observation",
+          logicalService: config.logicalName,
+          operationId: `${config.deviceId}.health`,
+          ttlMs: timeoutMs,
+        }, () => client.pin.getStatus({ sessionId: session.id, timeoutMs })),
       }),
       inputSources: [
         createPinpadDataInputSourceAdapter(config.deviceId),
@@ -83,12 +100,13 @@ const pinAdapter: XfsDeviceModuleAdapter = {
 const bcrAdapter: XfsDeviceModuleAdapter = {
   module: "bcr",
   requiredModule: "bcr",
-  create: async ({ client, config, session, timeoutMs }) => {
+  create: async ({ client, commandLeases, config, session, timeoutMs }) => {
     const port = new XfsBarcodeReaderDevicePort({
       client: client.bcr,
       deviceId: config.deviceId,
       logicalName: config.logicalName,
       manager: client.manager,
+      commandLeases,
       session,
       timeoutMs,
     });
@@ -98,7 +116,12 @@ const bcrAdapter: XfsDeviceModuleAdapter = {
         deviceId: config.deviceId,
         logicalName: config.logicalName,
         module: "bcr",
-        status: () => client.bcr.getStatus({ sessionId: session.id, timeoutMs }),
+        status: () => commandLeases.run({
+          authority: "observation",
+          logicalService: config.logicalName,
+          operationId: `${config.deviceId}.health`,
+          ttlMs: timeoutMs,
+        }, () => client.bcr.getStatus({ sessionId: session.id, timeoutMs })),
       }),
       inputSources: [createBarcodeQrInputSourceAdapter(config.deviceId)],
       port,

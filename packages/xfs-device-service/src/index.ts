@@ -4,6 +4,7 @@ export * from "./card-custody-lease-adapter";
 export * from "./card-custody-policy";
 export * from "./card-custody";
 export * from "./client-factory";
+export * from "./command-lease-executor";
 export * from "./cash-contracts";
 export * from "./cash-delivery";
 export * from "./cash-policy";

@@ -18,6 +18,7 @@ import type {
 import { FrameworkError } from "@tripley-kit/web-container-errors";
 
 import { runAbortableXfsCommand } from "./abortable-command";
+import type { XfsCommandLeaseExecutor } from "./command-lease-executor";
 import type {
   XfsBcrClientLike,
   XfsCardEjectOptions,
@@ -39,6 +40,7 @@ import { assertXfsOk, bytesToHex, bytesToText, hResultOf, plainValueFromKeys } f
 
 interface XfsDevicePortOptions<TClient> {
   readonly client: TClient;
+  readonly commandLeases: XfsCommandLeaseExecutor;
   readonly deviceId: string;
   readonly logicalName: string;
   readonly manager: XfsManagerClientLike;
@@ -75,7 +77,8 @@ export class XfsCardReaderDevicePort implements XfsCardReaderPort {
     options: XfsCardReadOptions = {},
     context?: XfsDeviceOperationContext,
   ): Promise<XfsCardReadResult> {
-    const result = await runAbortableXfsCommand({
+    const result = await runLeasedCommand(this.options, context, "read-card", "transaction", () =>
+      runAbortableXfsCommand({
       cancel: () => cancelSession(this.options.manager, this.options.session.id),
       execute: () => this.options.client.readRawData({
         dataSources: XfsIdcDataSourceFromRaw(options.dataSources ?? 0xffff),
@@ -83,7 +86,7 @@ export class XfsCardReaderDevicePort implements XfsCardReaderPort {
         timeoutMs: options.timeoutMs ?? this.options.timeoutMs,
       }),
       signal: context?.signal,
-    });
+    }));
     assertXfsOk(result, "idc.readRawData", this.metadata());
     return {
       kind: "card",
@@ -105,7 +108,8 @@ export class XfsCardReaderDevicePort implements XfsCardReaderPort {
       throw missingCardCapability("ejectCard", this.metadata());
     }
     this.takeEvidenceBaseline = this.mediaRemovedSequence;
-    const result = await runAbortableXfsCommand({
+    const result = await runLeasedCommand(this.options, context, "eject-card", "transaction", () =>
+      runAbortableXfsCommand({
       cancel: () => cancelSession(this.options.manager, this.options.session.id),
       execute: () => this.options.client.ejectCard!({
         ...(options.position
@@ -115,7 +119,7 @@ export class XfsCardReaderDevicePort implements XfsCardReaderPort {
         timeoutMs: options.timeoutMs ?? this.options.timeoutMs,
       }),
       signal: context?.signal,
-    });
+    }));
     assertXfsOk(result, "idc.ejectCard", this.metadata());
   }
 
@@ -126,22 +130,24 @@ export class XfsCardReaderDevicePort implements XfsCardReaderPort {
     if (!this.options.client.retainCard) {
       throw missingCardCapability("retainCard", this.metadata());
     }
-    const result = await runAbortableXfsCommand({
+    const result = await runLeasedCommand(this.options, context, "retain-card", "transaction", () =>
+      runAbortableXfsCommand({
       cancel: () => cancelSession(this.options.manager, this.options.session.id),
       execute: () => this.options.client.retainCard!({
         sessionId: this.options.session.id,
         timeoutMs: options.timeoutMs ?? this.options.timeoutMs,
       }),
       signal: context?.signal,
-    });
+    }));
     assertXfsOk(result, "idc.retainCard", this.metadata());
   }
 
   public async getMediaStatus(): Promise<XfsCardMediaStatus> {
-    const result = await this.options.client.getStatus({
+    const result = await runLeasedCommand(this.options, undefined, "media-status", "observation", () =>
+      this.options.client.getStatus({
       sessionId: this.options.session.id,
       timeoutMs: this.options.timeoutMs,
-    });
+    }));
     assertXfsOk(result, "idc.getStatus", this.metadata());
     const state = cardMediaState(result.fwMedia);
     return {
@@ -209,7 +215,8 @@ export class XfsPinpadDevicePort implements PinpadDataPort, PinpadPinPort {
     context?: XfsDeviceOperationContext,
   ): Promise<UserInputSourceResult> {
     const request = this.getDataRequest(options);
-    const result = await this.options.client.getData(request);
+    const result = await runLeasedCommand(this.options, context, "get-data", "transaction", () =>
+      this.options.client.getData(request));
     assertXfsOk(result, "pin.getData", this.metadata());
 
     return {
@@ -232,11 +239,20 @@ export class XfsPinpadDevicePort implements PinpadDataPort, PinpadPinPort {
     options: unknown,
     context?: XfsDeviceOperationContext,
   ): Promise<SecurePinInputResult> {
-    const entryResult = await this.options.client.getPin(this.getPinEntryRequest(options));
-    assertXfsOk(entryResult, "pin.getPin", this.metadata());
-
     const request = this.getPinBlockRequest(options);
-    const result = await this.options.client.getPinblock(request);
+    const { entryResult, result } = await runLeasedCommand(
+      this.options,
+      context,
+      "get-pin",
+      "transaction",
+      async () => {
+        const entryResult = await this.options.client.getPin(this.getPinEntryRequest(options));
+        assertXfsOk(entryResult, "pin.getPin", this.metadata());
+        const result = await this.options.client.getPinblock(request);
+        return { entryResult, result };
+      },
+    );
+    assertXfsOk(entryResult, "pin.getPin", this.metadata());
     assertXfsOk(result, "pin.getPinblock", this.metadata());
     const encryptedPinBlock = bytesToHex(result.data) ?? String(result.encryptedPinBlock ?? "");
     if (!encryptedPinBlock) {
@@ -268,10 +284,11 @@ export class XfsPinpadDevicePort implements PinpadDataPort, PinpadPinPort {
   }
 
   public async getStatus(): Promise<unknown> {
-    const result = await this.options.client.getStatus({
+    const result = await runLeasedCommand(this.options, undefined, "status", "observation", () =>
+      this.options.client.getStatus({
       sessionId: this.options.session.id,
       timeoutMs: this.options.timeoutMs,
-    });
+    }));
     assertXfsOk(result, "pin.getStatus", this.metadata());
     return result;
   }
@@ -361,21 +378,27 @@ export class XfsBarcodeReaderDevicePort implements BarcodeReaderPort {
   }
 
   public async getStatus(): Promise<unknown> {
-    const result = await this.options.client.getStatus({
+    const result = await runLeasedCommand(this.options, undefined, "status", "observation", () =>
+      this.options.client.getStatus({
       sessionId: this.options.session.id,
       timeoutMs: this.options.timeoutMs,
-    });
+    }));
     assertXfsOk(result, "bcr.getStatus", this.metadata());
     return result;
   }
 
   private async readQr(options: unknown, operationId: string): Promise<UserInputSourceResult> {
     const input = asRecord(options);
-    const result = await this.options.client.read({
+    const result = await runLeasedCommand(
+      this.options,
+      { operationId },
+      "read-qr",
+      "transaction",
+      () => this.options.client.read({
       sessionId: this.options.session.id,
       symbologies: input.symbologies instanceof Uint8Array ? input.symbologies : new Uint8Array(),
       timeoutMs: numberValue(input.timeoutMs, this.options.timeoutMs),
-    });
+    }));
     assertXfsOk(result, "bcr.read", this.metadata());
     const output = Array.isArray(result.outputs) ? result.outputs[0] : undefined;
     const barcodeData =
@@ -415,6 +438,21 @@ export class XfsBarcodeReaderDevicePort implements BarcodeReaderPort {
 const cancelSession = async (manager: XfsManagerClientLike, sessionId: string): Promise<void> => {
   await manager.cancelAsyncRequest({ requestId: 0, sessionId });
 };
+
+const runLeasedCommand = <T>(
+  options: XfsDevicePortOptions<unknown>,
+  context: XfsDeviceOperationContext | undefined,
+  action: string,
+  authority: "observation" | "transaction",
+  command: () => Promise<T>,
+): Promise<T> =>
+  options.commandLeases.run({
+    authority,
+    logicalService: options.logicalName,
+    operationId: context?.operationId ??
+      `${options.deviceId}.${action}.${crypto.randomUUID()}`,
+    ttlMs: options.timeoutMs + 5_000,
+  }, command);
 
 const resetDevice = async (
   client: { reset?(request: XfsSessionRequestLike): Promise<XfsNativeEnvelopeLike> },

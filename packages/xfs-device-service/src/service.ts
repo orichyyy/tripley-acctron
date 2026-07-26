@@ -7,6 +7,7 @@ import type {
   XfsDeviceModuleAdapter,
   XfsDeviceModuleContribution,
 } from "./module-adapters";
+import { HostCommandLeaseExecutor } from "./command-lease-executor";
 import { createStandardXfsModuleAdapterRegistry } from "./standard-adapters";
 import type {
   XfsDeviceServiceConfig,
@@ -31,6 +32,7 @@ interface ResolvedService {
 
 export class XfsDeviceService {
   private readonly client: XfsRuntimeClientLike;
+  private readonly commandLeases: HostCommandLeaseExecutor;
   private readonly resolved: readonly ResolvedService[];
   private readonly sessions = new Map<string, XfsSessionLike>();
   private readonly contributions = new Map<string, XfsDeviceModuleContribution>();
@@ -55,6 +57,10 @@ export class XfsDeviceService {
         requiredModules: this.requiredModules(),
         url: config.url,
       });
+    this.commandLeases = new HostCommandLeaseExecutor(
+      this.client.commandLeases,
+      `${config.appId ?? defaultXfsAppId}:${crypto.randomUUID()}`,
+    );
   }
 
   public requiredModules(): readonly XfsRequiredModule[] {
@@ -72,6 +78,7 @@ export class XfsDeviceService {
       const contribution = await resolved.adapter.create({
         cash: this.options.cash,
         client: this.client,
+        commandLeases: this.commandLeases,
         config: resolved.config,
         session,
         sessionGeneration: this.sessionGeneration,
@@ -143,7 +150,17 @@ export class XfsDeviceService {
   }
 
   private async close(deviceId: string, session: XfsSessionLike): Promise<void> {
-    await this.client.manager.close({ sessionId: session.id }).catch((error: unknown) => {
+    const service = this.resolved.find(({ config }) => config.deviceId === deviceId)?.config;
+    const close = () => this.client.manager.close({ sessionId: session.id });
+    const operation = service
+      ? this.commandLeases.run({
+          authority: "transaction",
+          logicalService: service.logicalName,
+          operationId: `${deviceId}.close.${this.sessionGeneration}`,
+          ttlMs: this.timeoutMs(),
+        }, close)
+      : close();
+    await operation.catch((error: unknown) => {
       throw new FrameworkError({
         category: "native",
         cause: error,
