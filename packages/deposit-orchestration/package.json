@@ -1,6 +1,6 @@
 {
   "name": "@tripley-kit/web-container-deposit-orchestration",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",
@@ -19,10 +19,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@tripley-kit/web-container-kiosk-base": "workspace:*",
-    "@tripley-kit/web-container-kiosk-runtime": "workspace:*",
-    "@tripley-kit/web-container-types": "workspace:*",
-    "@tripley-kit/web-container-xfs-device-service": "workspace:*"
+    "@tripley-kit/web-container-kiosk-base": "0.1.1",
+    "@tripley-kit/web-container-kiosk-runtime": "0.1.4",
+    "@tripley-kit/web-container-types": "0.1.0",
+    "@tripley-kit/web-container-xfs-device-service": "0.1.5"
   },
   "devDependencies": {
     "tsup": "^8.3.5",

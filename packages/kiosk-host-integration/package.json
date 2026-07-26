@@ -1,6 +1,6 @@
 {
   "name": "@tripley-kit/web-container-kiosk-host-integration",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",
@@ -19,11 +19,11 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@tripley-kit/web-container-deposit-orchestration": "workspace:*",
-    "@tripley-kit/web-container-host-message": "workspace:*",
-    "@tripley-kit/web-container-kiosk-host-delivery": "workspace:*",
-    "@tripley-kit/web-container-native-adapter": "workspace:*",
-    "@tripley-kit/web-container-withdrawal-orchestration": "workspace:*"
+    "@tripley-kit/web-container-deposit-orchestration": "0.1.2",
+    "@tripley-kit/web-container-host-message": "0.1.0",
+    "@tripley-kit/web-container-kiosk-host-delivery": "0.1.1",
+    "@tripley-kit/web-container-native-adapter": "0.1.0",
+    "@tripley-kit/web-container-withdrawal-orchestration": "0.1.2"
   },
   "devDependencies": {
     "tsup": "^8.3.5",
