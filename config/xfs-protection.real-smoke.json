@@ -16,13 +16,6 @@
         { "logicalService": "IDC", "module": "idc" }
       ],
       "protectionProfileIds": ["real-smoke"]
-    },
-    {
-      "id": "pin-input-1",
-      "members": [
-        { "logicalService": "PINPAD", "module": "pin" }
-      ],
-      "protectionProfileIds": ["real-smoke"]
     }
   ],
   "profiles": [
