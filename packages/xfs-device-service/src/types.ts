@@ -56,7 +56,12 @@ export interface XfsLogicalServiceConfig {
   readonly dataClassification?: DataClassification | undefined;
   readonly protectionPolicyProfileId?: string | undefined;
   readonly resourceGroup?: string | undefined;
+  readonly idc?: XfsIdcOperationalPolicy | undefined;
   readonly cdm?: XfsCdmOperationalPolicy | undefined;
+}
+
+export interface XfsIdcOperationalPolicy {
+  readonly resetBeforeRead?: boolean | undefined;
 }
 
 export interface XfsCdmOperationalPolicy {

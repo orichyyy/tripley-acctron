@@ -212,6 +212,27 @@ describe("XfsDeviceService", () => {
     expect(fake.idc.ejectCalls).toHaveLength(1);
   });
 
+  it("resets IDC before reading when the logical-service policy requires it", async () => {
+    const fake = createFakeXfsClient();
+    const base = config();
+    const service = createXfsDeviceService({
+      ...base,
+      logicalServices: base.logicalServices.map((logicalService) =>
+        logicalService.module === "idc"
+          ? { ...logicalService, idc: { resetBeforeRead: true } }
+          : logicalService),
+    }, { client: fake });
+    await service.connect();
+    const devices = new DeviceRegistry();
+    service.registerDevices(devices);
+
+    await devices
+      .require<import("./ports").XfsCardReaderPort>("customCard")
+      .readCard();
+
+    expect(fake.idc.resetCalls).toBe(1);
+  });
+
   it("does not treat NOT_PRESENT status alone as customer take evidence", async () => {
     const fake = createFakeXfsClient();
     const service = createXfsDeviceService(config(), { client: fake });
@@ -306,6 +327,7 @@ const createFakeXfsClient = (options: { readonly idcFwDevice?: number } = {}) =>
     idc: XfsRuntimeClientLike["idc"] & {
       ejectCalls: unknown[];
       eventHandler?: ((event: { data: { kind: string } }) => void | Promise<void>) | undefined;
+      resetCalls: number;
       statusCalls: number;
     };
   } = {
@@ -325,6 +347,7 @@ const createFakeXfsClient = (options: { readonly idcFwDevice?: number } = {}) =>
     disposed: false,
     idc: {
       ejectCalls: [] as unknown[],
+      resetCalls: 0,
       statusCalls: 0,
       ejectCard: async (request: unknown) => {
         fake.idc.ejectCalls.push(request);
@@ -339,6 +362,10 @@ const createFakeXfsClient = (options: { readonly idcFwDevice?: number } = {}) =>
         };
       },
       readRawData: async () => ({ native: { hResult: 0 } }),
+      reset: async () => {
+        fake.idc.resetCalls += 1;
+        return { native: { hResult: 0 } };
+      },
       retainCard: async () => ({ native: { hResult: 0 } }),
       subscribeEvent: (handler) => {
         fake.idc.eventHandler = handler;

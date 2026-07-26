@@ -46,6 +46,7 @@ interface XfsDevicePortOptions<TClient> {
   readonly manager: XfsManagerClientLike;
   readonly protectionPolicyProfileId?: string | undefined;
   readonly resourceGroup?: string | undefined;
+  readonly resetBeforeRead?: boolean | undefined;
   readonly session: XfsSessionLike;
   readonly timeoutMs: number;
 }
@@ -82,11 +83,20 @@ export class XfsCardReaderDevicePort implements XfsCardReaderPort {
     const result = await runLeasedCommand(this.options, context, "read-card", "transaction", () =>
       runAbortableXfsCommand({
       cancel: () => cancelSession(this.options.manager, this.options.session.id),
-      execute: () => this.options.client.readRawData({
-        dataSources: XfsIdcDataSourceFromRaw(options.dataSources ?? 0xffff),
-        sessionId: this.options.session.id,
-        timeoutMs: options.timeoutMs ?? this.options.timeoutMs,
-      }),
+      execute: async () => {
+        if (this.options.resetBeforeRead) {
+          await resetDevice(
+            this.options.client,
+            this.options.session,
+            options.timeoutMs ?? this.options.timeoutMs,
+          );
+        }
+        return this.options.client.readRawData({
+          dataSources: XfsIdcDataSourceFromRaw(options.dataSources ?? 0xffff),
+          sessionId: this.options.session.id,
+          timeoutMs: options.timeoutMs ?? this.options.timeoutMs,
+        });
+      },
       signal: context?.signal,
     }));
     assertXfsOk(result, "idc.readRawData", this.metadata());

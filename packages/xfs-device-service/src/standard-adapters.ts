@@ -45,6 +45,7 @@ const idcAdapter: XfsDeviceModuleAdapter = {
       commandLeases,
       protectionPolicyProfileId: config.protectionPolicyProfileId,
       resourceGroup: config.resourceGroup,
+      resetBeforeRead: config.idc?.resetBeforeRead,
       session,
       timeoutMs,
     });
