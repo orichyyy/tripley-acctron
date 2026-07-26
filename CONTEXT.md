@@ -52,6 +52,14 @@ _Avoid_: input handler, device executor
 A project-owned extension that registers devices, input source adapters, health checks, conditions, and configuration without modifying core framework packages.
 _Avoid_: custom core patch, app-specific device hack
 
+**Biometric Assertion**:
+An operation-bound, opaque result stating that a registered biometric factor was verified without exposing an image, template, vendor payload, or reusable biometric material.
+_Avoid_: Palm image, biometric template, customer identity record
+
+**Provider-Owned Native Interaction**:
+An exclusive customer interaction whose presentation and controls are owned by a native capability provider while the kiosk application governs only admission, waiting, external interruption, and terminal cleanup.
+_Avoid_: Browser modal, embedded vendor widget, unmanaged background call
+
 **Secure Input**:
 User input whose raw value must not be exposed to UI state, logs, traces, tests, or business code outside a safe encrypted or tokenized result.
 _Avoid_: PIN text, masked plain input
@@ -492,3 +500,59 @@ _Avoid_: Error reset, status overwrite, intervention deletion
 
 The point at which foreground business ownership must move to the Recovery Supervisor because physical cash has moved or cannot be proven not to have moved. UI exit, cancellation, and timeout are interruption triggers rather than substitutes for this physical-risk boundary.
 _Avoid_: Flow exit hook, cancellation boundary, screen lifecycle
+
+## Document Presentation Engine
+
+A shared engine that renders typed transaction-result document models through project-owned, version-bound templates. It separates semantic formatting, mandatory data protection, and channel layout while supporting named formatter/protector extensions without bank-specific code in core.
+
+## Channel-Safe Render Value
+
+A final presentation value whose sensitivity policy has been enforced for a specific output channel such as screen details or paper receipt. Raw and intermediate values never leave the document assembly boundary.
+
+## XFS Form Print Request
+
+A printer-port request containing a provider form name, channel-safe dynamic field values, form contract identity, and safe correlation metadata. It contains no bank-specific field semantics or static form content.
+
+## XFS Form Contract Scanner
+
+A build/preflight tool that derives form names and dynamic-field contracts from project-owned XFS form artifacts and reports missing bindings, collisions, and incompatible print mappings without choosing ambiguous definitions.
+
+## Document Field Transformer Registry
+
+A shared registry of typed converter, formatter, protector, and value-layout extensions. Registrations are named, stage-bound, deterministic, side-effect free, and declare sensitivity/channel guarantees.
+
+## Code Conversion Table
+
+A versioned project contribution mapping opaque domain/protocol codes to presentation values with an explicit missing-code policy and optional locale variants.
+
+## Layout-Preserving XFS Form Rewrite
+
+A parser/AST-based migration capability that permits declared dynamic field identifier changes while proving all physical layout and static form directives remain unchanged.
+
+## Canonical Document Field ID
+
+A project-defined stable identifier describing one presentation/domain value independently of host protocol names, framework record types, and device-provider field aliases.
+
+## Version-Bound Device Asset Package
+
+An immutable manifest-backed set of project device assets, contracts, and bindings activated atomically with a compatible application release. Runtime arbitrary replacement is prohibited and mismatches degrade only the affected capability.
+
+## Operation Availability Policy
+
+A versioned composition of named synchronous/asynchronous conditions evaluated consistently by menu projection, command `canExecute`, flow entry, and configured irreversible-action checkpoints.
+
+## Structured Condition Result
+
+An `available`, `unavailable`, or `unknown` result with stable safe reason, observation/freshness evidence, retryability, and optional next-recheck time. Conditions are cancellable, bounded, and side-effect free.
+
+## Availability Checkpoint
+
+A named execution boundary at which volatile operation conditions are re-evaluated; previous availability is never treated as an authorization token.
+
+## External Native Capability Provider
+
+An allowlisted out-of-process native integration registered with hostd through authenticated local IPC. It exposes explicit typed capabilities while isolating hostd and browser code from vendor DLLs and process failures.
+
+## Native Capability Provider Broker
+
+The hostd boundary that launches/verifies configured providers, routes typed RPC calls/events, enforces leases/fencing/deadlines, supervises lifecycle, and exposes providers through the existing authenticated browser transport without arbitrary native invocation.
