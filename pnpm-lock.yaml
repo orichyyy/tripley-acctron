@@ -844,14 +844,14 @@ importers:
   packages/xfs-device-service:
     dependencies:
       '@tripley-kit/web-container-device-core':
-        specifier: workspace:*
-        version: link:../device-core
+        specifier: 0.1.0
+        version: 0.1.0
       '@tripley-kit/web-container-errors':
-        specifier: workspace:*
-        version: link:../errors
+        specifier: 0.1.0
+        version: 0.1.0
       '@tripley-kit/web-container-storage-core':
-        specifier: workspace:*
-        version: link:../storage-core
+        specifier: 0.1.1
+        version: 0.1.1
       '@tripley-kit/xfs-client':
         specifier: 0.1.4
         version: 0.1.4
@@ -1563,6 +1563,21 @@ packages:
     resolution: {integrity: sha512-BfzEnDJOt9T8M989/lA37EcJgat01wLRnoi5dQf3QzOH7jzpqTAzdDbVfRljVr5r+jzKqpbHeyOfAaXxAd0PAA==}
     cpu: [x64]
     os: [win32]
+
+  '@tripley-kit/web-container-device-core@0.1.0':
+    resolution: {integrity: sha512-RlClWwBfDCrYQmNTLZtiDQZ7yQhQrZaFOHe2e91B+InKNnRPZSKQAG3pYjYou9C4i0qrCNBjeon1DDhjELq/HA==}
+
+  '@tripley-kit/web-container-errors@0.1.0':
+    resolution: {integrity: sha512-EW2JPFYqno0Qd1R+6Qgs6yWY3HQegxm0Fz10+lSprOSnxmPaHh5VVU0v2mTpnFsg4qJLs3qaL8rZZPE4UlZ7Uw==}
+
+  '@tripley-kit/web-container-storage-core@0.1.1':
+    resolution: {integrity: sha512-o0KSivtFmP1GU9WStbkVwG8U0MdXsVECRuvEbe8/reqYVpqCsFj37SoFCfxg6jdDKn4TpE4tWMjiHFWyl34WSA==}
+
+  '@tripley-kit/web-container-types@0.1.0':
+    resolution: {integrity: sha512-5SySflPRjZjEEJlYB7w6XCoRtekeX+NuDn3fky4obOCXJrKSGuG13Xu7cQpGutCVgGp7/fWoFlvI3yuzqemZFw==}
+
+  '@tripley-kit/web-container-utils@0.1.0':
+    resolution: {integrity: sha512-8bcd/YzVNnVtQ9i18eRD7pB274xwI0q7ZFxbV8r4SW7UXs+rnI26VtcJG9jujTm9nvrMPvsVI+4fnu9rCnn0Zw==}
 
   '@tripley-kit/xfs-client@0.1.4':
     resolution: {integrity: sha512-5Xg+NTedvfQ+D4IqJ2Qlk+nn7pOyBoWW97DisS41UvPtRa03W3Iq8ITkcmEd0SStwwUt6N9QjAtgF8IvqHB0kA==}
@@ -2417,6 +2432,27 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.62.2':
     optional: true
+
+  '@tripley-kit/web-container-device-core@0.1.0':
+    dependencies:
+      '@tripley-kit/web-container-errors': 0.1.0
+      '@tripley-kit/web-container-types': 0.1.0
+
+  '@tripley-kit/web-container-errors@0.1.0':
+    dependencies:
+      '@tripley-kit/web-container-types': 0.1.0
+
+  '@tripley-kit/web-container-storage-core@0.1.1':
+    dependencies:
+      '@tripley-kit/web-container-errors': 0.1.0
+      '@tripley-kit/web-container-types': 0.1.0
+      '@tripley-kit/web-container-utils': 0.1.0
+
+  '@tripley-kit/web-container-types@0.1.0': {}
+
+  '@tripley-kit/web-container-utils@0.1.0':
+    dependencies:
+      '@tripley-kit/web-container-types': 0.1.0
 
   '@tripley-kit/xfs-client@0.1.4':
     dependencies:
