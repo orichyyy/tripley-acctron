@@ -157,6 +157,7 @@ export class XfsDeviceService {
           authority: "transaction",
           logicalService: service.logicalName,
           operationId: `${deviceId}.close.${this.sessionGeneration}`,
+          protectionPolicyProfileId: service.protectionPolicyProfileId,
           resourceGroup: service.resourceGroup,
           ttlMs: this.timeoutMs(),
         }, close)

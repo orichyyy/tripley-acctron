@@ -54,6 +54,7 @@ export interface XfsLogicalServiceConfig {
   readonly module: XfsSupportedModule;
   readonly capabilities: readonly string[];
   readonly dataClassification?: DataClassification | undefined;
+  readonly protectionPolicyProfileId?: string | undefined;
   readonly resourceGroup?: string | undefined;
   readonly cdm?: XfsCdmOperationalPolicy | undefined;
 }

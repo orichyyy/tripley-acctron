@@ -6,6 +6,7 @@ export interface XfsCommandLeaseExecution {
   readonly authority: XfsCommandLeaseRequest["authority"];
   readonly logicalService: string;
   readonly operationId: string;
+  readonly protectionPolicyProfileId?: string | undefined;
   readonly resourceGroup?: string | undefined;
   readonly ttlMs: number;
 }
@@ -72,6 +73,9 @@ export class HostCommandLeaseExecutor implements XfsCommandLeaseExecutor {
       logicalService: execution.logicalService,
       operationId: execution.operationId,
       ownerInstanceId: this.ownerInstanceId,
+      ...(execution.protectionPolicyProfileId
+        ? { protectionPolicyProfileId: execution.protectionPolicyProfileId }
+        : {}),
       ...(execution.resourceGroup ? { resourceGroup: execution.resourceGroup } : {}),
       ttlMs: execution.ttlMs,
     });
