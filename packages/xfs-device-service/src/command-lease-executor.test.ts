@@ -66,6 +66,21 @@ describe("HostCommandLeaseExecutor", () => {
 
     expect(command).toHaveBeenCalledOnce();
   });
+
+  it("uses the current lease client after connect or reconnect", async () => {
+    const first = createFixture();
+    const second = createFixture();
+    let current: XfsCommandLeaseClientLike | undefined;
+    const executor = new HostCommandLeaseExecutor(() => current, "owner-1");
+
+    current = first.client;
+    await executor.run(execution("operation-1"), async () => "first");
+    current = second.client;
+    await executor.run(execution("operation-2"), async () => "second");
+
+    expect(first.events.some(({ operationId }) => operationId === "operation-1")).toBe(true);
+    expect(second.events.some(({ operationId }) => operationId === "operation-2")).toBe(true);
+  });
 });
 
 const execution = (operationId: string) => ({

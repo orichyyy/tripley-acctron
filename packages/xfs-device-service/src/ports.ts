@@ -1,24 +1,21 @@
 import {
   XfsIdcDataSourceFromRaw,
   XfsIdcEjectPositionFromRaw,
-  type XfsPinBlockRequest,
-  XfsPinFormatFromRaw,
-  XfsPinFunctionKeyFromRaw,
-  type XfsPinGetDataRequest,
-  type XfsPinGetPinRequest,
 } from "@tripley-kit/xfs-client";
 import type {
   BarcodeReaderPort,
   InputSourceSession,
-  PinpadDataPort,
-  PinpadPinPort,
-  SecurePinInputResult,
   UserInputSourceResult,
 } from "@tripley-kit/web-container-device-core";
 import { FrameworkError } from "@tripley-kit/web-container-errors";
 
 import { runAbortableXfsCommand } from "./abortable-command";
-import type { XfsCommandLeaseExecutor } from "./command-lease-executor";
+import {
+  cancelSession,
+  resetDevice,
+  runLeasedCommand,
+  type XfsDevicePortOptions,
+} from "./port-command";
 import type {
   XfsBcrClientLike,
   XfsCardEjectOptions,
@@ -29,27 +26,11 @@ import type {
   XfsCardTakenResult,
   XfsDeviceOperationContext,
   XfsIdcClientLike,
-  XfsManagerClientLike,
-  XfsNativeEnvelopeLike,
-  XfsPinClientLike,
-  XfsSessionLike,
-  XfsSessionRequestLike,
   XfsWaitForCardTakenOptions,
 } from "./types";
-import { assertXfsOk, bytesToHex, bytesToText, hResultOf, plainValueFromKeys } from "./utils";
+import { assertXfsOk, bytesToHex, bytesToText, hResultOf } from "./utils";
 
-interface XfsDevicePortOptions<TClient> {
-  readonly client: TClient;
-  readonly commandLeases: XfsCommandLeaseExecutor;
-  readonly deviceId: string;
-  readonly logicalName: string;
-  readonly manager: XfsManagerClientLike;
-  readonly protectionPolicyProfileId?: string | undefined;
-  readonly resourceGroup?: string | undefined;
-  readonly resetBeforeRead?: boolean | undefined;
-  readonly session: XfsSessionLike;
-  readonly timeoutMs: number;
-}
+export { XfsPinpadDevicePort } from "./pinpad-device-port";
 
 export interface XfsCardReaderPort {
   readCard(
@@ -219,154 +200,6 @@ export class XfsCardReaderDevicePort implements XfsCardReaderPort {
   }
 }
 
-export class XfsPinpadDevicePort implements PinpadDataPort, PinpadPinPort {
-  public constructor(private readonly options: XfsDevicePortOptions<XfsPinClientLike>) {}
-
-  public async getData(
-    options: unknown,
-    context?: XfsDeviceOperationContext,
-  ): Promise<UserInputSourceResult> {
-    const request = this.getDataRequest(options);
-    const result = await runLeasedCommand(this.options, context, "get-data", "transaction", () =>
-      this.options.client.getData(request));
-    assertXfsOk(result, "pin.getData", this.metadata());
-
-    return {
-      kind: "plain",
-      safeSummary: {
-        deviceId: this.options.deviceId,
-        hResult: hResultOf(result),
-        sourceKind: "pinpad.data",
-      },
-      source: {
-        deviceId: this.options.deviceId,
-        id: context?.operationId ?? this.options.deviceId,
-        kind: "pinpad.data",
-      },
-      value: plainValueFromKeys(result.keys) ?? String(result.value ?? ""),
-    };
-  }
-
-  public async getPin(
-    options: unknown,
-    context?: XfsDeviceOperationContext,
-  ): Promise<SecurePinInputResult> {
-    const request = this.getPinBlockRequest(options);
-    const { entryResult, result } = await runLeasedCommand(
-      this.options,
-      context,
-      "get-pin",
-      "transaction",
-      async () => {
-        const entryResult = await this.options.client.getPin(this.getPinEntryRequest(options));
-        assertXfsOk(entryResult, "pin.getPin", this.metadata());
-        const result = await this.options.client.getPinblock(request);
-        return { entryResult, result };
-      },
-    );
-    assertXfsOk(entryResult, "pin.getPin", this.metadata());
-    assertXfsOk(result, "pin.getPinblock", this.metadata());
-    const encryptedPinBlock = bytesToHex(result.data) ?? String(result.encryptedPinBlock ?? "");
-    if (!encryptedPinBlock) {
-      throw new FrameworkError({
-        category: "native",
-        code: "xfs.pinBlock.missing",
-        message: "XFS secure PIN input did not return an encrypted PIN block.",
-        metadata: this.metadata(),
-      });
-    }
-
-    return {
-      encryptedPinBlock,
-      keyId: typeof request.keyName === "string" ? request.keyName : undefined,
-      kind: "securePin",
-      pinBlockFormat: typeof request.format === "string" ? request.format : String(request.format),
-      safeSummary: {
-        hasEncryptedPinBlock: true,
-        pinBlockFormat:
-          typeof request.format === "string" ? request.format : String(request.format),
-        sourceKind: "pinpad.pin",
-      },
-      source: {
-        deviceId: this.options.deviceId,
-        id: context?.operationId ?? this.options.deviceId,
-        kind: "pinpad.pin",
-      },
-    };
-  }
-
-  public async getStatus(): Promise<unknown> {
-    const result = await runLeasedCommand(this.options, undefined, "status", "observation", () =>
-      this.options.client.getStatus({
-      sessionId: this.options.session.id,
-      timeoutMs: this.options.timeoutMs,
-    }));
-    assertXfsOk(result, "pin.getStatus", this.metadata());
-    return result;
-  }
-
-  public async cancel(): Promise<void> {
-    await cancelSession(this.options.manager, this.options.session.id);
-    await resetDevice(this.options.client, this.options.session, this.options.timeoutMs);
-  }
-
-  private getDataRequest(options: unknown): XfsPinGetDataRequest {
-    const input = asRecord(options);
-    return {
-      activeFdks: numberValue(input.activeFdks, 0),
-      activeKeys: XfsPinFunctionKeyFromRaw(numberValue(input.activeKeys, 0xffff)),
-      autoEnd: booleanValue(input.autoEnd, true),
-      maxLen: numberValue(input.maxLength ?? input.maxLen, 12),
-      sessionId: this.options.session.id,
-      terminateFdks: numberValue(input.terminateFdks, 0),
-      terminateKeys: XfsPinFunctionKeyFromRaw(numberValue(input.terminateKeys, 0)),
-      timeoutMs: numberValue(input.timeoutMs, this.options.timeoutMs),
-    };
-  }
-
-  private getPinBlockRequest(options: unknown): XfsPinBlockRequest {
-    const input = asRecord(options);
-    return {
-      ...(stringValue(input.customerData) ? { customerData: stringValue(input.customerData) } : {}),
-      format: XfsPinFormatFromRaw(numberValue(input.format ?? input.pinBlockFormat, 2)),
-      ...(stringValue(input.keyEncKeyName)
-        ? { keyEncKeyName: stringValue(input.keyEncKeyName) }
-        : {}),
-      ...(stringValue(input.keyName ?? input.keySlot)
-        ? { keyName: stringValue(input.keyName ?? input.keySlot) }
-        : {}),
-      padding: numberValue(input.padding, 0),
-      sessionId: this.options.session.id,
-      timeoutMs: numberValue(input.timeoutMs, this.options.timeoutMs),
-      ...(stringValue(input.xorData) ? { xorData: stringValue(input.xorData) } : {}),
-    };
-  }
-
-  private getPinEntryRequest(options: unknown): XfsPinGetPinRequest {
-    const input = asRecord(options);
-    return {
-      activeFdks: numberValue(input.activeFdks, 0),
-      activeKeys: XfsPinFunctionKeyFromRaw(numberValue(input.activeKeys, 0x03ff)),
-      autoEnd: booleanValue(input.autoEnd, true),
-      echo: numberValue(input.echo, 0),
-      maxLen: numberValue(input.maxLength ?? input.maxLen, 12),
-      minLen: numberValue(input.minLength ?? input.minLen, 4),
-      sessionId: this.options.session.id,
-      terminateFdks: numberValue(input.terminateFdks, 0),
-      terminateKeys: XfsPinFunctionKeyFromRaw(numberValue(input.terminateKeys, 0x0400)),
-      timeoutMs: numberValue(input.timeoutMs, this.options.timeoutMs),
-    };
-  }
-
-  private metadata(): Record<string, string> {
-    return {
-      deviceId: this.options.deviceId,
-      logicalName: this.options.logicalName,
-      module: "pin",
-    };
-  }
-}
-
 export class XfsBarcodeReaderDevicePort implements BarcodeReaderPort {
   public constructor(private readonly options: XfsDevicePortOptions<XfsBcrClientLike>) {}
 
@@ -447,51 +280,11 @@ export class XfsBarcodeReaderDevicePort implements BarcodeReaderPort {
   }
 }
 
-const cancelSession = async (manager: XfsManagerClientLike, sessionId: string): Promise<void> => {
-  await manager.cancelAsyncRequest({ requestId: 0, sessionId });
-};
-
-const runLeasedCommand = <T>(
-  options: XfsDevicePortOptions<unknown>,
-  context: XfsDeviceOperationContext | undefined,
-  action: string,
-  authority: "observation" | "transaction",
-  command: () => Promise<T>,
-): Promise<T> =>
-  options.commandLeases.run({
-    authority,
-    logicalService: options.logicalName,
-    operationId: context?.operationId ??
-      `${options.deviceId}.${action}.${crypto.randomUUID()}`,
-    protectionPolicyProfileId: options.protectionPolicyProfileId,
-    resourceGroup: options.resourceGroup,
-    ttlMs: options.timeoutMs + 5_000,
-  }, command);
-
-const resetDevice = async (
-  client: { reset?(request: XfsSessionRequestLike): Promise<XfsNativeEnvelopeLike> },
-  session: XfsSessionLike,
-  timeoutMs: number,
-): Promise<void> => {
-  if (!client.reset) {
-    return;
-  }
-
-  const result = await client.reset({ sessionId: session.id, timeoutMs });
-  assertXfsOk(result, "device.reset");
-};
-
 const asRecord = (value: unknown): Record<string, unknown> =>
   value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 
 const numberValue = (value: unknown, fallback: number): number =>
   typeof value === "number" ? value : fallback;
-
-const booleanValue = (value: unknown, fallback: boolean): boolean =>
-  typeof value === "boolean" ? value : fallback;
-
-const stringValue = (value: unknown): string | undefined =>
-  typeof value === "string" ? value : undefined;
 
 const cardMediaState = (value: unknown): XfsCardMediaStatus["state"] => {
   if (value === 1) {

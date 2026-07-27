@@ -173,6 +173,26 @@ describe("XfsDeviceService", () => {
     expect(fake.pin.getPinCalls).toHaveLength(1);
   });
 
+  it("recovers a failed PIN command and allows the next PIN input", async () => {
+    const fake = createFakeXfsClient({ pinGetHResults: [-48, 0] });
+    const service = createXfsDeviceService(config(), { client: fake });
+    await service.connect();
+    const devices = new DeviceRegistry();
+    service.registerDevices(devices);
+    const pin = devices.require<import("./ports").XfsPinpadDevicePort>("customPinpad");
+
+    await expect(pin.getPin({ customerData: "123456789012" })).rejects.toMatchObject({
+      code: "xfs.command.failed",
+    });
+    await expect(pin.getPin({ customerData: "123456789012" })).resolves.toMatchObject({
+      kind: "securePin",
+    });
+
+    expect(fake.manager.cancelCalls).toHaveLength(1);
+    expect(fake.pin.resetCalls).toBe(1);
+    expect(fake.pin.getPinCalls).toHaveLength(2);
+  });
+
   it("cancels active input sessions through the XFS cancellation path", async () => {
     const fake = createFakeXfsClient();
     const service = createXfsDeviceService(config(), { client: fake });
@@ -311,7 +331,11 @@ it("registers IDC service events for card removal evidence", async () => {
   });
 });
 
-const createFakeXfsClient = (options: { readonly idcFwDevice?: number } = {}) => {
+const createFakeXfsClient = (options: {
+  readonly idcFwDevice?: number;
+  readonly pinGetHResults?: readonly number[];
+} = {}) => {
+  const pinGetHResults = [...(options.pinGetHResults ?? [0])];
   const fake: XfsRuntimeClientLike & {
     connected: boolean;
     disposed: boolean;
@@ -323,6 +347,7 @@ const createFakeXfsClient = (options: { readonly idcFwDevice?: number } = {}) =>
     pin: XfsRuntimeClientLike["pin"] & {
       getPinCalls: unknown[];
       getPinblockCalls: unknown[];
+      resetCalls: number;
     };
     idc: XfsRuntimeClientLike["idc"] & {
       ejectCalls: unknown[];
@@ -410,11 +435,16 @@ const createFakeXfsClient = (options: { readonly idcFwDevice?: number } = {}) =>
       },
       getPin: async (request: unknown) => {
         fake.pin.getPinCalls.push(request);
-        return { digits: 4, native: { hResult: 0 } };
+        return { digits: 4, native: { hResult: pinGetHResults.shift() ?? 0 } };
       },
       getPinCalls: [] as unknown[],
       getPinblockCalls: [] as unknown[],
       getStatus: async () => ({ fwDevice: 0, native: { hResult: 0 } }),
+      reset: async () => {
+        fake.pin.resetCalls += 1;
+        return { native: { hResult: 0 } };
+      },
+      resetCalls: 0,
     },
     connect: async () => {
       fake.connected = true;

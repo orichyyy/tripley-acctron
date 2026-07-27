@@ -15,12 +15,17 @@ export interface XfsCommandLeaseExecutor {
   run<T>(execution: XfsCommandLeaseExecution, command: () => Promise<T>): Promise<T>;
 }
 
+type XfsCommandLeaseClientSource =
+  | XfsCommandLeaseClientLike
+  | undefined
+  | (() => XfsCommandLeaseClientLike | undefined);
+
 export class HostCommandLeaseExecutor implements XfsCommandLeaseExecutor {
   private readonly queues = new Map<string, Promise<void>>();
   private readonly fencingTokens = new Map<string, number>();
 
   public constructor(
-    private readonly client: XfsCommandLeaseClientLike | undefined,
+    private readonly clientSource: XfsCommandLeaseClientSource,
     private readonly ownerInstanceId: string,
   ) {
     if (!ownerInstanceId.trim()) {
@@ -32,7 +37,7 @@ export class HostCommandLeaseExecutor implements XfsCommandLeaseExecutor {
     execution: XfsCommandLeaseExecution,
     command: () => Promise<T>,
   ): Promise<T> {
-    if (!this.client) {
+    if (!this.resolveClient()) {
       return command();
     }
     const previous = this.queues.get(execution.logicalService) ?? Promise.resolve();
@@ -54,7 +59,7 @@ export class HostCommandLeaseExecutor implements XfsCommandLeaseExecutor {
     execution: XfsCommandLeaseExecution,
     command: () => Promise<T>,
   ): Promise<T> {
-    const client = this.client;
+    const client = this.resolveClient();
     if (!client) {
       return command();
     }
@@ -90,5 +95,11 @@ export class HostCommandLeaseExecutor implements XfsCommandLeaseExecutor {
         operationId: lease.operationId,
       });
     }
+  }
+
+  private resolveClient(): XfsCommandLeaseClientLike | undefined {
+    return typeof this.clientSource === "function"
+      ? this.clientSource()
+      : this.clientSource;
   }
 }
