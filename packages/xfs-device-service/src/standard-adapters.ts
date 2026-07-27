@@ -73,6 +73,19 @@ const pinAdapter: XfsDeviceModuleAdapter = {
   module: "pin",
   requiredModule: "pin",
   create: async ({ client, commandLeases, config, session, timeoutMs }) => {
+    if (client.manager.registerEvents) {
+      await commandLeases.run({
+        authority: "transaction",
+        logicalService: config.logicalName,
+        operationId: `${config.deviceId}.register-events`,
+        protectionPolicyProfileId: config.protectionPolicyProfileId,
+        resourceGroup: config.resourceGroup,
+        ttlMs: timeoutMs,
+      }, () => client.manager.registerEvents!({
+        eventClass: XfsEventClassFromRaw(XfsEventClass.Execute),
+        sessionId: session.id,
+      }));
+    }
     const port = new XfsPinpadDevicePort({
       client: client.pin,
       deviceId: config.deviceId,
@@ -86,6 +99,7 @@ const pinAdapter: XfsDeviceModuleAdapter = {
     });
     return {
       descriptor: descriptor(config, "pinpad"),
+      dispose: () => port.dispose(),
       healthCheck: createStatusHealthCheck({
         deviceId: config.deviceId,
         logicalName: config.logicalName,

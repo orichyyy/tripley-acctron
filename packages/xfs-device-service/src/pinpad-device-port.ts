@@ -1,5 +1,6 @@
 import {
   type XfsPinBlockRequest,
+  XfsPinCompletion,
   XfsPinFormatFromRaw,
   XfsPinFunctionKeyFromRaw,
   type XfsPinGetDataRequest,
@@ -21,13 +22,20 @@ import {
 } from "./port-command";
 import type {
   XfsDeviceOperationContext,
+  XfsEventSubscriptionLike,
   XfsNativeEnvelopeLike,
+  XfsPinEventLike,
   XfsPinClientLike,
 } from "./types";
 import { assertXfsOk, bytesToHex, hResultOf, plainValueFromKeys } from "./utils";
 
 export class XfsPinpadDevicePort implements PinpadDataPort, PinpadPinPort {
-  public constructor(private readonly options: XfsDevicePortOptions<XfsPinClientLike>) {}
+  private activeFeedback: ActivePinFeedback | undefined;
+  private readonly eventSubscription: XfsEventSubscriptionLike | undefined;
+
+  public constructor(private readonly options: XfsDevicePortOptions<XfsPinClientLike>) {
+    this.eventSubscription = options.client.subscribeEvent?.((event) => this.onPinEvent(event));
+  }
 
   public async getData(
     options: unknown,
@@ -35,9 +43,14 @@ export class XfsPinpadDevicePort implements PinpadDataPort, PinpadPinPort {
   ): Promise<UserInputSourceResult> {
     const request = this.getDataRequest(options);
     const result = await this.runInputCommand(context, "get-data", async () => {
-      const commandResult = await this.options.client.getData(request);
-      assertXfsOk(commandResult, "pin.getData", this.metadata());
-      return commandResult;
+      const feedback = this.beginFeedback(options);
+      try {
+        const commandResult = await this.options.client.getData(request);
+        assertXfsOk(commandResult, "pin.getData", this.metadata());
+        return commandResult;
+      } finally {
+        this.endFeedback(feedback);
+      }
     });
 
     return {
@@ -62,11 +75,16 @@ export class XfsPinpadDevicePort implements PinpadDataPort, PinpadPinPort {
   ): Promise<SecurePinInputResult> {
     const request = this.getPinBlockRequest(options);
     const result = await this.runInputCommand(context, "get-pin", async () => {
-      const entryResult = await this.options.client.getPin(this.getPinEntryRequest(options));
-      assertXfsOk(entryResult, "pin.getPin", this.metadata());
-      const pinBlockResult = await this.options.client.getPinblock(request);
-      assertXfsOk(pinBlockResult, "pin.getPinblock", this.metadata());
-      return pinBlockResult;
+      const feedback = this.beginFeedback(options);
+      try {
+        const entryResult = await this.options.client.getPin(this.getPinEntryRequest(options));
+        assertXfsOk(entryResult, "pin.getPin", this.metadata());
+        const pinBlockResult = await this.options.client.getPinblock(request);
+        assertXfsOk(pinBlockResult, "pin.getPinblock", this.metadata());
+        return pinBlockResult;
+      } finally {
+        this.endFeedback(feedback);
+      }
     });
     const encryptedPinBlock = bytesToHex(result.data) ?? String(result.encryptedPinBlock ?? "");
     if (!encryptedPinBlock) {
@@ -117,6 +135,11 @@ export class XfsPinpadDevicePort implements PinpadDataPort, PinpadPinPort {
     await resetDevice(this.options.client, this.options.session, this.options.timeoutMs);
   }
 
+  public dispose(): void {
+    this.activeFeedback = undefined;
+    this.eventSubscription?.unsubscribe();
+  }
+
   private async runInputCommand<T extends XfsNativeEnvelopeLike>(
     context: XfsDeviceOperationContext | undefined,
     action: string,
@@ -165,6 +188,54 @@ export class XfsPinpadDevicePort implements PinpadDataPort, PinpadPinPort {
       terminateKeys: XfsPinFunctionKeyFromRaw(numberValue(input.terminateKeys, 0)),
       timeoutMs: numberValue(input.timeoutMs, this.options.timeoutMs),
     };
+  }
+
+  private beginFeedback(options: unknown): ActivePinFeedback | undefined {
+    const input = asRecord(options);
+    if (typeof input.onFeedback !== "function") {
+      return undefined;
+    }
+    const feedback: ActivePinFeedback = {
+      digitCount: 0,
+      maxLength: numberValue(input.maxLength ?? input.maxLen, 12),
+      onFeedback: input.onFeedback as PinInputFeedbackHandler,
+    };
+    this.activeFeedback = feedback;
+    emitFeedback(feedback, "started");
+    return feedback;
+  }
+
+  private endFeedback(feedback: ActivePinFeedback | undefined): void {
+    if (feedback && this.activeFeedback === feedback) {
+      this.activeFeedback = undefined;
+    }
+  }
+
+  private onPinEvent(event: XfsPinEventLike): void {
+    const feedback = this.activeFeedback;
+    const key = pinKeyFromEvent(event);
+    if (!feedback || !key) {
+      return;
+    }
+    const completion = key.completion;
+    if (completion === XfsPinCompletion.Clear) {
+      feedback.digitCount = 0;
+      emitFeedback(feedback, "cleared");
+      return;
+    }
+    if (completion === XfsPinCompletion.Backspace) {
+      feedback.digitCount = Math.max(0, feedback.digitCount - 1);
+      emitFeedback(feedback, "changed");
+      return;
+    }
+    if (completion === XfsPinCompletion.Enter || completion === XfsPinCompletion.Cancel) {
+      emitFeedback(feedback, "terminated");
+      return;
+    }
+    if (completion === XfsPinCompletion.Continue) {
+      feedback.digitCount = Math.min(feedback.maxLength, feedback.digitCount + 1);
+      emitFeedback(feedback, "changed");
+    }
   }
 
   private getPinBlockRequest(options: unknown): XfsPinBlockRequest {
@@ -221,3 +292,42 @@ const booleanValue = (value: unknown, fallback: boolean): boolean =>
 
 const stringValue = (value: unknown): string | undefined =>
   typeof value === "string" && value.length > 0 ? value : undefined;
+
+const pinKeyFromEvent = (
+  event: XfsPinEventLike,
+): {
+  readonly completion?: number | undefined;
+  readonly digit?: number | undefined;
+} | undefined => {
+  if (event.data?.kind !== "key") {
+    return undefined;
+  }
+  const value = asRecord(event.data.value);
+  const completion = typeof value.completion === "number" ? value.completion : undefined;
+  const digit = typeof value.digit === "number" ? value.digit : undefined;
+  return completion === undefined && digit === undefined ? undefined : { completion, digit };
+};
+
+export interface XfsPinInputFeedback {
+  readonly digitCount: number;
+  readonly state: "started" | "changed" | "cleared" | "terminated";
+}
+
+type PinInputFeedbackHandler = (feedback: XfsPinInputFeedback) => void;
+
+interface ActivePinFeedback {
+  digitCount: number;
+  readonly maxLength: number;
+  readonly onFeedback: PinInputFeedbackHandler;
+}
+
+const emitFeedback = (
+  feedback: ActivePinFeedback,
+  state: XfsPinInputFeedback["state"],
+): void => {
+  try {
+    feedback.onFeedback({ digitCount: feedback.digitCount, state });
+  } catch {
+    // Presentation feedback cannot alter secure PIN command control.
+  }
+};

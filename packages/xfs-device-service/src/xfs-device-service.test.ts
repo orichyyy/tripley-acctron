@@ -193,6 +193,44 @@ describe("XfsDeviceService", () => {
     expect(fake.pin.getPinCalls).toHaveLength(2);
   });
 
+  it("projects PIN key events as safe digit-count feedback", async () => {
+    const fake = createFakeXfsClient({
+      pinEvents: [
+        { data: { kind: "key", value: { completion: 6, digit: 0 } } },
+        { data: { kind: "key", value: { completion: 6, digit: 0 } } },
+        { data: { kind: "key", value: { completion: 8, digit: 0 } } },
+        { data: { kind: "key", value: { completion: 6, digit: 0 } } },
+        { data: { kind: "key", value: { completion: 7, digit: 0 } } },
+        { data: { kind: "key", value: { completion: 6, digit: 0 } } },
+        { data: { kind: "key", value: { completion: 1, digit: 0 } } },
+      ],
+    });
+    const service = createXfsDeviceService(config(), { client: fake });
+    await service.connect();
+    const devices = new DeviceRegistry();
+    service.registerDevices(devices);
+    const feedback: unknown[] = [];
+
+    await devices
+      .require<import("./ports").XfsPinpadDevicePort>("customPinpad")
+      .getPin({
+        customerData: "123456789012",
+        onFeedback: (value: unknown) => feedback.push(value),
+      });
+
+    expect(feedback).toEqual([
+      { digitCount: 0, state: "started" },
+      { digitCount: 1, state: "changed" },
+      { digitCount: 2, state: "changed" },
+      { digitCount: 1, state: "changed" },
+      { digitCount: 2, state: "changed" },
+      { digitCount: 0, state: "cleared" },
+      { digitCount: 1, state: "changed" },
+      { digitCount: 1, state: "terminated" },
+    ]);
+    expect(feedback).not.toContainEqual(expect.objectContaining({ digit: expect.anything() }));
+  });
+
   it("cancels active input sessions through the XFS cancellation path", async () => {
     const fake = createFakeXfsClient();
     const service = createXfsDeviceService(config(), { client: fake });
@@ -331,8 +369,21 @@ it("registers IDC service events for card removal evidence", async () => {
   });
 });
 
+it("registers PIN execute events for safe input feedback", async () => {
+  const fake = createFakeXfsClient();
+  const service = createXfsDeviceService(config(), { client: fake });
+
+  await service.connect();
+
+  expect(fake.manager.registerEventsCalls).toContainEqual({
+    eventClass: 8,
+    sessionId: "customPinpad-session",
+  });
+});
+
 const createFakeXfsClient = (options: {
   readonly idcFwDevice?: number;
+  readonly pinEvents?: readonly import("./types").XfsPinEventLike[];
   readonly pinGetHResults?: readonly number[];
 } = {}) => {
   const pinGetHResults = [...(options.pinGetHResults ?? [0])];
@@ -345,9 +396,13 @@ const createFakeXfsClient = (options: {
       registerEventsCalls: Array<{ eventClass: number; sessionId: string }>;
     };
     pin: XfsRuntimeClientLike["pin"] & {
+      eventHandler?: (
+        event: import("./types").XfsPinEventLike,
+      ) => void | Promise<void>;
       getPinCalls: unknown[];
       getPinblockCalls: unknown[];
       resetCalls: number;
+      unsubscribed: boolean;
     };
     idc: XfsRuntimeClientLike["idc"] & {
       ejectCalls: unknown[];
@@ -435,6 +490,9 @@ const createFakeXfsClient = (options: {
       },
       getPin: async (request: unknown) => {
         fake.pin.getPinCalls.push(request);
+        for (const event of options.pinEvents ?? []) {
+          await fake.pin.eventHandler?.(event);
+        }
         return { digits: 4, native: { hResult: pinGetHResults.shift() ?? 0 } };
       },
       getPinCalls: [] as unknown[],
@@ -445,6 +503,15 @@ const createFakeXfsClient = (options: {
         return { native: { hResult: 0 } };
       },
       resetCalls: 0,
+      subscribeEvent: (handler) => {
+        fake.pin.eventHandler = handler;
+        return {
+          unsubscribe: () => {
+            fake.pin.unsubscribed = true;
+          },
+        };
+      },
+      unsubscribed: false,
     },
     connect: async () => {
       fake.connected = true;

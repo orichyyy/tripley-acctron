@@ -142,6 +142,16 @@ export interface XfsPinClientLike {
   getPin(request: XfsPinGetPinRequest): Promise<XfsNativeEnvelopeLike>;
   getPinblock(request: XfsPinBlockRequest): Promise<XfsNativeEnvelopeLike>;
   reset?(request: XfsSessionRequestLike): Promise<XfsNativeEnvelopeLike>;
+  subscribeEvent?(
+    handler: (event: XfsPinEventLike) => void | Promise<void>,
+  ): XfsEventSubscriptionLike;
+}
+
+export interface XfsPinEventLike {
+  readonly data?: {
+    readonly kind?: string | undefined;
+    readonly value?: unknown;
+  } | undefined;
 }
 
 export interface XfsBcrClientLike {
