@@ -9,6 +9,10 @@ import {
 import { defineFlow } from "./dsl";
 import { createFlowEngine } from "./engine";
 import { UiPortFlowProjectionAdapter } from "./projection";
+import type {
+  FlowExecutionContext,
+  SubflowNodeDefinition,
+} from "./types";
 
 describe("ExecutableFlowEngine", () => {
   it("executes action, decision, and terminal nodes", async () => {
@@ -193,6 +197,69 @@ describe("ExecutableFlowEngine", () => {
     await expect(
       engine.getInstance(second.instanceId),
     ).resolves.toMatchObject({ status: "completed" });
+  });
+
+  it("binds dynamic input and validated output for a versioned subflow", async () => {
+    const accepted: unknown[] = [];
+    const engine = createFlowEngine();
+    engine.register(
+      defineFlow({
+        id: "test.child",
+        inputSchema: {
+          validate: (value) => value as { accountId: string },
+        },
+        nodes: {
+          finish: {
+            id: "finish",
+            kind: "terminal",
+            output: (ctx: FlowExecutionContext) => ({
+              accountId: (ctx.input as { accountId: string }).accountId,
+              balance: 1200,
+            }),
+          } satisfies TerminalFlowNodeDefinition,
+        },
+        outputSchema: {
+          validate: (value) => {
+            const output = value as { accountId: string; balance: number };
+            if (typeof output.balance !== "number") {
+              throw new Error("Invalid child output.");
+            }
+            return output;
+          },
+        },
+        startNodeId: "finish",
+        version: "2.0.0",
+      }),
+    );
+    engine.register(
+      defineFlow({
+        id: "test.parent",
+        nodes: {
+          child: {
+            id: "child",
+            kind: "subflow",
+            subflow: {
+              acceptOutput: (output: unknown) => {
+                accepted.push(output);
+              },
+              flowId: "test.child",
+              input: () => ({ accountId: "001" }),
+              mode: "sync",
+              version: "2.0.0",
+            },
+          } satisfies SubflowNodeDefinition,
+        },
+        startNodeId: "child",
+        version: "1.0.0",
+      }),
+    );
+
+    const instance = await engine.start("test.parent", {});
+    const result = await instance.completion;
+
+    expect(result.status).toBe("completed");
+    expect(result.output).toEqual({ accountId: "001", balance: 1200 });
+    expect(accepted).toEqual([{ accountId: "001", balance: 1200 }]);
   });
 });
 

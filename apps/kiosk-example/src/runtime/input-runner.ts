@@ -1,6 +1,7 @@
 import type {
   DeviceLockManager,
   DeviceRegistry,
+  InputInteractionIdentity,
   InputSourceRegistry,
 } from "@tripley-kit/web-container-device-core";
 import { FrameworkError } from "@tripley-kit/web-container-errors";
@@ -29,6 +30,7 @@ export interface InputRunnerDependencies {
   readonly locks: DeviceLockManager;
   readonly inputSources: InputSourceRegistry;
   readonly flowEngine: FlowEngine;
+  readonly programmaticInputKinds?: readonly string[] | undefined;
 }
 
 export const runUserInput = async (
@@ -36,27 +38,59 @@ export const runUserInput = async (
   dependencies: InputRunnerDependencies,
   options: RunInputOptions,
 ): Promise<unknown> => {
+  const programmaticKinds = new Set(
+    dependencies.programmaticInputKinds ?? ["ui.command"],
+  );
+  const instanceId = `kiosk-input-${crypto.randomUUID()}`;
+  const identity: InputInteractionIdentity = {
+    channelId: "customer",
+    flowInstanceId: instanceId,
+    interactionId: crypto.randomUUID(),
+    nodeId: options.id,
+  };
+  const allowedIntentIds = ["kiosk.input.submit"];
+  const sources = correlateProgrammaticSources(
+    options.sources,
+    programmaticKinds,
+    identity,
+    allowedIntentIds,
+  );
+  const hasProgrammaticSource = sources.some((source) =>
+    programmaticKinds.has(source.kind),
+  );
   const externalDevice = options.sources.every(
     (source) => source.kind !== "ui.command",
   );
+  const safeViewData = {
+    externalDevice,
+    inputMode: options.profile.constraints?.inputMode ?? "text",
+    maxLength: options.profile.constraints?.maxLength ?? null,
+    minLength: options.profile.constraints?.minLength ?? null,
+    secure: options.security === "secure",
+    secureDevice: options.security === "secure" && externalDevice,
+    ...(hasProgrammaticSource
+      ? {
+          allowedIntentIds,
+          interactionIdentity: {
+            channelId: identity.channelId,
+            flowInstanceId: identity.flowInstanceId,
+            interactionId: identity.interactionId,
+            nodeId: identity.nodeId,
+          },
+        }
+      : {}),
+  };
   ctx.updateView({
     phase: "collectingInput",
     promptId: options.promptId,
-    safeData: {
-      externalDevice,
-      inputMode: options.profile.constraints?.inputMode ?? "text",
-      maxLength: options.profile.constraints?.maxLength ?? null,
-      minLength: options.profile.constraints?.minLength ?? null,
-      secure: options.security === "secure",
-      secureDevice: options.security === "secure" && externalDevice,
-    },
+    safeData: safeViewData,
   });
   const node = defineUserInputNode({
     id: options.id,
     input: {
       profile: options.profile,
       security: options.security,
-      sources: options.sources,
+      sources,
       timeoutMs: ctx.interactionTimeout(options.id),
       trace: { safeToLog: false, summaryOnly: true },
       ui: { stateKey: `operation.${options.id}` },
@@ -80,6 +114,14 @@ export const runUserInput = async (
         deviceLocks: dependencies.locks,
         devices: dependencies.devices,
         onUiFeedback: (feedback) => {
+          if (feedback.status === "waiting" && feedback.safeData) {
+            ctx.updateView({
+              safeData: {
+                ...safeViewData,
+                ...feedback.safeData,
+              },
+            });
+          }
           if (feedback.status !== "invalid") {
             return;
           }
@@ -92,6 +134,7 @@ export const runUserInput = async (
             },
           });
         },
+        instanceId,
         signal: ctx.signal,
       },
     );
@@ -118,3 +161,26 @@ export const runUserInput = async (
     dependencies.flowEngine.unregister(flow.id, flow.version);
   }
 };
+
+const correlateProgrammaticSources = (
+  sources: readonly UserInputSourceDefinition[],
+  programmaticKinds: ReadonlySet<string>,
+  identity: InputInteractionIdentity,
+  allowedIntentIds: readonly string[],
+): readonly UserInputSourceDefinition[] =>
+  sources.map((source) => {
+    if (!programmaticKinds.has(source.kind)) {
+      return source;
+    }
+    return {
+      ...source,
+      options: {
+        ...(isRecord(source.options) ? source.options : {}),
+        allowedIntentIds,
+        identity,
+      },
+    };
+  });
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);

@@ -1,5 +1,7 @@
 import type {
   DeviceLease,
+  InputSourceProgress,
+  InputSourceProgressSubscription,
   InputSourceRegistry,
   InputSourceSession,
   UserInputSourceDefinition as ResolvedDeviceSourceDefinition,
@@ -79,7 +81,13 @@ export class UserInputNodeExecutor implements FlowNodeExecutor<UserInputNodeDefi
         };
       }
 
-      const race = await waitForInput(ctx, node, sessions, settledSessionIds);
+      const race = await waitForInput(
+        ctx,
+        node,
+        ui,
+        sessions,
+        settledSessionIds,
+      );
       if (race.type === "timeout") {
         exitReason = "timeout";
         const timeoutResult = ctx.policies.userInputTimeout?.onTimeout;
@@ -302,6 +310,7 @@ const isSourceEnabled = async (
 const waitForInput = async (
   ctx: FlowExecutionContext,
   node: UserInputNodeDefinition,
+  ui: UiRouteState | undefined,
   sessions: readonly InputSourceSession[],
   settledSessionIds: Set<string>,
 ): Promise<InputRaceResult> => {
@@ -315,10 +324,49 @@ const waitForInput = async (
 
   const timeoutMs =
     node.input.timeoutMs ?? node.timeoutMs ?? ctx.policies.userInputTimeout?.timeoutMs;
-  if (timeoutMs !== undefined) {
+  const subscriptions: InputSourceProgressSubscription[] = [];
+  let hardTimeout: ReturnType<typeof setTimeout> | undefined;
+  let idleTimeout: ReturnType<typeof setTimeout> | undefined;
+  let resolveTimeout: ((result: InputRaceResult) => void) | undefined;
+
+  const resetIdleTimeout = (): void => {
+    if (node.input.idleTimeoutMs === undefined) {
+      return;
+    }
+    if (idleTimeout) {
+      clearTimeout(idleTimeout);
+    }
+    idleTimeout = setTimeout(
+      () => resolveTimeout?.({ type: "timeout" }),
+      node.input.idleTimeoutMs,
+    );
+  };
+
+  for (const session of sessions) {
+    if (!session.progress) {
+      continue;
+    }
+    subscriptions.push(
+      session.progress.subscribe((progress) => {
+        if (progress.activity) {
+          resetIdleTimeout();
+        }
+        void publishProgress(ctx, node, ui, progress).catch(() => undefined);
+      }),
+    );
+  }
+
+  if (timeoutMs !== undefined || node.input.idleTimeoutMs !== undefined) {
     waits.push(
       new Promise((resolve) => {
-        setTimeout(() => resolve({ type: "timeout" }), timeoutMs);
+        resolveTimeout = resolve;
+        if (timeoutMs !== undefined) {
+          hardTimeout = setTimeout(
+            () => resolve({ type: "timeout" }),
+            timeoutMs,
+          );
+        }
+        resetIdleTimeout();
       }),
     );
   }
@@ -350,7 +398,35 @@ const waitForInput = async (
     );
   }
 
-  return Promise.race(waits);
+  try {
+    return await Promise.race(waits);
+  } finally {
+    if (hardTimeout) {
+      clearTimeout(hardTimeout);
+    }
+    if (idleTimeout) {
+      clearTimeout(idleTimeout);
+    }
+    for (const subscription of subscriptions) {
+      subscription.unsubscribe();
+    }
+  }
+};
+
+const publishProgress = async (
+  ctx: FlowExecutionContext,
+  node: UserInputNodeDefinition,
+  ui: UiRouteState | undefined,
+  progress: InputSourceProgress,
+): Promise<void> => {
+  const feedback = await node.input.progress?.(progress, ctx);
+  ctx.setUiFeedback(
+    feedback ?? {
+      stateKey: ui?.stateKey,
+      status: "waiting",
+      safeData: progress.safeSummary,
+    },
+  );
 };
 
 const validateLocal = async (

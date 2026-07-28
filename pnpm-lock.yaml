@@ -862,8 +862,8 @@ importers:
   packages/xfs-device-service:
     dependencies:
       '@tripley-kit/web-container-device-core':
-        specifier: 0.1.0
-        version: 0.1.0
+        specifier: workspace:*
+        version: link:../device-core
       '@tripley-kit/web-container-errors':
         specifier: 0.1.0
         version: 0.1.0

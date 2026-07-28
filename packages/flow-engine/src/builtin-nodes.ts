@@ -94,9 +94,13 @@ export class SubflowNodeExecutor
     ctx: FlowExecutionContext,
     node: SubflowNodeDefinition,
   ): Promise<FlowNodeResult> {
+    const input =
+      typeof node.subflow.input === "function"
+        ? await node.subflow.input(ctx)
+        : node.subflow.input;
     const instance = await this.engine.start(
       node.subflow.flowId,
-      node.subflow.input,
+      input,
       {
         signal: ctx.signal,
         traceId: ctx.traceId,
@@ -131,6 +135,7 @@ export class SubflowNodeExecutor
         .scope("flow", ctx.instanceId)
         .set(node.subflow.outputKey, snapshot.output);
     }
+    await node.subflow.acceptOutput?.(snapshot.output, ctx);
     return nextOrEnd(node, snapshot.output);
   }
 }

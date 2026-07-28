@@ -10,12 +10,10 @@ import type {
 } from "@tripley-kit/web-container-kiosk-runtime";
 import type { XfsCardReaderPort } from "@tripley-kit/web-container-xfs-device-service";
 
-import type { UiInputBroker } from "./input-broker";
 import { type InputRunnerDependencies, runUserInput } from "./input-runner";
 import type { OperationMaterialCapturePort } from "./operation-material";
 
 export interface ContributionDependencies extends InputRunnerDependencies {
-  readonly broker: UiInputBroker;
   readonly mode: "memory" | "hostd";
   readonly cardDeviceId: string;
   readonly pinDeviceId: string;
@@ -38,14 +36,20 @@ export const createContactCardEntry = (
   acquisition: {
     flow: { flowId: "bank.withdrawal.card.acquire", version: "1.0.0" },
     acquire: async (ctx) => {
-      const material = dependencies.mode === "hostd"
-        ? await dependencies.devices.require<XfsCardReaderPort>(
-            dependencies.cardDeviceId,
-          ).readCard(
-            { dataSources: 2 },
-            { operationId: ctx.operationId, signal: ctx.signal },
-          )
-        : await acquireUiValue(ctx, dependencies, "card.present", "action");
+      const material = await runUserInput(ctx, dependencies, {
+        id: "card-present",
+        profile: { id: "card.present", promptKey: "card.present" },
+        promptId: "card.present",
+        sources: dependencies.mode === "hostd"
+          ? [{
+              deviceId: dependencies.cardDeviceId,
+              id: "card",
+              kind: "cardReader.card",
+              options: { dataSources: 2 },
+              required: true,
+            }]
+          : [{ id: "card.present", kind: "ui.command" }],
+      });
       await dependencies.operationMaterial?.captureCredential({
         entryMethodId: "card.contact",
         material,
@@ -317,7 +321,6 @@ const noCustody: EntryMethodContribution["mediaCustody"] = {
 };
 
 export const createContributionDependencies = (input: {
-  broker: UiInputBroker;
   mode: "memory" | "hostd";
   devices: DeviceRegistry;
   flowEngine: InputRunnerDependencies["flowEngine"];
@@ -326,6 +329,7 @@ export const createContributionDependencies = (input: {
   operationMaterial?: OperationMaterialCapturePort | undefined;
   reservationVerification?: ReservationVerificationPort | undefined;
   pinOptions?: Readonly<Record<string, unknown>> | undefined;
+  programmaticInputKinds?: readonly string[] | undefined;
 }): ContributionDependencies => ({
   ...input,
   barcodeDeviceId: "barcodeReader",

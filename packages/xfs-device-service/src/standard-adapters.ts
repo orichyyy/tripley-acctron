@@ -3,6 +3,7 @@ import {
   XfsEventClassFromRaw,
 } from "@tripley-kit/xfs-client";
 import {
+  createCardReaderInputSourceAdapter,
   createBarcodeQrInputSourceAdapter,
   createPinpadDataInputSourceAdapter,
   createPinpadPinInputSourceAdapter,
@@ -64,6 +65,7 @@ const idcAdapter: XfsDeviceModuleAdapter = {
           ttlMs: timeoutMs,
         }, () => client.idc.getStatus({ sessionId: session.id, timeoutMs })),
       }),
+      inputSources: [createCardReaderInputSourceAdapter(config.deviceId)],
       port,
     };
   },

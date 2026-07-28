@@ -6,11 +6,17 @@ import type { DataClassification } from "./devices";
 import type { ExtensionRegistration } from "./extension-registry";
 import { GenericExtensionRegistry } from "./extension-registry";
 import type { DeviceLockManager } from "./locks";
+import {
+  createReplayableInputSourceProgress,
+  type InputSourceProgressStream,
+  type ReplayableInputSourceProgress,
+} from "./input-progress";
 
 export type InputSourceKind =
   | "pinpad.data"
   | "pinpad.pin"
   | "barcodeReader.qr"
+  | "cardReader.card"
   | "ui.command"
   | (string & {});
 
@@ -74,6 +80,7 @@ export interface InputSourceSession<TResult extends UserInputSourceResult = User
   readonly sourceId: string;
   readonly sourceKind: string;
   readonly result: Promise<TResult>;
+  readonly progress?: InputSourceProgressStream | undefined;
   cancel(reason?: string): Promise<void>;
 }
 
@@ -205,12 +212,23 @@ export const createPinpadDataInputSourceAdapter = (
     const deviceId = source.deviceId ?? defaultDeviceId;
     const port = ctx.devices.require<PinpadDataPort>(deviceId);
     const operationId = `${ctx.instanceId}.${ctx.nodeId}.${source.id}`;
+    const progress = createReplayableInputSourceProgress();
     return {
       id: operationId,
       sourceId: source.id,
       sourceKind: source.kind,
-      result: port.getData(source.options, { operationId, signal: ctx.signal }),
-      cancel: (reason) => port.cancel(operationId, reason),
+      progress,
+      result: settleProgress(
+        port.getData(pinpadProgressOptions(source.options, progress), {
+          operationId,
+          signal: ctx.signal,
+        }),
+        progress,
+      ),
+      cancel: async (reason) => {
+        progress.close();
+        await port.cancel(operationId, reason);
+      },
     };
   },
 });
@@ -225,12 +243,23 @@ export const createPinpadPinInputSourceAdapter = (
     const deviceId = source.deviceId ?? defaultDeviceId;
     const port = ctx.devices.require<PinpadPinPort>(deviceId);
     const operationId = `${ctx.instanceId}.${ctx.nodeId}.${source.id}`;
+    const progress = createReplayableInputSourceProgress();
     return {
       id: operationId,
       sourceId: source.id,
       sourceKind: source.kind,
-      result: port.getPin(source.options, { operationId, signal: ctx.signal }),
-      cancel: (reason) => port.cancel(operationId, reason),
+      progress,
+      result: settleProgress(
+        port.getPin(pinpadProgressOptions(source.options, progress), {
+          operationId,
+          signal: ctx.signal,
+        }),
+        progress,
+      ),
+      cancel: async (reason) => {
+        progress.close();
+        await port.cancel(operationId, reason);
+      },
     };
   },
 });
@@ -268,3 +297,47 @@ const isExtensionRegistration = <TAdapter extends InputSourceAdapter>(
 
   return true;
 };
+
+interface PinpadSafeFeedback {
+  readonly digitCount: number;
+  readonly state: "started" | "changed" | "cleared" | "terminated";
+}
+
+const pinpadProgressOptions = (
+  options: unknown,
+  progress: ReplayableInputSourceProgress,
+): Record<string, unknown> => {
+  const input = isRecord(options) ? options : {};
+  const existing =
+    typeof input.onFeedback === "function"
+      ? (input.onFeedback as (feedback: PinpadSafeFeedback) => void)
+      : undefined;
+  return {
+    ...input,
+    onFeedback: (feedback: PinpadSafeFeedback) => {
+      existing?.(feedback);
+      progress.publish({
+        activity: feedback.state !== "started",
+        kind: "pinpad.digitCount",
+        safeSummary: {
+          digitCount: feedback.digitCount,
+          state: feedback.state,
+        },
+      });
+    },
+  };
+};
+
+const settleProgress = async <T>(
+  result: Promise<T>,
+  progress: ReplayableInputSourceProgress,
+): Promise<T> => {
+  try {
+    return await result;
+  } finally {
+    progress.close();
+  }
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);

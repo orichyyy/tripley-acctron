@@ -1,6 +1,7 @@
 import type {
   DeviceLockManager,
   DeviceRegistry,
+  InputSourceProgress,
   UserInputSourceDefinition as DeviceUserInputSourceDefinition,
   InputSourceExecutionContext,
   UserInputSourceResult,
@@ -295,6 +296,7 @@ export interface UiFeedbackState {
   readonly severity?: "info" | "warning" | "error" | undefined;
   readonly clearInput?: boolean | undefined;
   readonly attempt?: number | undefined;
+  readonly safeData?: Readonly<Record<string, unknown>> | undefined;
   readonly fieldErrors?:
     | readonly {
         readonly field: string;
@@ -383,19 +385,33 @@ export interface UserInputNodeInput {
       }
     | undefined;
   readonly timeoutMs?: number | undefined;
+  readonly idleTimeoutMs?: number | undefined;
+  readonly progress?:
+    | ((
+        progress: InputSourceProgress,
+        ctx: FlowExecutionContext,
+      ) => MaybePromise<UiFeedbackState | undefined>)
+    | undefined;
 }
 
 export interface UserInputNodeDefinition extends FlowNodeDefinition<"userInput"> {
   readonly input: UserInputNodeInput;
 }
 
-export interface SubflowNodeDefinition extends FlowNodeDefinition<"subflow"> {
+export interface SubflowNodeDefinition<TInput = unknown, TOutput = unknown>
+  extends FlowNodeDefinition<"subflow"> {
   readonly subflow: {
     readonly flowId: string;
-    readonly version?: string | undefined;
+    readonly version: string;
     readonly mode: "sync" | "async";
-    readonly input?: unknown;
+    readonly input?:
+      | TInput
+      | ((ctx: FlowExecutionContext) => MaybePromise<TInput>)
+      | undefined;
     readonly outputKey?: string | undefined;
+    readonly acceptOutput?:
+      | ((output: TOutput, ctx: FlowExecutionContext) => MaybePromise<void>)
+      | undefined;
   };
 }
 

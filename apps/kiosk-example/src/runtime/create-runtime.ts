@@ -1,7 +1,9 @@
 import {
+  CorrelatedInputSourceBroker,
   DeviceLockManager,
   DeviceRegistry,
   InputSourceRegistry,
+  type SecurePinInputResult,
 } from "@tripley-kit/web-container-device-core";
 import {
   UiPortFlowProjectionAdapter,
@@ -48,7 +50,6 @@ import {
   type HostdRuntimeConfig,
   connectHostdDevices,
 } from "./hostd";
-import { UiInputBroker } from "./input-broker";
 import type { ExampleWithdrawalBusiness } from "./operation-business";
 import { WithdrawalDiagnosticsStore } from "./operator-diagnostics";
 import type { ExampleApplicationRuntime } from "./types";
@@ -89,8 +90,8 @@ export const createExampleApplicationRuntime = async (
   const devices = new DeviceRegistry();
   const inputSources = new InputSourceRegistry();
   const locks = new DeviceLockManager();
-  const broker = new UiInputBroker();
-  inputSources.register(broker.createAdapter("ui.command"));
+  const broker = new CorrelatedInputSourceBroker();
+  inputSources.register(broker.createAdapter({ kind: "ui.command" }));
   const flowEngine = createFlowEngine({
     deviceLocks: locks,
     devices,
@@ -110,7 +111,7 @@ export const createExampleApplicationRuntime = async (
     options.withdrawalBusiness?.diagnostics ?? new WithdrawalDiagnosticsStore();
 
   if (options.mode === "memory") {
-    inputSources.register(broker.createAdapter("barcodeReader.qr"));
+    inputSources.register(broker.createAdapter({ kind: "barcodeReader.qr" }));
     inputSources.register(createMemoryPinAdapter(broker));
   } else {
     try {
@@ -134,12 +135,15 @@ export const createExampleApplicationRuntime = async (
   }
 
   const dependencies = createContributionDependencies({
-    broker,
     devices,
     flowEngine,
     inputSources,
     locks,
     mode: options.mode,
+    programmaticInputKinds:
+      options.mode === "memory"
+        ? ["ui.command", "barcodeReader.qr", "pinpad.pin"]
+        : ["ui.command"],
     operationMaterial: options.withdrawalBusiness?.operationMaterial,
     pinOptions: {
       activeKeys: 0x07ff,
@@ -229,12 +233,20 @@ export const createExampleApplicationRuntime = async (
     await options.onReboot?.(mode);
   };
   runtime.commands.register({
-    execute: async (_ctx, input: { value?: string; secureConfirmation?: boolean }) => {
-      if (input.secureConfirmation) {
-        broker.submitSecureConfirmation();
-      } else {
-        broker.submit(input.value ?? "");
-      }
+    execute: async (
+      _ctx,
+      input: {
+        identity?: Parameters<typeof broker.submit>[0]["identity"];
+        intentId?: string;
+        value?: string;
+        secureConfirmation?: boolean;
+      },
+    ) => {
+      broker.submit({
+        identity: input.identity ?? broker.requireActiveIdentity("customer"),
+        intentId: input.intentId ?? "kiosk.input.submit",
+        payload: input.secureConfirmation ? undefined : (input.value ?? ""),
+      });
       return { accepted: true };
     },
     id: "kiosk.input.submit",
@@ -336,19 +348,23 @@ const hostdConfig = (overrides: Partial<HostdRuntimeConfig> = {}): HostdRuntimeC
     : {}),
 });
 
-const createMemoryPinAdapter = (broker: UiInputBroker) => {
-  const adapter = broker.createAdapter("pinpad.pin");
-  return {
-    ...adapter,
-    start: async (
-      ctx: Parameters<typeof adapter.start>[0],
-      source: Parameters<typeof adapter.start>[1],
-    ) => {
-      ctx;
-      return broker.createAdapter("pinpad.pin").start(ctx, source);
-    },
-  };
-};
+const createMemoryPinAdapter = (broker: CorrelatedInputSourceBroker) =>
+  broker.createAdapter<SecurePinInputResult>({
+    kind: "pinpad.pin",
+    mapResult: (_submission, source) => ({
+      encryptedPinBlock: "MEMORY-ADAPTER-PIN-BLOCK",
+      kind: "securePin",
+      safeSummary: {
+        hasEncryptedPinBlock: true,
+        sourceKind: "pinpad.pin",
+      },
+      source: {
+        ...(source.deviceId ? { deviceId: source.deviceId } : {}),
+        id: source.id,
+        kind: "pinpad.pin",
+      },
+    }),
+  });
 
 const createPromptPresenter = (speechRequired: boolean): PromptPresenter => {
   const prompts = new PromptDefinitionCatalog();

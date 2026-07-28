@@ -1,3 +1,4 @@
+import type { InputInteractionIdentity } from "@tripley-kit/web-container-device-core";
 import type { OperationViewState, RuntimeReadiness } from "@tripley-kit/web-container-kiosk-runtime";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -36,6 +37,9 @@ export const KioskScreen = ({ application }: { application: ExampleApplicationRu
     const secureConfirmation =
       application.mode === "memory" && operation.safeData?.secureDevice === true;
     void execute("kiosk.input.submit", {
+      identity: operation.safeData
+        ?.interactionIdentity as InputInteractionIdentity | undefined,
+      intentId: firstString(operation.safeData?.allowedIntentIds),
       secureConfirmation,
       value: secureConfirmation ? undefined : (inputRef.current?.value ?? ""),
     });
@@ -233,6 +237,8 @@ const promptTitle = (id?: string) =>
   })[id ?? ""] ?? "Continue";
 const numberOrUndefined = (value: unknown): number | undefined =>
   typeof value === "number" ? value : undefined;
+const firstString = (value: unknown): string | undefined =>
+  Array.isArray(value) && typeof value[0] === "string" ? value[0] : undefined;
 
 const useRuntimeReadiness = (application: ExampleApplicationRuntime): RuntimeReadiness => {
   const [readiness, setReadiness] = useState(() => application.runtime.snapshot().readiness);

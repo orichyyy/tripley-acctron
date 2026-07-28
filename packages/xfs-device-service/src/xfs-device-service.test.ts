@@ -113,7 +113,7 @@ describe("XfsDeviceService", () => {
     );
   });
 
-  it("registers pinpad.data, pinpad.pin, and barcodeReader.qr input sources", async () => {
+  it("registers card, pinpad, and barcode input sources", async () => {
     const service = createXfsDeviceService(config(), { client: createFakeXfsClient() });
     await service.connect();
     const devices = new DeviceRegistry();
@@ -122,6 +122,7 @@ describe("XfsDeviceService", () => {
     service.registerDevices(devices);
     service.registerInputSources(inputSources);
 
+    expect(inputSources.has("cardReader.card")).toBe(true);
     expect(inputSources.has("pinpad.data")).toBe(true);
     expect(inputSources.has("pinpad.pin")).toBe(true);
     expect(inputSources.has("barcodeReader.qr")).toBe(true);
@@ -137,6 +138,11 @@ describe("XfsDeviceService", () => {
     service.registerInputSources(inputSources);
     const ctx = executionContext(devices);
 
+    const cardSession = await inputSources.require("cardReader.card").start(ctx, {
+      id: "card",
+      kind: "cardReader.card",
+      required: true,
+    });
     const dataSession = await inputSources.require("pinpad.data").start(ctx, {
       id: "amount",
       kind: "pinpad.data",
@@ -154,6 +160,10 @@ describe("XfsDeviceService", () => {
       required: false,
     });
 
+    await expect(cardSession.result).resolves.toMatchObject({
+      safeSummary: { sourceKind: "cardReader.card" },
+      source: { deviceId: "customCard", kind: "cardReader.card" },
+    });
     await expect(dataSession.result).resolves.toMatchObject({
       safeSummary: { sourceKind: "pinpad.data" },
       value: "123",

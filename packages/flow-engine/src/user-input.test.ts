@@ -1,12 +1,16 @@
 import type {
   InputSourceAdapter,
+  InputSourceSession,
   SecurePinInputResult,
   UserInputSourceDefinition,
   UserInputSourceResult,
 } from "@tripley-kit/web-container-device-core";
-import { InputSourceRegistry } from "@tripley-kit/web-container-device-core";
+import {
+  createReplayableInputSourceProgress,
+  InputSourceRegistry,
+} from "@tripley-kit/web-container-device-core";
 import type { FrameworkLogMetadata, LoggerPort } from "@tripley-kit/web-container-logging";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { defineFlow, defineUserInputNode } from "./dsl";
 import { FlowTestRunner } from "./test-runner";
@@ -262,6 +266,63 @@ describe("UserInputNodeExecutor", () => {
     expect(timeoutCancels).toEqual(["timeout"]);
     expect(interruptCancels).toEqual(["interrupt"]);
     expect(exitCancels).toEqual(["node.exit"]);
+  });
+
+  it("resets idle timeout on safe activity without extending the hard timeout", async () => {
+    vi.useFakeTimers();
+    try {
+      const progress = createReplayableInputSourceProgress();
+      const cancels: string[] = [];
+      const inputSources = new InputSourceRegistry();
+      inputSources.register({
+        kind: "test.progress",
+        canStart: () => true,
+        start: async (_ctx, source): Promise<InputSourceSession> => ({
+          cancel: async (reason) => {
+            cancels.push(reason ?? "");
+          },
+          id: "session.progress",
+          progress,
+          result: new Promise(() => {}),
+          sourceId: source.id,
+          sourceKind: source.kind,
+        }),
+      });
+      const run = new FlowTestRunner({ inputSources }).run(
+        singleUserInputFlow(
+          defineUserInputNode({
+            id: "progressInput",
+            kind: "userInput",
+            input: {
+              idleTimeoutMs: 10,
+              sources: [{ id: "progress", kind: "test.progress" }],
+              timeoutMs: 30,
+            },
+          }),
+        ),
+        {},
+      );
+      await vi.advanceTimersByTimeAsync(0);
+      for (const digitCount of [1, 2, 3]) {
+        await vi.advanceTimersByTimeAsync(7);
+        progress.publish({
+          activity: true,
+          kind: "pinpad.digitCount",
+          safeSummary: { digitCount },
+        });
+      }
+      await vi.advanceTimersByTimeAsync(9);
+
+      const result = await run;
+      expect(result.status).toBe("cancelled");
+      expect(
+        result.uiFeedback.filter((feedback) => feedback.safeData).at(-1)
+          ?.safeData,
+      ).toEqual({ digitCount: 3 });
+      expect(cancels).toEqual(["timeout"]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("runs a custom input device plugin without modifying core", async () => {
