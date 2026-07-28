@@ -5,7 +5,7 @@ import type {
 } from "@tripley-kit/web-container-device-core";
 import { FrameworkError } from "@tripley-kit/web-container-errors";
 import {
-  FlowTestRunner,
+  type FlowEngine,
   type InputProfile,
   type UserInputSourceDefinition,
   type UserInputValidationDefinition,
@@ -28,6 +28,7 @@ export interface InputRunnerDependencies {
   readonly devices: DeviceRegistry;
   readonly locks: DeviceLockManager;
   readonly inputSources: InputSourceRegistry;
+  readonly flowEngine: FlowEngine;
 }
 
 export const runUserInput = async (
@@ -35,49 +36,66 @@ export const runUserInput = async (
   dependencies: InputRunnerDependencies,
   options: RunInputOptions,
 ): Promise<unknown> => {
-  while (true) {
-    const externalDevice = options.sources.every((source) => source.kind !== "ui.command");
-    ctx.updateView({
-      phase: "collectingInput",
-      promptId: options.promptId,
-      safeData: {
-        externalDevice,
-        inputMode: options.profile.constraints?.inputMode ?? "text",
-        maxLength: options.profile.constraints?.maxLength ?? null,
-        minLength: options.profile.constraints?.minLength ?? null,
-        secure: options.security === "secure",
-        secureDevice: options.security === "secure" && externalDevice,
-      },
-    });
-    const node = defineUserInputNode({
-      id: options.id,
-      input: {
-        profile: options.profile,
-        security: options.security,
-        sources: options.sources,
-        timeoutMs: ctx.interactionTimeout(options.id),
-        trace: { safeToLog: false, summaryOnly: true },
-        ui: { stateKey: `operation.${options.id}` },
-        validation: options.validation,
-      },
-      kind: "userInput",
-    });
-    const flow = defineFlow({
-      id: `kiosk.operation.${options.id}`,
-      nodes: { [node.id]: node },
-      startNodeId: node.id,
-      trace: { redactSecureInput: true, summaryOnly: true },
-      version: "1.0.0",
-    });
-    const snapshot = await new FlowTestRunner({ inputSources: dependencies.inputSources }).run(
-      flow,
+  const externalDevice = options.sources.every(
+    (source) => source.kind !== "ui.command",
+  );
+  ctx.updateView({
+    phase: "collectingInput",
+    promptId: options.promptId,
+    safeData: {
+      externalDevice,
+      inputMode: options.profile.constraints?.inputMode ?? "text",
+      maxLength: options.profile.constraints?.maxLength ?? null,
+      minLength: options.profile.constraints?.minLength ?? null,
+      secure: options.security === "secure",
+      secureDevice: options.security === "secure" && externalDevice,
+    },
+  });
+  const node = defineUserInputNode({
+    id: options.id,
+    input: {
+      profile: options.profile,
+      security: options.security,
+      sources: options.sources,
+      timeoutMs: ctx.interactionTimeout(options.id),
+      trace: { safeToLog: false, summaryOnly: true },
+      ui: { stateKey: `operation.${options.id}` },
+      validation: options.validation,
+    },
+    kind: "userInput",
+  });
+  const flow = defineFlow({
+    id: `kiosk.operation.${ctx.operationId}.${options.id}`,
+    nodes: { [node.id]: node },
+    startNodeId: node.id,
+    trace: { redactSecureInput: true, summaryOnly: true },
+    version: "1.0.0",
+  });
+  dependencies.flowEngine.register(flow);
+  try {
+    const instance = await dependencies.flowEngine.start(
+      flow.id,
       {},
       {
         deviceLocks: dependencies.locks,
         devices: dependencies.devices,
+        onUiFeedback: (feedback) => {
+          if (feedback.status !== "invalid") {
+            return;
+          }
+          ctx.consumeAttempt(options.attemptPolicyId ?? options.id);
+          ctx.updateView({
+            feedback: {
+              messageKey: feedback.messageKey ?? "input.invalid",
+              reasonCode: feedback.reasonCode,
+              severity: feedback.severity ?? "error",
+            },
+          });
+        },
         signal: ctx.signal,
       },
     );
+    const snapshot = await instance.completion;
     if (snapshot.status === "completed") {
       return snapshot.output;
     }
@@ -90,12 +108,13 @@ export const runUserInput = async (
           severity: snapshot.result.feedback.severity ?? "error",
         },
       });
-      continue;
     }
     throw new FrameworkError({
       category: "dependency",
       code: snapshot.result?.type === "cancel" ? snapshot.result.reasonCode : "input.failed",
       message: `Input stage failed: ${options.id}`,
     });
+  } finally {
+    dependencies.flowEngine.unregister(flow.id, flow.version);
   }
 };

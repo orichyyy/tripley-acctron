@@ -1,6 +1,6 @@
 {
   "name": "@tripley-kit/web-container-flow-engine",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",
@@ -23,7 +23,8 @@
     "@tripley-kit/web-container-errors": "workspace:*",
     "@tripley-kit/web-container-logging": "workspace:*",
     "@tripley-kit/web-container-scoped-store": "workspace:*",
-    "@tripley-kit/web-container-types": "workspace:*"
+    "@tripley-kit/web-container-types": "workspace:*",
+    "@tripley-kit/web-container-ui-port": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.3.5",

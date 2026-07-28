@@ -243,3 +243,42 @@ await expectFlow(kioskWithdrawalFlow)
   .expectPath(['precheck', 'enterAmount', 'confirmAmount', 'sendHostRequest'])
   .expectCompleted();
 ```
+
+## Executable runtime
+
+`ExecutableFlowEngine` is the production implementation of the `FlowEngine`
+contract. Production applications and `FlowTestRunner` share its node execution
+semantics.
+
+```ts
+const engine = createFlowEngine({
+  devices,
+  deviceLocks,
+  inputSources,
+  scopedStore,
+  projection: new UiPortFlowProjectionAdapter(ui),
+});
+
+engine.register(withdrawalFlow);
+const instance = await engine.start(withdrawalFlow.id, input, {
+  signal: operationSignal,
+});
+const result = await instance.completion;
+```
+
+The engine owns definition/version lookup, instance state, node transitions,
+effects, hooks, timeout, interrupt, pause/resume, cancellation, catch/finally,
+subflow execution, safe trace, and UI projection.
+
+React must not own a flow instance's cancellation controller or infer business
+transitions from component lifecycle. React renders the `UiPort` projection and
+submits user intent through commands or registered input sources.
+
+Completed snapshots are bounded in memory. The default retention is the most
+recent 100 instances and can be configured with
+`completedInstanceRetention.maxCount`; set it to `0` when a durable `FlowStore`
+is the only history source.
+
+`FlowTestRunner` uses the same runtime with a test-only stop policy for
+`stay`/`reenter`, allowing validation assertions without creating a second
+execution model.

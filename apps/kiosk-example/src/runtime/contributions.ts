@@ -320,6 +320,7 @@ export const createContributionDependencies = (input: {
   broker: UiInputBroker;
   mode: "memory" | "hostd";
   devices: DeviceRegistry;
+  flowEngine: InputRunnerDependencies["flowEngine"];
   locks: DeviceLockManager;
   inputSources: InputSourceRegistry;
   operationMaterial?: OperationMaterialCapturePort | undefined;

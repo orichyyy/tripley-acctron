@@ -4,6 +4,10 @@ import {
   InputSourceRegistry,
 } from "@tripley-kit/web-container-device-core";
 import {
+  UiPortFlowProjectionAdapter,
+  createFlowEngine,
+} from "@tripley-kit/web-container-flow-engine";
+import {
   AuditJournalService,
   InMemoryAuditJournalRepository,
   InMemoryOperationLedger,
@@ -87,6 +91,13 @@ export const createExampleApplicationRuntime = async (
   const locks = new DeviceLockManager();
   const broker = new UiInputBroker();
   inputSources.register(broker.createAdapter("ui.command"));
+  const flowEngine = createFlowEngine({
+    deviceLocks: locks,
+    devices,
+    inputSources,
+    projection: new UiPortFlowProjectionAdapter(ui),
+    scopedStore,
+  });
   let bootstrapError: string | undefined;
   let disposeDevices: (() => Promise<void>) | undefined;
   let hostdComposition: HostdDeviceComposition | undefined;
@@ -125,6 +136,7 @@ export const createExampleApplicationRuntime = async (
   const dependencies = createContributionDependencies({
     broker,
     devices,
+    flowEngine,
     inputSources,
     locks,
     mode: options.mode,
@@ -209,6 +221,7 @@ export const createExampleApplicationRuntime = async (
       clearInterval(healthTimer);
     }
     await runtime.dispose();
+    await flowEngine.dispose();
     await disposeDevices?.();
   };
   const rebootApplication = async (mode: KioskRuntimeMode): Promise<void> => {
@@ -293,6 +306,7 @@ export const createExampleApplicationRuntime = async (
       withdrawal: withdrawalDiagnostics,
     },
     dispose: disposeApplication,
+    flowEngine,
     mode: options.mode,
     operationStateKey,
     runtime,

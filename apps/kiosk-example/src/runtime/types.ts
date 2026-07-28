@@ -1,4 +1,5 @@
 import type { CommandRegistry } from "@tripley-kit/web-container-command-system";
+import type { FlowEngine } from "@tripley-kit/web-container-flow-engine";
 import type { KioskRuntime, KioskRuntimeMode } from "@tripley-kit/web-container-kiosk-runtime";
 import type { StoreApi } from "zustand";
 
@@ -21,6 +22,7 @@ export interface ExampleApplicationRuntime {
   readonly mode: KioskRuntimeMode;
   readonly runtime: KioskRuntime;
   readonly commands: CommandRegistry;
+  readonly flowEngine: FlowEngine;
   readonly store: StoreApi<Record<string, unknown>>;
   readonly operationStateKey: string;
   readonly diagnostics: ExampleDiagnostics;

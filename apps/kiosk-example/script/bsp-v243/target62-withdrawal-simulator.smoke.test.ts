@@ -150,7 +150,9 @@ describe("Target 62 Taiwan BSP operation-context simulator smoke", () => {
       });
       await xfsClient.connect();
       const leaseClient =
-        xfsClient as Parameters<typeof XfsTestCommandLeaseSet.acquire>[0];
+        xfsClient as unknown as Parameters<
+          typeof XfsTestCommandLeaseSet.acquire
+        >[0];
       commandLeases.push(
         await XfsTestCommandLeaseSet.acquire(
           leaseClient,

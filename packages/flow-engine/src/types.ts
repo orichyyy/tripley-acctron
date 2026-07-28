@@ -37,7 +37,7 @@ export interface FlowDefinition<Input = unknown, Output = unknown> {
   readonly inputSchema?: FlowValidator<Input> | undefined;
   readonly outputSchema?: FlowValidator<Output> | undefined;
   readonly startNodeId: string;
-  readonly nodes: Record<string, FlowNodeDefinition>;
+  readonly nodes: Record<string, AnyFlowNodeDefinition>;
   readonly edges?: readonly FlowEdge[] | undefined;
   readonly concurrency?: FlowConcurrencyPolicy | undefined;
   readonly timeoutMs?: number | undefined;
@@ -156,6 +156,30 @@ export interface FlowNodeDefinition<TKind extends FlowNodeKind = FlowNodeKind> {
   readonly timeoutMs?: number | undefined;
   readonly next?: string | undefined;
   readonly metadata?: Record<string, unknown> | undefined;
+}
+
+export interface ActionFlowNodeDefinition
+  extends FlowNodeDefinition<"action"> {
+  run(
+    ctx: FlowExecutionContext,
+  ): MaybePromise<FlowNodeResult | unknown>;
+}
+
+export interface DecisionFlowNodeDefinition
+  extends FlowNodeDefinition<"decision"> {
+  decide(ctx: FlowExecutionContext): MaybePromise<string>;
+}
+
+export interface WaitEventFlowNodeDefinition
+  extends FlowNodeDefinition<"waitEvent"> {
+  readonly waitFor: FlowWaitCondition;
+}
+
+export interface TerminalFlowNodeDefinition
+  extends FlowNodeDefinition<"terminal"> {
+  readonly output?:
+    | unknown
+    | ((ctx: FlowExecutionContext) => MaybePromise<unknown>);
 }
 
 export interface FlowWaitCondition {
@@ -375,6 +399,15 @@ export interface SubflowNodeDefinition extends FlowNodeDefinition<"subflow"> {
   };
 }
 
+export type AnyFlowNodeDefinition =
+  | FlowNodeDefinition
+  | ActionFlowNodeDefinition
+  | DecisionFlowNodeDefinition
+  | WaitEventFlowNodeDefinition
+  | TerminalFlowNodeDefinition
+  | UserInputNodeDefinition
+  | SubflowNodeDefinition;
+
 export interface FlowInstanceSnapshot<Output = unknown> {
   readonly instanceId: string;
   readonly flowId: string;
@@ -396,5 +429,7 @@ export interface FlowTestRunnerOptions {
   readonly interrupt?: Promise<FlowInterrupt> | undefined;
   readonly signal?: AbortSignal | undefined;
   readonly traceId?: string | undefined;
-  evaluateCondition?(conditionId: string): MaybePromise<boolean>;
+  readonly evaluateCondition?:
+    | ((conditionId: string) => MaybePromise<boolean>)
+    | undefined;
 }
