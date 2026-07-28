@@ -4,6 +4,50 @@
 
 Make industry project bases repeatable. A preset assembles required capabilities, plugins, configuration providers, windows, storage migrations, flow policies, command middleware, health checks, and UI contributions.
 
+The runtime blueprint and the project source template are deliberately separate:
+
+- `KioskProjectBlueprint` describes runtime capabilities and extension points.
+- `templates/kiosk-project` defines the engineering constraints inherited by newly created bank projects.
+
+Do not place source-generation concerns or agent instructions in the runtime blueprint interface.
+
+## Project source template
+
+Every new kiosk or bank project must start from:
+
+```text
+packages/create-kiosk-project/templates/AGENTS.md
+```
+
+The generated project may append project-specific rules, but it must retain the template's core-first architecture requirements.
+
+Those requirements enforce:
+
+- `apps/kiosk-example` as the reference composition.
+- Existing Tripley Acctron packages before local implementation.
+- Reusable framework gaps implemented in core with tests and documentation.
+- Reference example updates for new reusable capabilities.
+- Published public package interfaces as the project integration seam.
+- Flow Engine ownership of business orchestration.
+- UI ownership of presentation and user-intent submission only.
+- Project-specific behavior implemented through registered extensions rather than core forks.
+
+Project tooling that creates a kiosk application must materialize this file as the project-root `AGENTS.md`.
+
+Initialize a new or existing project directory with:
+
+```sh
+pnpm dlx @tripley-kit/create-kiosk-project ./bank-kiosk
+```
+
+The command refuses to replace an existing `AGENTS.md`. An intentional replacement requires:
+
+```sh
+pnpm dlx @tripley-kit/create-kiosk-project ./bank-kiosk --force
+```
+
+This initial command creates governance only. It does not claim to generate a complete runtime application. Runtime scaffolding may be added later without changing the canonical instruction or collision-safety interfaces.
+
 ## ProjectPreset
 
 ```ts
@@ -98,3 +142,5 @@ export interface ProjectOverrides {
 ## Codex guidance
 
 Implement preset assembly only after core registries, configuration, logging, native adapter, event bus, plugin system, and storage migrations exist. Preset should not bypass public registries.
+
+When work on a consuming bank project reveals a reusable missing capability, improve the corresponding core package first, update `apps/kiosk-example`, publish the package, and then consume the new version. Do not solve reusable framework gaps with project-local orchestration or copied implementations.
