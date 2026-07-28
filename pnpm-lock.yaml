@@ -853,8 +853,8 @@ importers:
         specifier: 0.1.1
         version: 0.1.1
       '@tripley-kit/xfs-client':
-        specifier: 0.1.4
-        version: 0.1.4
+        specifier: 0.1.5
+        version: 0.1.5
     devDependencies:
       tsup:
         specifier: ^8.3.5
@@ -1615,6 +1615,9 @@ packages:
 
   '@tripley-kit/xfs-client@0.1.4':
     resolution: {integrity: sha512-5Xg+NTedvfQ+D4IqJ2Qlk+nn7pOyBoWW97DisS41UvPtRa03W3Iq8ITkcmEd0SStwwUt6N9QjAtgF8IvqHB0kA==}
+
+  '@tripley-kit/xfs-client@0.1.5':
+    resolution: {integrity: sha512-6lgp9l7CbNN/lg6rwE7KSnCxJmAV380M+yoHYlIS479K+IV3I70rPkxjL/Jf/3SROhcNUuyNmUODgpz3aM+14g==}
 
   '@tripley-kit/xfs-control-client@file:../../front-end/tripley-kit/libs/xfs-control-client':
     resolution: {directory: ../../front-end/tripley-kit/libs/xfs-control-client, type: directory}
@@ -2602,6 +2605,10 @@ snapshots:
       '@tripley-kit/xfs-client': 0.1.4
 
   '@tripley-kit/xfs-client@0.1.4':
+    dependencies:
+      '@tripley-kit/xrpc-runtime': file:../../front-end/tripley-kit/libs/xrpc-runtime
+
+  '@tripley-kit/xfs-client@0.1.5':
     dependencies:
       '@tripley-kit/xrpc-runtime': file:../../front-end/tripley-kit/libs/xrpc-runtime
 

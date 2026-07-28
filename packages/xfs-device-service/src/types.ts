@@ -10,6 +10,7 @@ import type {
   XfsCdmRequest,
   XfsCdmRetractRequest,
   XfsCommandLease,
+  XfsCommandLeaseNextRequest,
   XfsCommandLeaseReleaseRequest,
   XfsCommandLeaseRequest,
   XfsCommandLeaseTransitionRequest,
@@ -195,6 +196,7 @@ export interface XfsEventSubscriptionLike {
 export interface XfsCommandLeaseClientLike {
   getHostEpoch(): Promise<string>;
   acquire(request: XfsCommandLeaseRequest): Promise<XfsCommandLease>;
+  acquireNext(request: XfsCommandLeaseNextRequest): Promise<XfsCommandLease>;
   release(request: XfsCommandLeaseReleaseRequest): Promise<void>;
   status(logicalService: string): Promise<XfsCommandLease | null>;
   transition(request: XfsCommandLeaseTransitionRequest): Promise<XfsCommandLease>;

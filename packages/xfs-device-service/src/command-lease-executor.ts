@@ -22,7 +22,6 @@ type XfsCommandLeaseClientSource =
 
 export class HostCommandLeaseExecutor implements XfsCommandLeaseExecutor {
   private readonly queues = new Map<string, Promise<void>>();
-  private readonly fencingTokens = new Map<string, number>();
 
   public constructor(
     private readonly clientSource: XfsCommandLeaseClientSource,
@@ -64,16 +63,8 @@ export class HostCommandLeaseExecutor implements XfsCommandLeaseExecutor {
       return command();
     }
     const hostEpoch = await client.getHostEpoch();
-    const current = await client.status(execution.logicalService);
-    const tokenKey = `${hostEpoch}:${execution.logicalService}`;
-    const fencingToken = Math.max(
-      Date.now(),
-      (this.fencingTokens.get(tokenKey) ?? 0) + 1,
-      (current?.fencingToken ?? 0) + 1,
-    );
-    const lease = await client.acquire({
+    const lease = await client.acquireNext({
       authority: execution.authority,
-      fencingToken,
       hostEpoch,
       logicalService: execution.logicalService,
       operationId: execution.operationId,
@@ -84,7 +75,6 @@ export class HostCommandLeaseExecutor implements XfsCommandLeaseExecutor {
       ...(execution.resourceGroup ? { resourceGroup: execution.resourceGroup } : {}),
       ttlMs: execution.ttlMs,
     });
-    this.fencingTokens.set(tokenKey, lease.fencingToken);
     try {
       return await command();
     } finally {
