@@ -23,7 +23,10 @@ import { WithdrawalPolicyRegistry, WithdrawalPrePresentGateRegistry } from "./po
 export interface FixtureOptions {
   readonly authorization?: "approved" | "declined" | "unavailable";
   readonly cardAvailable?: boolean;
-  readonly cardOrder?: "return-before-cash-present" | "return-after-cash-terminal";
+  readonly cardOrder?:
+    | "return-before-cash-present"
+    | "return-after-cash-terminal"
+    | "managed-by-parent-session";
   readonly cardResult?: CardCustodyResult;
   readonly cashTerminal?: CashDeliveryTerminalResult;
   readonly cashPlanningOrder?:

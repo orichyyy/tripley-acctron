@@ -36,6 +36,11 @@ cash presentation authorization. Timeout, retention, unknown custody, or interve
 unknown, and then resolves card custody. A card failure never rewrites the already observed cash
 outcome.
 
+`managed-by-parent-session` leaves card custody with an authenticated parent
+Card Session. The withdrawal subflow records `session-retained` and never
+ejects or retains the card. A successful child may return to the parent menu;
+failed children let the parent perform the one final card disposition.
+
 Cardless reservation withdrawals omit IDC custody and may register an OTP gate after dispense but
 before present. Gate cancellation, timeout, or rejection prevents present and retracts staged cash.
 
@@ -73,6 +78,8 @@ after all local finalizers, so failure or retry of the host message cannot skip 
 - Project gate and policy contributions require no core modification.
 - A denomination-sensitive host receives the planned cash mix before
   authorization, while a decline releases the plan without dispensing.
+- A parent Card Session can retain card authority across a successful
+  withdrawal without the child ejecting the card.
 
 ## Follow-up
 

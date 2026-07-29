@@ -22,7 +22,8 @@ import type {
 export type WithdrawalEntryMode = "contact-card" | "cardless-reservation";
 export type WithdrawalCardOrder =
   | "return-before-cash-present"
-  | "return-after-cash-terminal";
+  | "return-after-cash-terminal"
+  | "managed-by-parent-session";
 export type WithdrawalCashPlanningOrder =
   | "authorization-before-cash-planning"
   | "cash-planning-before-authorization";
@@ -122,7 +123,11 @@ export interface WithdrawalCashFacts {
 
 export interface WithdrawalCardFacts {
   readonly required: boolean;
-  readonly status: "not-applicable" | "pending" | CardCustodyResult["status"];
+  readonly status:
+    | "not-applicable"
+    | "pending"
+    | "session-retained"
+    | CardCustodyResult["status"];
   readonly reason?: CardCustodyResult["reason"] | undefined;
   readonly mediaState?: CardCustodyResult["mediaState"] | undefined;
   readonly authorityReleased?: boolean | undefined;

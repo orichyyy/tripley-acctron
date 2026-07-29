@@ -82,6 +82,22 @@ describe("WithdrawalOrchestrator", () => {
     );
   });
 
+  it("leaves card custody with a parent session after successful cash take", async () => {
+    const fixture = createFixture({
+      cardAvailable: false,
+      cardOrder: "managed-by-parent-session",
+      entryMode: "contact-card",
+    });
+
+    const result = await fixture.orchestrator.execute(fixture.request);
+
+    expect(result.outcome).toMatchObject({
+      card: { required: true, status: "session-retained" },
+      status: "completed",
+    });
+    expect(fixture.card.returnCard).not.toHaveBeenCalled();
+  });
+
   it("keeps cash presentation and retraction facts separate on take timeout", async () => {
     const fixture = createFixture({ cashTerminal: terminal("retracted", "after-timeout") });
 

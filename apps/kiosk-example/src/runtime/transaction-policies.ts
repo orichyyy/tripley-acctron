@@ -10,7 +10,10 @@ import {
 } from "@tripley-kit/web-container-withdrawal-orchestration";
 
 export interface ExampleWithdrawalPolicyOptions {
-  readonly cardOrder?: "return-before-cash-present" | "return-after-cash-terminal";
+  readonly cardOrder?:
+    | "return-before-cash-present"
+    | "return-after-cash-terminal"
+    | "managed-by-parent-session";
   readonly cashPlanningOrder?:
     | "authorization-before-cash-planning"
     | "cash-planning-before-authorization";

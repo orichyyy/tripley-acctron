@@ -244,6 +244,7 @@ export class WithdrawalOrchestrator {
     state: OperationState,
     respectSignal: boolean,
   ): Promise<CardCustodyResult | undefined> {
+    if (policy.cardOrder === "managed-by-parent-session") return undefined;
     if (request.entryMode !== "contact-card" || state.card.status !== "pending") return undefined;
     if (!this.options.card || !policy.cardCustodyPolicyId) {
       state.card = { required: true, status: "intervention", reason: "custody-unknown" };
@@ -320,7 +321,11 @@ const initialState = (request: WithdrawalRequest, policy: WithdrawalPolicy): Ope
   },
   card: {
     required: request.entryMode === "contact-card",
-    status: request.entryMode === "contact-card" ? "pending" : "not-applicable",
+    status: request.entryMode !== "contact-card"
+      ? "not-applicable"
+      : policy.cardOrder === "managed-by-parent-session"
+        ? "session-retained"
+        : "pending",
   },
 });
 
@@ -346,7 +351,11 @@ const terminalOutcome = (
   if (state.cash.custody !== "taken") {
     return safeOutcome(request, policy, state, "intervention", "cash-custody-unknown");
   }
-  if (state.card.required && state.card.status !== "returned") {
+  if (
+    state.card.required &&
+    state.card.status !== "returned" &&
+    state.card.status !== "session-retained"
+  ) {
     const reason = state.card.reason === "take-timeout" ? "card-take-timeout" : "card-custody-unresolved";
     return safeOutcome(request, policy, state, "intervention", reason);
   }
