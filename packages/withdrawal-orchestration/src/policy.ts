@@ -68,7 +68,11 @@ const validatePolicy = (policy: WithdrawalPolicy): void => {
   if (new Set(policy.prePresentGateIds).size !== policy.prePresentGateIds.length) {
     throw new Error(`Withdrawal policy has duplicate pre-present gates: ${policy.id}`);
   }
-  if (policy.allowedEntryModes.includes("contact-card") && !policy.cardCustodyPolicyId?.trim()) {
+  if (
+    policy.allowedEntryModes.includes("contact-card") &&
+    policy.cardOrder !== "managed-by-parent-session" &&
+    !policy.cardCustodyPolicyId?.trim()
+  ) {
     throw new Error(`Contact-card withdrawal policy requires card custody: ${policy.id}`);
   }
   if (!policy.hostProtocol.id.trim() || !policy.hostProtocol.version.trim()) {

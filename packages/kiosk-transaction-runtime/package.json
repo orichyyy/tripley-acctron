@@ -1,6 +1,6 @@
 {
   "name": "@tripley-kit/web-container-kiosk-transaction-runtime",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",
@@ -19,11 +19,11 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@tripley-kit/web-container-deposit-orchestration": "workspace:*",
-    "@tripley-kit/web-container-kiosk-base": "workspace:*",
-    "@tripley-kit/web-container-kiosk-runtime": "workspace:*",
-    "@tripley-kit/web-container-storage-core": "workspace:*",
-    "@tripley-kit/web-container-withdrawal-orchestration": "workspace:*"
+    "@tripley-kit/web-container-deposit-orchestration": "0.1.2",
+    "@tripley-kit/web-container-kiosk-base": "0.1.1",
+    "@tripley-kit/web-container-kiosk-runtime": "0.1.4",
+    "@tripley-kit/web-container-storage-core": "0.1.1",
+    "@tripley-kit/web-container-withdrawal-orchestration": "0.1.4"
   },
   "devDependencies": {
     "tsup": "^8.3.5",
