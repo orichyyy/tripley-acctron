@@ -23,6 +23,9 @@ export type WithdrawalEntryMode = "contact-card" | "cardless-reservation";
 export type WithdrawalCardOrder =
   | "return-before-cash-present"
   | "return-after-cash-terminal";
+export type WithdrawalCashPlanningOrder =
+  | "authorization-before-cash-planning"
+  | "cash-planning-before-authorization";
 export type WithdrawalHostProtocolMode =
   | "authorization-only"
   | "authorization-then-completion";
@@ -38,6 +41,7 @@ export interface WithdrawalPolicy {
   readonly version: string;
   readonly allowedEntryModes: readonly WithdrawalEntryMode[];
   readonly cardOrder: WithdrawalCardOrder;
+  readonly cashPlanningOrder?: WithdrawalCashPlanningOrder | undefined;
   readonly cardCustodyPolicyId?: string | undefined;
   readonly prePresentGateIds: readonly string[];
   readonly presentationPolicy: CashPresentationPolicy;
@@ -156,6 +160,7 @@ export interface WithdrawalHostPostingPort {
     readonly amount: CashAmount;
     readonly entryMode: WithdrawalEntryMode;
     readonly protocol: WithdrawalHostProtocol;
+    readonly cashPlan?: CashDispensePlan | undefined;
     readonly safeMetadata?: WithdrawalRequest["safeMetadata"];
   }): Promise<WithdrawalHostAuthorizationResult>;
   complete?(input: {

@@ -11,6 +11,9 @@ import {
 
 export interface ExampleWithdrawalPolicyOptions {
   readonly cardOrder?: "return-before-cash-present" | "return-after-cash-terminal";
+  readonly cashPlanningOrder?:
+    | "authorization-before-cash-planning"
+    | "cash-planning-before-authorization";
   readonly hostFinancialCompletion?: boolean;
   readonly mobileOtpGate?: WithdrawalPrePresentGate | undefined;
 }
@@ -24,6 +27,8 @@ export const createExampleWithdrawalPolicy = (
     allowedEntryModes: ["contact-card", "cardless-reservation"],
     cardCustodyPolicyId: "card.standard",
     cardOrder: options.cardOrder ?? "return-before-cash-present",
+    cashPlanningOrder:
+      options.cashPlanningOrder ?? "authorization-before-cash-planning",
     hostProtocol: {
       id: "acctron.withdrawal.host",
       mode: options.hostFinancialCompletion

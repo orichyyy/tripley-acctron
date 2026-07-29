@@ -139,4 +139,39 @@ describe("WithdrawalOrchestrator", () => {
     expect(fixture.cash.start).not.toHaveBeenCalled();
     expect(fixture.transactions.start).not.toHaveBeenCalled();
   });
+
+  it("passes a denomination plan to host when project policy plans cash first", async () => {
+    const fixture = createFixture({
+      cashPlanningOrder: "cash-planning-before-authorization",
+    });
+
+    await fixture.orchestrator.execute(fixture.request);
+
+    expect(fixture.events.indexOf("cash.start")).toBeLessThan(
+      fixture.events.indexOf("host.authorize"),
+    );
+    expect(fixture.host.authorize).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cashPlan: expect.objectContaining({ id: "plan-1" }),
+      }),
+    );
+  });
+
+  it("releases a planned session without dispensing when host declines", async () => {
+    const fixture = createFixture({
+      authorization: "declined",
+      cashPlanningOrder: "cash-planning-before-authorization",
+    });
+
+    const result = await fixture.orchestrator.execute(fixture.request);
+
+    expect(result.outcome.reason).toBe("host-declined");
+    expect(fixture.session.dispense).not.toHaveBeenCalled();
+    expect(fixture.session.abort).toHaveBeenCalledOnce();
+    expect(fixture.events).toEqual(expect.arrayContaining([
+      "cash.start",
+      "host.authorize",
+      "cash.abort",
+    ]));
+  });
 });

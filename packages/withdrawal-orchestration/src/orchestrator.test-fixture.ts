@@ -26,6 +26,9 @@ export interface FixtureOptions {
   readonly cardOrder?: "return-before-cash-present" | "return-after-cash-terminal";
   readonly cardResult?: CardCustodyResult;
   readonly cashTerminal?: CashDeliveryTerminalResult;
+  readonly cashPlanningOrder?:
+    | "authorization-before-cash-planning"
+    | "cash-planning-before-authorization";
   readonly completion?: boolean;
   readonly dispenseError?: Error;
   readonly entryMode?: "contact-card" | "cardless-reservation";
@@ -48,7 +51,7 @@ export const createFixture = (options: FixtureOptions = {}) => {
     reset: vi.fn(async () => { events.push("scope.reset"); }),
   };
   const host = {
-    authorize: vi.fn(async () => {
+    authorize: vi.fn(async (_input: unknown) => {
       events.push("host.authorize");
       if (options.authorization === "unavailable") {
         throw new Error("simulated host unavailable");
@@ -124,6 +127,8 @@ export const createFixture = (options: FixtureOptions = {}) => {
     allowedEntryModes: [entryMode],
     cardCustodyPolicyId: entryMode === "contact-card" ? "card.standard" : undefined,
     cardOrder: options.cardOrder ?? "return-before-cash-present",
+    cashPlanningOrder:
+      options.cashPlanningOrder ?? "authorization-before-cash-planning",
     hostProtocol: {
       id: "host.standard",
       mode: options.protocolMode ?? "authorization-only",

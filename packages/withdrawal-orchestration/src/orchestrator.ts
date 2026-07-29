@@ -7,6 +7,7 @@ import type {
   WithdrawalCardFacts,
   WithdrawalCashFacts,
   WithdrawalCashSessionPort,
+  WithdrawalCashDeliveryPort,
   WithdrawalExecutionResult,
   WithdrawalHostAuthorizationResult,
   WithdrawalHostFacts,
@@ -68,8 +69,24 @@ export class WithdrawalOrchestrator {
         return safeOutcome(request, policy, state, interrupt.status, interrupt.reason, interrupt.trigger);
       }
 
-      const authorization = await this.authorizeHost(request, policy, state);
+      let started: Awaited<ReturnType<WithdrawalCashDeliveryPort["start"]>> | undefined;
+      if (planningBeforeAuthorization(policy)) {
+        started = await this.startCash(request, policy, state);
+        if (!started) {
+          await this.resolveCard(request, policy, state, false);
+          return safeOutcome(request, policy, state, "failed", "cash-start-failed");
+        }
+        session = started.session;
+      }
+
+      const authorization = await this.authorizeHost(
+        request,
+        policy,
+        state,
+        started?.plan,
+      );
       if (!authorization) {
+        if (session) await this.abortCash(session, state, "interrupt");
         await this.resolveCard(request, policy, state, false);
         const status = state.host.status === "declined" ? "declined" : "failed";
         const reason = state.host.status === "declined" ? "host-declined" : "host-unavailable";
@@ -84,46 +101,37 @@ export class WithdrawalOrchestrator {
         operationId: request.operationId,
       });
 
-      let started;
-      try {
-        started = await this.options.cash.start({
-          amount: request.amount,
-          operationId: request.operationId,
-          ownerInstanceId: request.ownerInstanceId,
-          presentationPolicy: policy.presentationPolicy,
-        });
-      } catch {
-        await this.resolveCard(request, policy, state, false);
-        return safeOutcome(request, policy, state, "failed", "cash-start-failed");
+      if (!started) {
+        started = await this.startCash(request, policy, state);
+        if (!started) {
+          await this.resolveCard(request, policy, state, false);
+          return safeOutcome(request, policy, state, "failed", "cash-start-failed");
+        }
+        session = started.session;
       }
-      session = started.session;
-      state.cash = {
-        ...state.cash,
-        beforeSnapshotId: started.before.id,
-        cashSessionId: session.id,
-        custody: "pending",
-      };
+      const activeSession = started.session;
+      session = activeSession;
 
       try {
-        await session.dispense(started.plan);
+        await activeSession.dispense(started.plan);
         state.cash = { ...state.cash, dispense: "completed", dispensed: true };
       } catch {
         state.cash = { ...state.cash, dispense: "execution-unknown", reconciliationRequired: true };
-        await this.transferCash(session, state, "interrupt");
+        await this.transferCash(activeSession, state, "interrupt");
         await this.resolveCard(request, policy, state, false);
         return safeOutcome(request, policy, state, "intervention", "cash-dispense-failed", "interrupt");
       }
 
       const gate = await this.options.prePresentGates.evaluate(policy.prePresentGateIds, {
         amount: request.amount,
-        cashSessionId: session.id,
+        cashSessionId: activeSession.id,
         entryMode: request.entryMode,
         operationId: request.operationId,
         ...(request.signal ? { signal: request.signal } : {}),
       });
       if (gate.status !== "approved") {
         const failure = gateFailure(gate);
-        await this.abortCash(session, state, failure.trigger);
+        await this.abortCash(activeSession, state, failure.trigger);
         await this.resolveCard(request, policy, state, false);
         return safeOutcome(request, policy, state, failure.status, failure.reason, failure.trigger);
       }
@@ -132,7 +140,7 @@ export class WithdrawalOrchestrator {
         const card = await this.resolveCard(request, policy, state, true);
         if (state.card.required && state.card.status !== "returned") {
           const trigger = card ? cardTrigger(card) : "interrupt";
-          await this.abortCash(session, state, trigger);
+          await this.abortCash(activeSession, state, trigger);
           const failure = card
             ? cardFailure(card)
             : { reason: "card-custody-unresolved" as const, status: "intervention" as const };
@@ -143,27 +151,27 @@ export class WithdrawalOrchestrator {
       let presentation;
       try {
         presentation = await this.options.presentationAuthorizer.authorize({
-          cashSessionId: session.id,
+          cashSessionId: activeSession.id,
           operationId: request.operationId,
           policy: policy.presentationPolicy,
         });
       } catch {
-        await this.abortCash(session, state, "interrupt");
+        await this.abortCash(activeSession, state, "interrupt");
         await this.resolveCard(request, policy, state, false);
         return safeOutcome(request, policy, state, "failed", "cash-presentation-not-authorized");
       }
 
       try {
-        await session.present(presentation);
+        await activeSession.present(presentation);
         state.cash = { ...state.cash, present: "completed", presented: true };
       } catch {
         state.cash = { ...state.cash, present: "execution-unknown", reconciliationRequired: true };
-        await this.transferCash(session, state, "interrupt");
+        await this.transferCash(activeSession, state, "interrupt");
         await this.resolveCard(request, policy, state, false);
         return safeOutcome(request, policy, state, "intervention", "cash-present-failed", "interrupt");
       }
 
-      const terminal = await session.waitForTake();
+      const terminal = await activeSession.waitForTake();
       applyCashTerminal(state, terminal);
       if (policy.cardOrder === "return-after-cash-terminal") {
         await this.resolveCard(request, policy, state, true);
@@ -180,6 +188,7 @@ export class WithdrawalOrchestrator {
     request: WithdrawalRequest,
     policy: WithdrawalPolicy,
     state: OperationState,
+    cashPlan?: Parameters<WithdrawalCashSessionPort["dispense"]>[0],
   ): Promise<WithdrawalHostAuthorizationResult | undefined> {
     try {
       const result = await this.options.host.authorize({
@@ -187,6 +196,7 @@ export class WithdrawalOrchestrator {
         entryMode: request.entryMode,
         operationId: request.operationId,
         protocol: policy.hostProtocol,
+        ...(cashPlan ? { cashPlan } : {}),
         ...(request.safeMetadata ? { safeMetadata: request.safeMetadata } : {}),
       });
       state.host = {
@@ -200,6 +210,30 @@ export class WithdrawalOrchestrator {
       return result.status === "approved" ? result : undefined;
     } catch {
       state.host = { ...state.host, status: "unavailable" };
+      return undefined;
+    }
+  }
+
+  private async startCash(
+    request: WithdrawalRequest,
+    policy: WithdrawalPolicy,
+    state: OperationState,
+  ): Promise<Awaited<ReturnType<WithdrawalCashDeliveryPort["start"]>> | undefined> {
+    try {
+      const started = await this.options.cash.start({
+        amount: request.amount,
+        operationId: request.operationId,
+        ownerInstanceId: request.ownerInstanceId,
+        presentationPolicy: policy.presentationPolicy,
+      });
+      state.cash = {
+        ...state.cash,
+        beforeSnapshotId: started.before.id,
+        cashSessionId: started.session.id,
+        custody: "pending",
+      };
+      return started;
+    } catch {
       return undefined;
     }
   }
@@ -427,3 +461,6 @@ const assertRequestAllowed = (request: WithdrawalRequest, policy: WithdrawalPoli
     throw new Error("Withdrawal operation and owner identity are required");
   }
 };
+
+const planningBeforeAuthorization = (policy: WithdrawalPolicy): boolean =>
+  policy.cashPlanningOrder === "cash-planning-before-authorization";

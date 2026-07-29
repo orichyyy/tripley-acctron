@@ -16,6 +16,10 @@ services remain independent and bank projects own transaction ordering and host 
 - Contact-card and cardless-reservation entry modes.
 - Project pre-present gates such as mobile OTP without hard-coding a verification mechanism.
 - Host authorization before cash movement.
+- Configurable authorization/cash-planning order. Projects whose host request
+  requires denomination counts may plan and persist the before snapshot first,
+  pass the typed one-use plan to authorization, and still prohibit cash
+  movement until approval.
 - Structured trigger, cash execution, cash custody, and card custody facts.
 - Application recovery-barrier admission before a transaction starts.
 - Mandatory local transaction, EJ/audit, and scoped-state finalizers.
@@ -34,6 +38,13 @@ outcome.
 
 Cardless reservation withdrawals omit IDC custody and may register an OTP gate after dispense but
 before present. Gate cancellation, timeout, or rejection prevents present and retracts staged cash.
+
+The default planning order remains authorization before cash planning.
+`cash-planning-before-authorization` acquires the cash session, records the
+before snapshot, and creates a denomination plan before calling the host. A
+decline or unavailable host aborts that non-moving session; `dispense` is never
+called. The Host authorization port receives the typed plan without exposing
+device internals to Flow code.
 
 ## Finalization
 
@@ -60,6 +71,8 @@ after all local finalizers, so failure or retry of the host message cannot skip 
 - Authorization-only projects complete every local finalizer without a completion message.
 - Completion-enabled projects invoke the optional finalizer after local cleanup.
 - Project gate and policy contributions require no core modification.
+- A denomination-sensitive host receives the planned cash mix before
+  authorization, while a decline releases the plan without dispensing.
 
 ## Follow-up
 
