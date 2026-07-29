@@ -79,6 +79,16 @@ export class InMemoryCashRecoveryLeaseStore implements CashRecoveryLeaseStorePor
       record.state !== "closed" && (!logicalService || record.logicalService === logicalService));
   }
 
+  public async nextFencingToken(logicalService: string, minimum: number): Promise<number> {
+    const previous = Math.max(
+      0,
+      ...[...this.records.values()]
+        .filter((record) => record.logicalService === logicalService)
+        .map((record) => record.fencingToken),
+    );
+    return nextToken(previous, minimum);
+  }
+
   public async compareAndSwap(input: {
     readonly id: string;
     readonly expectedRevision: number;
@@ -133,6 +143,15 @@ export class SqliteCashRecoveryLeaseStore implements CashRecoveryLeaseStorePort 
       logicalService ? [logicalService] : [],
     );
     return rows.map(fromRow);
+  }
+
+  public async nextFencingToken(logicalService: string, minimum: number): Promise<number> {
+    const row = await this.db.queryOne<{ maximum_token: number | null }>(
+      `SELECT MAX(fencing_token) AS maximum_token
+       FROM xfs_cash_recovery_lease WHERE logical_service = ?`,
+      [logicalService],
+    );
+    return nextToken(row?.maximum_token ?? 0, minimum);
   }
 
   public async compareAndSwap(input: {
@@ -196,7 +215,10 @@ export class DurableCashRecoveryLeaseAdapter implements CashRecoveryLeasePort {
     const record = await this.store.create({
       ...input,
       createdAt: now.toISOString(),
-      fencingToken: 1,
+      fencingToken: await this.store.nextFencingToken(
+        input.logicalService,
+        fencingTokenFloor(now),
+      ),
       id: this.options.idFactory?.() ?? input.cashSessionId,
       module: "cdm",
       recoveryDeadlineAt: new Date(now.getTime() + this.options.deadlineMs).toISOString(),
@@ -287,3 +309,27 @@ const recordParams = (record: CashRecoveryLeaseRecord): SqliteValue[] => [
   record.ownerInstanceId, record.authority, record.state, record.phase, record.evidenceSequence,
   record.fencingToken, record.recoveryDeadlineAt, record.revision, record.createdAt, record.updatedAt,
 ];
+
+const fencingTokenFloor = (now: Date): number => {
+  const token = now.getTime() * 1_000;
+  if (!Number.isSafeInteger(token) || token <= 0) {
+    throw new Error("Cash recovery fencing token time floor is invalid");
+  }
+  return token;
+};
+
+const nextToken = (previous: number, minimum: number): number => {
+  if (
+    !Number.isSafeInteger(previous) ||
+    previous < 0 ||
+    !Number.isSafeInteger(minimum) ||
+    minimum <= 0
+  ) {
+    throw new Error("Cash recovery fencing token bounds are invalid");
+  }
+  const token = Math.max(previous + 1, minimum);
+  if (!Number.isSafeInteger(token)) {
+    throw new Error("Cash recovery fencing token space is exhausted");
+  }
+  return token;
+};

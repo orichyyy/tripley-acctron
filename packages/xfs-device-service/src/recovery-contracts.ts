@@ -62,6 +62,7 @@ export interface CashRecoveryLeaseStorePort {
   create(input: CashRecoveryLeaseCreateInput): Promise<CashRecoveryLeaseRecord>;
   get(id: string): Promise<CashRecoveryLeaseRecord | null>;
   listUnresolved(logicalService?: string): Promise<readonly CashRecoveryLeaseRecord[]>;
+  nextFencingToken(logicalService: string, minimum: number): Promise<number>;
   compareAndSwap(input: {
     readonly id: string;
     readonly expectedRevision: number;

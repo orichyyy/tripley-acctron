@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { InMemoryCashRecoveryLeaseStore, cashRecoveryLeaseTableSql } from "./recovery-store";
+import {
+  DurableCashRecoveryLeaseAdapter,
+  InMemoryCashRecoveryLeaseStore,
+  cashRecoveryLeaseTableSql,
+} from "./recovery-store";
 
 describe("CashRecoveryLeaseStore", () => {
   it("allows only one unresolved lease per logical service", async () => {
@@ -26,6 +30,47 @@ describe("CashRecoveryLeaseStore", () => {
       id: record.id, patch: { state: "transferPending" }, updatedAt: new Date(1).toISOString(),
     })).resolves.toBeNull();
   });
+
+  it("allocates time-based tokens monotonically across adapter restarts", async () => {
+    const store = new InMemoryCashRecoveryLeaseStore();
+    const now = new Date("2026-07-29T12:00:00.000Z");
+    const firstAdapter = adapter(store, now);
+    const first = await firstAdapter.acquire(leaseInput("lease-1", "cash-1"));
+    await firstAdapter.close(first, "notDispensed");
+
+    const secondAdapter = adapter(store, now);
+    const second = await secondAdapter.acquire(leaseInput("lease-2", "cash-2"));
+
+    expect(first.fencingToken).toBe(now.getTime() * 1_000);
+    expect(second.fencingToken).toBe(first.fencingToken + 1);
+  });
+
+  it("starts a rebuilt store from the current time floor", async () => {
+    const rebuilt = new InMemoryCashRecoveryLeaseStore();
+    const now = new Date("2026-07-29T12:00:01.000Z");
+
+    const lease = await adapter(rebuilt, now).acquire(
+      leaseInput("lease-rebuilt", "cash-rebuilt"),
+    );
+
+    expect(lease.fencingToken).toBe(now.getTime() * 1_000);
+  });
+});
+
+const adapter = (
+  store: InMemoryCashRecoveryLeaseStore,
+  now: Date,
+) => new DurableCashRecoveryLeaseAdapter(store, {
+  deadlineMs: 60_000,
+  idFactory: () => crypto.randomUUID(),
+  now: () => now,
+});
+
+const leaseInput = (id: string, cashSessionId: string) => ({
+  cashSessionId,
+  logicalService: "CDM1",
+  operationId: `operation-${id}`,
+  ownerInstanceId: "runtime-1",
 });
 
 const input = (id: string, cashSessionId: string) => ({
