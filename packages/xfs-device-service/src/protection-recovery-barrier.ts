@@ -28,7 +28,14 @@ interface GroupResult {
   readonly acknowledged: boolean;
 }
 
-const terminalOutcomes = new Set(["taken", "retracted", "committed", "notMoved", "notAccepted"]);
+const terminalOutcomes = new Set([
+  "taken",
+  "retracted",
+  "committed",
+  "notMoved",
+  "notAccepted",
+  "retained",
+]);
 
 export class ProtectionRecoveryStartupBarrier {
   private readonly groups: readonly ProtectionRecoveryResourceGroup[];

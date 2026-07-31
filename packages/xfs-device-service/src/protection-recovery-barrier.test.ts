@@ -36,6 +36,15 @@ describe("ProtectionRecoveryStartupBarrier", () => {
     expect(JSON.stringify(result.safeSummary)).not.toContain("operation-1");
   });
 
+  it("acknowledges retained card custody as a terminal outcome", async () => {
+    const fixture = createFixture({ custodyOutcome: "retained", phase: "retained" });
+    const result = await fixture.barrier.recover();
+
+    expect(result.status).toBe("ready");
+    expect(fixture.events).toContain("application:terminal");
+    expect(fixture.events).toContain("host:ack");
+  });
+
   it("does not acknowledge until every idempotent projection succeeds", async () => {
     let failAudit = true;
     const fixture = createFixture({
