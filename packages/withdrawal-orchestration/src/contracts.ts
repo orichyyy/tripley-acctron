@@ -108,7 +108,7 @@ export interface WithdrawalHostFacts {
 
 export interface WithdrawalCashFacts {
   readonly cashSessionId?: string | undefined;
-  readonly dispense: "not-requested" | "completed" | "execution-unknown";
+  readonly dispense: "not-requested" | "completed" | "failed" | "execution-unknown";
   readonly present: "not-requested" | "completed" | "execution-unknown";
   readonly custody: CashCustodyOutcome | "not-started" | "pending" | "recovery-transferred";
   readonly beforeSnapshotId?: string | undefined;

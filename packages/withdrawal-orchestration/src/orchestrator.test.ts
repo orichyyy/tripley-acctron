@@ -113,6 +113,26 @@ describe("WithdrawalOrchestrator", () => {
     });
   });
 
+  it("reports a definite pre-dispense failure without manual intervention", async () => {
+    const fixture = createFixture({
+      dispenseError: new Error("simulated definite CDM command failure"),
+      dispenseExitTerminal: terminal("notDispensed", "after-dispense-failure"),
+    });
+
+    const result = await fixture.orchestrator.execute(fixture.request);
+
+    expect(result.outcome).toMatchObject({
+      cash: {
+        custody: "notDispensed",
+        dispense: "failed",
+        dispensed: false,
+        reconciliationRequired: false,
+      },
+      reason: "cash-dispense-failed",
+      status: "failed",
+    });
+  });
+
   it("omits Host Financial Completion for authorization-only projects", async () => {
     const fixture = createFixture({ protocolMode: "authorization-only" });
 

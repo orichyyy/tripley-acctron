@@ -118,8 +118,10 @@ export class WithdrawalOrchestrator {
       } catch {
         state.cash = { ...state.cash, dispense: "execution-unknown", reconciliationRequired: true };
         await this.transferCash(activeSession, state, "interrupt");
+        reconcileDispenseFailure(state);
         await this.resolveCard(request, policy, state, false);
-        return safeOutcome(request, policy, state, "intervention", "cash-dispense-failed", "interrupt");
+        const status = state.cash.reconciliationRequired ? "intervention" : "failed";
+        return safeOutcome(request, policy, state, status, "cash-dispense-failed", "interrupt");
       }
 
       const gate = await this.options.prePresentGates.evaluate(policy.prePresentGateIds, {
@@ -338,6 +340,16 @@ const applyCashTerminal = (state: OperationState, result: CashDeliveryTerminalRe
     retracted: result.outcome === "retracted",
     taken: result.outcome === "taken",
   };
+};
+
+const reconcileDispenseFailure = (state: OperationState): void => {
+  if (state.cash.custody === "notDispensed") {
+    state.cash = { ...state.cash, dispense: "failed", dispensed: false };
+    return;
+  }
+  if (state.cash.custody === "retracted" || state.cash.custody === "taken") {
+    state.cash = { ...state.cash, dispense: "completed", dispensed: true };
+  }
 };
 
 const terminalOutcome = (

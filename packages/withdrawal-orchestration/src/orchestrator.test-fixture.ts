@@ -29,6 +29,7 @@ export interface FixtureOptions {
     | "managed-by-parent-session";
   readonly cardResult?: CardCustodyResult;
   readonly cashTerminal?: CashDeliveryTerminalResult;
+  readonly dispenseExitTerminal?: CashDeliveryTerminalResult;
   readonly cashPlanningOrder?:
     | "authorization-before-cash-planning"
     | "cash-planning-before-authorization";
@@ -82,6 +83,10 @@ export const createFixture = (options: FixtureOptions = {}) => {
     }),
     exit: vi.fn(async () => {
       events.push("cash.exit");
+      if (options.dispenseExitTerminal) {
+        session.isTerminal = true;
+        return { result: options.dispenseExitTerminal, status: "terminal" as const };
+      }
       return {
         receipt: { fencingToken: 1, leaseId: "recovery-1", state: "recoveryBound" as const },
         status: "transferred" as const,

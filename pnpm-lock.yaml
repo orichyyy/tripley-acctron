@@ -542,20 +542,20 @@ importers:
   packages/kiosk-transaction-runtime:
     dependencies:
       '@tripley-kit/web-container-deposit-orchestration':
-        specifier: workspace:*
-        version: link:../deposit-orchestration
+        specifier: 0.1.2
+        version: 0.1.2
       '@tripley-kit/web-container-kiosk-base':
-        specifier: workspace:*
-        version: link:../kiosk-base
+        specifier: 0.1.1
+        version: 0.1.1
       '@tripley-kit/web-container-kiosk-runtime':
-        specifier: workspace:*
-        version: link:../kiosk-runtime
+        specifier: 0.1.4
+        version: 0.1.4
       '@tripley-kit/web-container-storage-core':
-        specifier: workspace:*
-        version: link:../storage-core
+        specifier: 0.1.1
+        version: 0.1.1
       '@tripley-kit/web-container-withdrawal-orchestration':
-        specifier: workspace:*
-        version: link:../withdrawal-orchestration
+        specifier: 0.1.4
+        version: 0.1.4
     devDependencies:
       tsup:
         specifier: ^8.3.5
@@ -846,8 +846,8 @@ importers:
         specifier: 0.1.0
         version: 0.1.0
       '@tripley-kit/web-container-xfs-device-service':
-        specifier: 0.1.5
-        version: 0.1.5
+        specifier: 0.1.24
+        version: 0.1.24
     devDependencies:
       tsup:
         specifier: ^8.3.5
@@ -1594,6 +1594,9 @@ packages:
   '@tripley-kit/web-container-device-core@0.1.0':
     resolution: {integrity: sha512-RlClWwBfDCrYQmNTLZtiDQZ7yQhQrZaFOHe2e91B+InKNnRPZSKQAG3pYjYou9C4i0qrCNBjeon1DDhjELq/HA==}
 
+  '@tripley-kit/web-container-device-core@0.2.0':
+    resolution: {integrity: sha512-T86Y6l1BmBs7aPh9twPBsPKzN73wyo/qWT5wQr0T1yypf9CCe1OzmLpxx8MOaYw1RmuSGBbchI0I3AdNLQ4jVg==}
+
   '@tripley-kit/web-container-errors@0.1.0':
     resolution: {integrity: sha512-EW2JPFYqno0Qd1R+6Qgs6yWY3HQegxm0Fz10+lSprOSnxmPaHh5VVU0v2mTpnFsg4qJLs3qaL8rZZPE4UlZ7Uw==}
 
@@ -1622,7 +1625,7 @@ packages:
     resolution: {integrity: sha512-N7AYZqgA6qqDNuWKqReSnReEtlW+Jt0wA7GOYhR7qCgXleQTfsQ5xdqNRtOCuT7kmAh4vFbitZTXL0dKDlGbpQ==}
 
   '@tripley-kit/web-container-prompt-presentation@0.1.0':
-    resolution: {integrity: sha512-Gat3ldivFNxrosnbdzu//sLS5aYCTLzOJQyJp7HnCm6WRt3/q4pOBjwmd2Ed1onrQ7J98HzpOQ5Oaoq2cHbjzw==}
+    resolution: {integrity: sha512-Gat3ldivFNxrosnbdzu//sLS5aYCTLzOJQyJp7HnCm6WRt3/q4pOBjwmd2Ed1onrQ7J98HzpOQ5Oaoq2cHbjzw==, tarball: https://registry.npmjs.org/@tripley-kit/web-container-prompt-presentation/-/web-container-prompt-presentation-0.1.0.tgz}
 
   '@tripley-kit/web-container-scoped-store@0.1.0':
     resolution: {integrity: sha512-sebOLT93qC5SY6uNNsE0RBFGWXpVv8MVJxL+ufEp0HhJ8snSjEj6qjaWirXD8s1vyIapMtKVSFUUlkzRpMLU1w==}
@@ -1644,6 +1647,12 @@ packages:
 
   '@tripley-kit/web-container-withdrawal-orchestration@0.1.2':
     resolution: {integrity: sha512-6Nm2GVv8CrmUCjxZldpJKybS+svm5KB6NsJAJ+pS+RDkJsyodq7KFeg2VPmkgDapmpJsx20NyfOGOMKC6ANUTw==}
+
+  '@tripley-kit/web-container-withdrawal-orchestration@0.1.4':
+    resolution: {integrity: sha512-VcZETkQZhD7dlhiTqghBKgb7TfSFefRg3Ii7Ofz7JBY03WWfYeiac+Su+uSZTT8akQEBkM3KbXHBukPFczpleg==}
+
+  '@tripley-kit/web-container-xfs-device-service@0.1.24':
+    resolution: {integrity: sha512-89VPPjvB73OO31xLO0sgLcxkFmUzmgeVaPmAEDi8jtFPyz1OFNmcUE61QWTVTk2YdJ2o5CyL44nSjZJ6WN91yA==}
 
   '@tripley-kit/web-container-xfs-device-service@0.1.5':
     resolution: {integrity: sha512-lV64SwJoEt5QbuhjqEEaCwIEZZ4ORC/aV9Uty1BkhfPsOzlYc6ukSgBxRnPNvDKEIPWxSLRMh9+crU/HIHomQA==}
@@ -2529,6 +2538,11 @@ snapshots:
       '@tripley-kit/web-container-errors': 0.1.0
       '@tripley-kit/web-container-types': 0.1.0
 
+  '@tripley-kit/web-container-device-core@0.2.0':
+    dependencies:
+      '@tripley-kit/web-container-errors': 0.1.0
+      '@tripley-kit/web-container-types': 0.1.0
+
   '@tripley-kit/web-container-errors@0.1.0':
     dependencies:
       '@tripley-kit/web-container-types': 0.1.0
@@ -2631,6 +2645,20 @@ snapshots:
       '@tripley-kit/web-container-kiosk-runtime': 0.1.4
       '@tripley-kit/web-container-types': 0.1.0
       '@tripley-kit/web-container-xfs-device-service': 0.1.5
+
+  '@tripley-kit/web-container-withdrawal-orchestration@0.1.4':
+    dependencies:
+      '@tripley-kit/web-container-kiosk-base': 0.1.1
+      '@tripley-kit/web-container-kiosk-runtime': 0.1.4
+      '@tripley-kit/web-container-types': 0.1.0
+      '@tripley-kit/web-container-xfs-device-service': 0.1.5
+
+  '@tripley-kit/web-container-xfs-device-service@0.1.24':
+    dependencies:
+      '@tripley-kit/web-container-device-core': 0.2.0
+      '@tripley-kit/web-container-errors': 0.1.0
+      '@tripley-kit/web-container-storage-core': 0.1.1
+      '@tripley-kit/xfs-client': 0.1.5
 
   '@tripley-kit/web-container-xfs-device-service@0.1.5':
     dependencies:
