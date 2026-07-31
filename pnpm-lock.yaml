@@ -442,8 +442,8 @@ importers:
         specifier: 0.1.0
         version: 0.1.0
       '@tripley-kit/web-container-withdrawal-orchestration':
-        specifier: 0.1.2
-        version: 0.1.2
+        specifier: 0.1.5
+        version: 0.1.5
     devDependencies:
       tsup:
         specifier: ^8.3.5
@@ -458,8 +458,8 @@ importers:
   packages/kiosk-host-native-channel:
     dependencies:
       '@tripley-kit/web-container-kiosk-host-integration':
-        specifier: 0.1.1
-        version: 0.1.1
+        specifier: 0.1.2
+        version: 0.1.2
     devDependencies:
       '@tripley-kit/web-container-host-message':
         specifier: workspace:*
@@ -554,8 +554,8 @@ importers:
         specifier: 0.1.1
         version: 0.1.1
       '@tripley-kit/web-container-withdrawal-orchestration':
-        specifier: 0.1.4
-        version: 0.1.4
+        specifier: 0.1.5
+        version: 0.1.5
     devDependencies:
       tsup:
         specifier: ^8.3.5
@@ -942,28 +942,24 @@ packages:
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@biomejs/cli-linux-arm64@1.9.4':
     resolution: {integrity: sha512-fJIW0+LYujdjUgJJuwesP4EjIBl/N/TcOX3IvIHJQNsAqvV2CHIogsmA94BPG6jZATS4Hi+xv4SkBBQSt1N4/g==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@biomejs/cli-linux-x64-musl@1.9.4':
     resolution: {integrity: sha512-gEhi/jSBhZ2m6wjV530Yy8+fNqG8PAinM3oV7CyO+6c3CEh16Eizm21uHVsyVBEB6RIM8JHIl6AGYCv6Q6Q9Tg==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@biomejs/cli-linux-x64@1.9.4':
     resolution: {integrity: sha512-lRCJv/Vi3Vlwmbd6K+oQ0KhLHMAysN8lXoCI7XeHlxaajk06u7G+UsFSO01NAs5iYuWKmVZjmiOzJ0OJmGsMwg==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@biomejs/cli-win32-arm64@1.9.4':
     resolution: {integrity: sha512-tlbhLk+WXZmgwoIKwHIHEBZUwxml7bRJgk0X2sPyNR3S93cdRq6XulAZRQJ17FYGGzWne0fgrXBKpl7l4M87Hg==}
@@ -1478,79 +1474,66 @@ packages:
     resolution: {integrity: sha512-n1GJHPOvpIfhi3TmrCeh6S6URt9BFCt0KQE3qvexyGCTAKpR4Lg+eWvNZEqu7epxwus/8ElT3hacYEucm49SZg==}
     cpu: [arm]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-arm-musleabihf@4.62.2':
     resolution: {integrity: sha512-JqgflS8wEB+UXV/vS1RpRbifGBeN4D5lz8D8oOFbFZw4vedvdOgCFAjfBmIMdW3yL10XpQQ0Ambepw6MXrhOnA==}
     cpu: [arm]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-linux-arm64-gnu@4.62.2':
     resolution: {integrity: sha512-wnFJkogWvN4jm/hQRF2UBaeUmk20j5+DmHvoyWii2b8HJDyvz1MF2OU/6ynXt2KR63rbZLWkFpoytpdc/yBuSA==}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-arm64-musl@4.62.2':
     resolution: {integrity: sha512-HVu2bp0zhvJ8xHEV9+UUs7S90VadmBSY3LcIMvozbPo4AuMGDWlz3ymHLHZPX4hR67TKTt8Qp5PJ5RBg/i+RMQ==}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-linux-loong64-gnu@4.62.2':
     resolution: {integrity: sha512-mQqqAV8QaoSgr9I2fKDLY2BAVvmKjWoGiu/cSYQonsLvtqwEn1E4QYfnCOcp5zoEqNhsDYin1s6jx/VJmrxlZg==}
     cpu: [loong64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-loong64-musl@4.62.2':
     resolution: {integrity: sha512-IxKLoxCQ2IWi6bT2akyDUBGsOImDKB+sPp4EsTmwFQ/fMwpCKm8uLSSgP/Kx/QYUgKis6SEZ5/Nlhup0DIA0PQ==}
     cpu: [loong64]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-linux-ppc64-gnu@4.62.2':
     resolution: {integrity: sha512-Mk5ha2RQSgyFfmYYLkBpPnUk8D8FriBxesO1u9O75X0mHgXL1UQcH5Itl2lurWL2tj0RxV9b9tJgipac0hRY9A==}
     cpu: [ppc64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-ppc64-musl@4.62.2':
     resolution: {integrity: sha512-CjvEnqJL/0/TQ3TXX3OPIJ/kmBellrWd4heXUmHeJlTnmwjKpSJzoehLaL6Xk0ZnMHBu9dZuFADNOrtjF4v+2w==}
     cpu: [ppc64]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-linux-riscv64-gnu@4.62.2':
     resolution: {integrity: sha512-1SiZbzwdkaDURsew/tSOrooKiYy7EQGT6m8ufavAi9NEyQb/6VuIxFXAL1fqa4iZe3g4NbNk4P7J32z2tw5Mgg==}
     cpu: [riscv64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-musl@4.62.2':
     resolution: {integrity: sha512-nQts12zJ3NQRoE6uYljOH89v7szzLDvG2JD/vsX+vGXU8w/At1GowTZ5/7qeFQ8m7L55rpR8Okugnuo5bgjy2Q==}
     cpu: [riscv64]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-linux-s390x-gnu@4.62.2':
     resolution: {integrity: sha512-E9/ll019jhPIJgpzfZoIkBGhcz+kKNgVWYRY0zr9srBdPPFVpvOKW8VaJKUbeK+eZXyQF9ltME+Kk6affeaPgg==}
     cpu: [s390x]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-x64-gnu@4.62.2':
     resolution: {integrity: sha512-5BqxR/pshjey51iliyzTD5Xi3EN0aLmQ2lZ3lvefVV9c82BvrLo2/6OT55iifpWBufs6kdwWbuOKS841DrmK9A==}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-x64-musl@4.62.2':
     resolution: {integrity: sha512-uNN83XxQrRAh/w0/pmAfibcwyb6YWt4gP+dpnQKPVJshAloQ785ii8CT8ZCIxkGg9opVsvAlGhFitSm6D1Jjpg==}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-openbsd-x64@4.62.2':
     resolution: {integrity: sha512-srjEIxSH3LRnJN6THczDHWQplqEMFiAJrTab0msUryh9kwNpkICf3Ea6q6MN/2cZwRFUNx5w+h6Hpi4QuHS6Zg==}
@@ -1612,8 +1595,8 @@ packages:
   '@tripley-kit/web-container-kiosk-host-delivery@0.1.1':
     resolution: {integrity: sha512-Bij0cx72VV4LDuHznjrd/lPnRl2PF4K468m5eCz5PmUfcAA5d2bt2UuwF0b8CRNdDNgHk7ZP9eBna+9W0LhhkA==}
 
-  '@tripley-kit/web-container-kiosk-host-integration@0.1.1':
-    resolution: {integrity: sha512-3JxmH5iQ4wxWhnFmXpqN5e5367oP53OPCvhNRS1lhCC1dSTy0kL8V677neuXDGwWYcv7Fq1K9I18RUaI2sajjQ==}
+  '@tripley-kit/web-container-kiosk-host-integration@0.1.2':
+    resolution: {integrity: sha512-fHGTGJSCSxtWaOLTtwMmbJOO01y1AdTEESLMPo/AS6S0Q5eBBll3NvNVPPsI4inOmFo+R9YPZlKeNpgHPBgfSw==}
 
   '@tripley-kit/web-container-kiosk-runtime@0.1.4':
     resolution: {integrity: sha512-Eg6xCWfikJZzDjIhwmTKDhbdplAvUsg5GTHxtDXkMk5jX7h1RotnMy97XKsmzn0rRwgNMzNakjfIVFAnhklF2Q==}
@@ -1625,7 +1608,7 @@ packages:
     resolution: {integrity: sha512-N7AYZqgA6qqDNuWKqReSnReEtlW+Jt0wA7GOYhR7qCgXleQTfsQ5xdqNRtOCuT7kmAh4vFbitZTXL0dKDlGbpQ==}
 
   '@tripley-kit/web-container-prompt-presentation@0.1.0':
-    resolution: {integrity: sha512-Gat3ldivFNxrosnbdzu//sLS5aYCTLzOJQyJp7HnCm6WRt3/q4pOBjwmd2Ed1onrQ7J98HzpOQ5Oaoq2cHbjzw==, tarball: https://registry.npmjs.org/@tripley-kit/web-container-prompt-presentation/-/web-container-prompt-presentation-0.1.0.tgz}
+    resolution: {integrity: sha512-Gat3ldivFNxrosnbdzu//sLS5aYCTLzOJQyJp7HnCm6WRt3/q4pOBjwmd2Ed1onrQ7J98HzpOQ5Oaoq2cHbjzw==}
 
   '@tripley-kit/web-container-scoped-store@0.1.0':
     resolution: {integrity: sha512-sebOLT93qC5SY6uNNsE0RBFGWXpVv8MVJxL+ufEp0HhJ8snSjEj6qjaWirXD8s1vyIapMtKVSFUUlkzRpMLU1w==}
@@ -1645,11 +1628,8 @@ packages:
   '@tripley-kit/web-container-utils@0.1.0':
     resolution: {integrity: sha512-8bcd/YzVNnVtQ9i18eRD7pB274xwI0q7ZFxbV8r4SW7UXs+rnI26VtcJG9jujTm9nvrMPvsVI+4fnu9rCnn0Zw==}
 
-  '@tripley-kit/web-container-withdrawal-orchestration@0.1.2':
-    resolution: {integrity: sha512-6Nm2GVv8CrmUCjxZldpJKybS+svm5KB6NsJAJ+pS+RDkJsyodq7KFeg2VPmkgDapmpJsx20NyfOGOMKC6ANUTw==}
-
-  '@tripley-kit/web-container-withdrawal-orchestration@0.1.4':
-    resolution: {integrity: sha512-VcZETkQZhD7dlhiTqghBKgb7TfSFefRg3Ii7Ofz7JBY03WWfYeiac+Su+uSZTT8akQEBkM3KbXHBukPFczpleg==}
+  '@tripley-kit/web-container-withdrawal-orchestration@0.1.5':
+    resolution: {integrity: sha512-3vuGvBeZKJ4gbhBR0vIb3wYb6UJG2DUryNG+yIKPxon19Y6AJqZ0aWMHmyK4TZKFTnpccPK7KThjvP1/3BMZJA==}
 
   '@tripley-kit/web-container-xfs-device-service@0.1.24':
     resolution: {integrity: sha512-89VPPjvB73OO31xLO0sgLcxkFmUzmgeVaPmAEDi8jtFPyz1OFNmcUE61QWTVTk2YdJ2o5CyL44nSjZJ6WN91yA==}
@@ -2577,13 +2557,13 @@ snapshots:
     dependencies:
       '@tripley-kit/web-container-storage-core': 0.1.1
 
-  '@tripley-kit/web-container-kiosk-host-integration@0.1.1':
+  '@tripley-kit/web-container-kiosk-host-integration@0.1.2':
     dependencies:
       '@tripley-kit/web-container-deposit-orchestration': 0.1.2
       '@tripley-kit/web-container-host-message': 0.1.0
       '@tripley-kit/web-container-kiosk-host-delivery': 0.1.1
       '@tripley-kit/web-container-native-adapter': 0.1.0
-      '@tripley-kit/web-container-withdrawal-orchestration': 0.1.2
+      '@tripley-kit/web-container-withdrawal-orchestration': 0.1.5
 
   '@tripley-kit/web-container-kiosk-runtime@0.1.4':
     dependencies:
@@ -2639,19 +2619,12 @@ snapshots:
     dependencies:
       '@tripley-kit/web-container-types': 0.1.0
 
-  '@tripley-kit/web-container-withdrawal-orchestration@0.1.2':
+  '@tripley-kit/web-container-withdrawal-orchestration@0.1.5':
     dependencies:
       '@tripley-kit/web-container-kiosk-base': 0.1.1
       '@tripley-kit/web-container-kiosk-runtime': 0.1.4
       '@tripley-kit/web-container-types': 0.1.0
-      '@tripley-kit/web-container-xfs-device-service': 0.1.5
-
-  '@tripley-kit/web-container-withdrawal-orchestration@0.1.4':
-    dependencies:
-      '@tripley-kit/web-container-kiosk-base': 0.1.1
-      '@tripley-kit/web-container-kiosk-runtime': 0.1.4
-      '@tripley-kit/web-container-types': 0.1.0
-      '@tripley-kit/web-container-xfs-device-service': 0.1.5
+      '@tripley-kit/web-container-xfs-device-service': 0.1.24
 
   '@tripley-kit/web-container-xfs-device-service@0.1.24':
     dependencies:
