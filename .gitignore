@@ -4,4 +4,6 @@ dist/
 coverage/
 .turbo/
 .tmp/
+/*.db*
 /data/xfs-protection*.db*
+/data/bsp-atmc.db*
