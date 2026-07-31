@@ -38,6 +38,7 @@ export interface XfsDeviceServiceConfig {
   readonly url: string;
   readonly authToken?: string | undefined;
   readonly appId?: string | undefined;
+  readonly ownerInstanceId?: string | undefined;
   readonly timeoutMs?: number | undefined;
   readonly startup?: XfsStartupConfig | undefined;
   readonly logicalServices: readonly XfsLogicalServiceConfig[];

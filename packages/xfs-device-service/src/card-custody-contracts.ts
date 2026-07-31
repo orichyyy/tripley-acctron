@@ -95,6 +95,8 @@ export interface CardCustodyEvidenceSink {
 export type CardCustodyAuthorityMode = "transaction" | "recovery" | "observation";
 
 export interface CardCustodyLeaseSession extends CardCustodyAuthority {
+  readonly authority: CardCustodyAuthorityMode;
+  transitionToRecovery(): Promise<void>;
   release(): Promise<void>;
 }
 

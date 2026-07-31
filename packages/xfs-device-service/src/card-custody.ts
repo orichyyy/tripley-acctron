@@ -40,7 +40,7 @@ export class CardCustodyService {
 
   public async returnCard(request: CardCustodyRequest): Promise<CardCustodyResult> {
     const policy = this.options.policies.require(request.policyId);
-    return this.withAuthority(request.operationId, "transaction", request.authority, async (operation) => {
+    return this.withAuthority(request.operationId, "recovery", request.authority, async (operation) => {
       if (request.signal?.aborted) {
         return operation.finish("cancelled", interruptReason(request), "unknown");
       }
@@ -170,6 +170,9 @@ export class CardCustodyService {
     let lease: CardCustodyLeaseSession;
     if (existingLease) {
       lease = existingLease;
+      if (authority === "recovery") {
+        await lease.transitionToRecovery();
+      }
     } else {
       try {
         lease = await this.options.leases.acquire({

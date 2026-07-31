@@ -27,6 +27,7 @@ describe("CardCustodyService", () => {
     });
     expect(cardCustodyAllowsCashPresentation(outcome)).toBe(true);
     expect(fixture.card.ejectCalls).toBe(1);
+    expect(fixture.lease.authorities).toEqual(["recovery"]);
     expect(fixture.lease.releases).toBe(1);
     expect(fixture.evidence.map((entry) => entry.action)).toEqual([
       "authority-acquired",
@@ -52,7 +53,12 @@ describe("CardCustodyService", () => {
 
   it("continues with transaction authority acquired before card read", async () => {
     const fixture = createFixture();
-    const authority = await fixture.lease.acquire();
+    const authority = await fixture.lease.acquire({
+      authority: "transaction",
+      logicalService: "IDC1",
+      operationId: "withdrawal-42",
+      resourceGroup: "card:IDC1",
+    });
 
     const outcome = await fixture.service.returnCard({ ...request(), authority });
 
@@ -136,13 +142,16 @@ describe("XfsCardCustodyLeaseAdapter", () => {
   it("binds host epoch, fencing token, resource group, and owner", async () => {
     let acquisition: Record<string, unknown> | undefined;
     const commandLeases = {
-      acquire: async (input: XfsCommandLeaseRequest): Promise<XfsCommandLease> => {
+      acquireNext: async (
+        input: Omit<XfsCommandLeaseRequest, "fencingToken">,
+      ): Promise<XfsCommandLease> => {
         acquisition = { ...input };
         return {
           ...input,
           connectionGeneration: 1,
           configHash: "config",
           expiresInMs: 1_000,
+          fencingToken: 77,
           ownerInstanceId: input.ownerInstanceId ?? "",
           protectionPolicyProfileHash: "",
           protectionPolicyProfileId: "",
@@ -154,10 +163,12 @@ describe("XfsCardCustodyLeaseAdapter", () => {
       },
       getHostEpoch: async () => "epoch-9",
       release: async () => undefined,
+      transition: async () => {
+        throw new Error("unused");
+      },
     };
     const adapter = new XfsCardCustodyLeaseAdapter({
       commandLeases,
-      nextFencingToken: async () => 77,
       ownerInstanceId: "kiosk-a",
     });
 
@@ -169,11 +180,11 @@ describe("XfsCardCustodyLeaseAdapter", () => {
     });
 
     expect(acquisition).toMatchObject({
-      fencingToken: 77,
       hostEpoch: "epoch-9",
       ownerInstanceId: "kiosk-a",
       resourceGroup: "card:IDC1",
     });
+    expect(lease.fencingToken).toBe(77);
     await expect(lease.release()).resolves.toBeUndefined();
   });
 });
@@ -243,16 +254,20 @@ class FakeCardPort implements XfsCardReaderPort {
 
 class FakeLeasePort implements CardCustodyLeasePort {
   public acquisitions = 0;
+  public authorities: string[] = [];
   public reject: unknown;
   public releases = 0;
 
-  public async acquire() {
+  public async acquire(request: Parameters<CardCustodyLeasePort["acquire"]>[0]) {
     this.acquisitions += 1;
+    this.authorities.push(request.authority);
     if (this.reject) throw this.reject;
     return {
+      authority: request.authority,
       fencingToken: 41,
       hostEpoch: "host-7",
       release: async () => { this.releases += 1; },
+      transitionToRecovery: async () => undefined,
     };
   }
 }

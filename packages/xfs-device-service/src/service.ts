@@ -59,7 +59,8 @@ export class XfsDeviceService {
       });
     this.commandLeases = new HostCommandLeaseExecutor(
       () => this.client.commandLeases,
-      `${config.appId ?? defaultXfsAppId}:${crypto.randomUUID()}`,
+      config.ownerInstanceId ??
+        `${config.appId ?? defaultXfsAppId}:${crypto.randomUUID()}`,
     );
   }
 

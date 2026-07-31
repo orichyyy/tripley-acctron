@@ -58,6 +58,36 @@ describe("HostCommandLeaseExecutor", () => {
     expect(fixture.events.at(-1)?.kind).toBe("release");
   });
 
+  it("borrows an active lease owned by the same runtime", async () => {
+    const fixture = createFixture();
+    fixture.currentLease = {
+      authority: "recovery",
+      connectionGeneration: 1,
+      configHash: "config",
+      expiresInMs: 30_000,
+      fencingToken: 6_000,
+      hostEpoch: "epoch-1",
+      logicalService: "IDC",
+      operationId: "card-return",
+      ownerInstanceId: "owner-1",
+      protectionPolicyProfileHash: "hash",
+      protectionPolicyProfileId: "real-smoke",
+      protectionPolicyProfileVersion: "1",
+      reconnectProof: "proof",
+      resourceGroup: "card-transport-1",
+      state: "active",
+    };
+    const executor = new HostCommandLeaseExecutor(fixture.client, "owner-1");
+    const command = vi.fn(async () => "ok");
+
+    await expect(
+      executor.run(execution("nested-command"), command),
+    ).resolves.toBe("ok");
+
+    expect(command).toHaveBeenCalledOnce();
+    expect(fixture.events).toEqual([]);
+  });
+
   it("runs without lease calls when command leasing is unavailable", async () => {
     const executor = new HostCommandLeaseExecutor(undefined, "owner-1");
     const command = vi.fn(async () => "ok");
@@ -107,6 +137,9 @@ const execution = (operationId: string) => ({
 
 const createFixture = (nextFencingToken = 5_001) => {
   const events: Array<Record<string, unknown> & { kind: string }> = [];
+  const fixture: {
+    currentLease?: Awaited<ReturnType<XfsCommandLeaseClientLike["status"]>>;
+  } = {};
   const client: XfsCommandLeaseClientLike = {
     acquire: async (request) => {
       events.push({ kind: "acquire", ...request });
@@ -127,7 +160,7 @@ const createFixture = (nextFencingToken = 5_001) => {
     release: async (request) => {
       events.push({ kind: "release", ...request });
     },
-    status: async () => null,
+    status: async () => fixture.currentLease ?? null,
     transition: async () => {
       throw new Error("not implemented");
     },
@@ -143,5 +176,5 @@ const createFixture = (nextFencingToken = 5_001) => {
     };
     return lease;
   };
-  return { client, events };
+  return Object.assign(fixture, { client, events });
 };

@@ -62,6 +62,13 @@ export class HostCommandLeaseExecutor implements XfsCommandLeaseExecutor {
     if (!client) {
       return command();
     }
+    const current = await client.status(execution.logicalService);
+    if (
+      current?.ownerInstanceId === this.ownerInstanceId &&
+      current.state === "active"
+    ) {
+      return command();
+    }
     const hostEpoch = await client.getHostEpoch();
     const lease = await client.acquireNext({
       authority: execution.authority,
