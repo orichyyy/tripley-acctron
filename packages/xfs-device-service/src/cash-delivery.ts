@@ -22,7 +22,11 @@ import {
   captureCdmInventorySnapshot,
   readWithRetry,
 } from "./cash-inventory-snapshot";
-import { assertXfsOk, hResultOf } from "./utils";
+import {
+  assertXfsOk,
+  hResultFromXfsCommandFailure,
+  hResultOf,
+} from "./utils";
 
 export interface StartCashDeliveryRequest {
   readonly operationId: string;
@@ -252,8 +256,23 @@ export class CashDeliverySession {
       await this.updateRecovery();
     } catch (error) {
       this.currentPhase = "reconciling";
-      this.reconciliationRequired = true;
-      await this.recordSafely("cash.dispense.executionUnknown", "device", "unknown");
+      const hResult = hResultFromXfsCommandFailure(error);
+      if (hResult !== undefined) {
+        this.movementPossible = false;
+        await this.recordSafely(
+          "cash.dispense.failed",
+          "device",
+          "deviceReported",
+          hResult,
+        );
+      } else {
+        this.reconciliationRequired = true;
+        await this.recordSafely(
+          "cash.dispense.executionUnknown",
+          "device",
+          "unknown",
+        );
+      }
       throw error;
     }
   }

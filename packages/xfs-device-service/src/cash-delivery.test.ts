@@ -40,6 +40,60 @@ describe("XfsCashDeliveryPort", () => {
     expect(fixture.evidence.some((item) => item.trigger === "timeout")).toBe(true);
   });
 
+  it("closes a definite dispense failure as not dispensed", async () => {
+    const transfers: unknown[] = [];
+    const fixture = createFixture({
+      dispenseHResult: -14,
+      recoveryTransfer: {
+        acceptTransfer: async (input) => {
+          transfers.push(input);
+          return {
+            fencingToken: 2,
+            leaseId: "recovery-1",
+            state: "recoveryBound" as const,
+          };
+        },
+      },
+    });
+    const started = await fixture.port.start(request(1_000));
+
+    await expect(started.session.dispense(started.plan)).rejects.toMatchObject({
+      code: "xfs.command.failed",
+    });
+    await expect(started.session.exit("interrupt")).resolves.toMatchObject({
+      result: { outcome: "notDispensed", reconciliationRequired: false },
+      status: "terminal",
+    });
+    expect(transfers).toHaveLength(0);
+    expect(fixture.calls.releaseLease).toBe(1);
+  });
+
+  it("transfers recovery ownership when dispense execution is unknown", async () => {
+    const transfers: unknown[] = [];
+    const fixture = createFixture({
+      dispenseThrows: true,
+      recoveryTransfer: {
+        acceptTransfer: async (input) => {
+          transfers.push(input);
+          return {
+            fencingToken: 2,
+            leaseId: "recovery-1",
+            state: "recoveryBound" as const,
+          };
+        },
+      },
+    });
+    const started = await fixture.port.start(request(1_000));
+
+    await expect(started.session.dispense(started.plan)).rejects.toThrow(
+      "transport outcome unknown",
+    );
+    await expect(started.session.exit("interrupt")).resolves.toMatchObject({
+      status: "transferred",
+    });
+    expect(transfers).toHaveLength(1);
+  });
+
   it("accepts a project gate authorization and confirms customer custody", async () => {
     const fixture = createFixture();
     const started = await fixture.port.start(request(1_000));
@@ -162,6 +216,8 @@ const request = (minorUnits: number) => ({
 });
 
 const createFixture = (options: {
+  readonly dispenseHResult?: number;
+  readonly dispenseThrows?: boolean;
   readonly emitItemsTaken?: boolean;
   readonly failBefore?: boolean;
   readonly outputPositionStatus?: number;
@@ -199,7 +255,13 @@ const createFixture = (options: {
       calls.denominate += 1;
       return { denomination, native: { hResult: 0 } };
     },
-    dispense: async () => { calls.dispense += 1; return { native: { hResult: 0 } }; },
+    dispense: async () => {
+      calls.dispense += 1;
+      if (options.dispenseThrows) {
+        throw new Error("transport outcome unknown");
+      }
+      return { native: { hResult: options.dispenseHResult ?? 0 } };
+    },
     getStatus: async () => ({
       native: { hResult: 0 },
       positions: [{

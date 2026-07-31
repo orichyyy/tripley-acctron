@@ -43,6 +43,19 @@ export const assertXfsOk = (
   });
 };
 
+export const hResultFromXfsCommandFailure = (
+  error: unknown,
+): number | undefined => {
+  if (
+    !(error instanceof FrameworkError) ||
+    error.code !== "xfs.command.failed"
+  ) {
+    return undefined;
+  }
+  const hResult = error.metadata.hResult;
+  return typeof hResult === "number" ? hResult : undefined;
+};
+
 export const formatHResult = (hResult: number): string => `0x${Number(hResult >>> 0).toString(16)}`;
 
 export const bytesToHex = (value: unknown): string | undefined => {
