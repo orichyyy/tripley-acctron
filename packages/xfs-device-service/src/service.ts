@@ -150,19 +150,7 @@ export class XfsDeviceService {
   }
 
   private async close(deviceId: string, session: XfsSessionLike): Promise<void> {
-    const service = this.resolved.find(({ config }) => config.deviceId === deviceId)?.config;
-    const close = () => this.client.manager.close({ sessionId: session.id });
-    const operation = service
-      ? this.commandLeases.run({
-          authority: "transaction",
-          logicalService: service.logicalName,
-          operationId: `${deviceId}.close.${this.sessionGeneration}`,
-          protectionPolicyProfileId: service.protectionPolicyProfileId,
-          resourceGroup: service.resourceGroup,
-          ttlMs: this.timeoutMs(),
-        }, close)
-      : close();
-    await operation.catch((error: unknown) => {
+    await this.client.manager.close({ sessionId: session.id }).catch((error: unknown) => {
       throw new FrameworkError({
         category: "native",
         cause: error,
