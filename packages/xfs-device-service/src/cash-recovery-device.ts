@@ -11,6 +11,7 @@ import type {
   XfsCdmClientLike,
   XfsSessionLike,
 } from "./types";
+import { captureCdmInventorySnapshot } from "./cash-inventory-snapshot";
 import { assertXfsOk } from "./utils";
 
 export class CashRecoveryDeviceRegistry
@@ -49,7 +50,10 @@ export class CashRecoveryDeviceRegistry
 
 export interface XfsCdmCashRecoveryDeviceOptions {
   readonly client: XfsCdmClientLike;
+  readonly configurationRevision: string;
+  readonly idFactory?: (() => string) | undefined;
   readonly logicalService: string;
+  readonly now?: (() => Date) | undefined;
   readonly outputPosition: number;
   readonly retractArea: number;
   readonly retractIndex: number;
@@ -59,6 +63,30 @@ export interface XfsCdmCashRecoveryDeviceOptions {
 
 export class XfsCdmCashRecoveryDevice implements CashRecoveryDevicePort {
   public constructor(private readonly options: XfsCdmCashRecoveryDeviceOptions) {}
+
+  public captureAfterSnapshot(
+    record: CashRecoveryLeaseRecord,
+  ): Promise<import("./cash-contracts").CashInventorySnapshot> {
+    this.requireLogicalService(record);
+    return captureCdmInventorySnapshot(
+      {
+        client: this.options.client,
+        dependencies: {
+          ...(this.options.now ? { now: this.options.now } : {}),
+        },
+        logicalName: this.options.logicalService,
+        policy: {
+          configurationRevision: this.options.configurationRevision,
+        },
+        session: this.options.session,
+        timeoutMs: this.options.timeoutMs,
+      },
+      record.operationId,
+      record.cashSessionId,
+      "after",
+      this.options.idFactory?.() ?? defaultId(),
+    );
+  }
 
   public async observe(record: CashRecoveryLeaseRecord): Promise<CashRecoveryObservation> {
     this.requireLogicalService(record);
@@ -148,3 +176,7 @@ const WFS_CDM_PSEMPTY = 0;
 const WFS_CDM_ISNOTEMPTY = 1;
 const WFS_CDM_PRESENTED = 1;
 const WFS_CDM_NOTPRESENTED = 2;
+
+const defaultId = (): string =>
+  globalThis.crypto?.randomUUID?.() ??
+  `cash-recovery-${Date.now()}-${Math.random()}`;

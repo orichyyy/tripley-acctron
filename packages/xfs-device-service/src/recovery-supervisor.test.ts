@@ -38,6 +38,9 @@ describe("CashRecoverySupervisor", () => {
       outcome: "retracted", state: "closed",
     });
     expect(fixture.device.retracts).toBe(1);
+    expect(fixture.afterSnapshots).toEqual([
+      expect.objectContaining({ boundary: "after", operationId: "op-1" }),
+    ]);
   });
 
   it("keeps unknown custody in intervention and rejects remote resolution", async () => {
@@ -148,10 +151,23 @@ const createFixture = async (
     ownerInstanceId: "runtime-1", recoveryDeadlineAt,
   });
   const evidence: CashOperationEvidence[] = [];
+  const afterSnapshots: import("./cash-contracts").CashInventorySnapshot[] = [];
   const host = new FakeHostLeases();
   const device = {
     observes: 0,
     retracts: 0,
+    captureAfterSnapshot: async () => ({
+      boundary: "after" as const,
+      capturedAt: new Date(1_000).toISOString(),
+      cashSessionId: "cash-1",
+      certainty: "observed" as const,
+      id: "snapshot-1",
+      logicalService: "CDM1",
+      operationId: "op-1",
+      revision: "test.1",
+      source: "device" as const,
+      units: [],
+    }),
     observe: async () => { device.observes += 1; return { state } as const; },
     retract: async () => { device.retracts += 1; return { state: "retracted" as const }; },
   };
@@ -161,14 +177,17 @@ const createFixture = async (
     devices: { require: () => device },
     evidence: {
       append: async (item) => { evidence.push(item); return receipt(); },
-      recordAfterSnapshot: async () => receipt(),
+      recordAfterSnapshot: async (snapshot) => {
+        afterSnapshots.push(snapshot);
+        return receipt();
+      },
       recordBeforeMovement: async () => receipt(),
     },
     now: () => new Date(1_000),
     ownerInstanceId: "runtime-1",
     store,
   });
-  return { device, evidence, host, store, supervisor };
+  return { afterSnapshots, device, evidence, host, store, supervisor };
 };
 
 class FakeHostLeases {

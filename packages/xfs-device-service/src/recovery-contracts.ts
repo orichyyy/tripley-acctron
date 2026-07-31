@@ -128,6 +128,9 @@ export interface CashRecoveryObservation {
 }
 
 export interface CashRecoveryDevicePort {
+  captureAfterSnapshot(
+    record: CashRecoveryLeaseRecord,
+  ): Promise<import("./cash-contracts").CashInventorySnapshot>;
   observe(record: CashRecoveryLeaseRecord): Promise<CashRecoveryObservation>;
   retract(record: CashRecoveryLeaseRecord): Promise<CashRecoveryObservation>;
 }

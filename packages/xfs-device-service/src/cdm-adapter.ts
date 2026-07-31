@@ -55,7 +55,10 @@ export const xfsCdmDeviceModuleAdapter: XfsDeviceModuleAdapter = {
     });
     const recoveryDevice = new XfsCdmCashRecoveryDevice({
       client: cdm,
+      configurationRevision: config.cdm.configurationRevision,
+      idFactory: cash.idFactory,
       logicalService: config.logicalName,
+      now: cash.now,
       outputPosition: config.cdm.outputPosition ?? 2,
       retractArea: config.cdm.retractArea ?? 1,
       retractIndex: config.cdm.retractIndex ?? 0,

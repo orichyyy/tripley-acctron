@@ -158,6 +158,12 @@ export class CashRecoverySupervisor implements CashRecoveryTransferPort {
     }
     if (observation.state === "taken" || observation.state === "retracted"
       || observation.state === "notDispensed") {
+      try {
+        const snapshot = await device.captureAfterSnapshot(record);
+        await this.options.evidence.recordAfterSnapshot(snapshot);
+      } catch {
+        return this.enterIntervention(record, "cash.recovery.afterSnapshotFailed");
+      }
       if (retainIntervention) {
         await this.swap(record, { outcome: observation.state });
         return "intervention";

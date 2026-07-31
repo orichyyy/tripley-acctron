@@ -18,6 +18,10 @@ import type {
   XfsCommandLeaseClientLike,
   XfsSessionLike,
 } from "./types";
+import {
+  captureCdmInventorySnapshot,
+  readWithRetry,
+} from "./cash-inventory-snapshot";
 import { assertXfsOk, hResultOf } from "./utils";
 
 export interface StartCashDeliveryRequest {
@@ -124,7 +128,13 @@ export class XfsCashDeliveryPort implements CashDeliveryPort {
     cashSessionId: string,
     boundary: CashInventorySnapshot["boundary"] = "recovery",
   ): Promise<CashInventorySnapshot> {
-    return captureSnapshot(this.options, operationId, cashSessionId, boundary, this.id());
+    return captureCdmInventorySnapshot(
+      this.options,
+      operationId,
+      cashSessionId,
+      boundary,
+      this.id(),
+    );
   }
 
   private async acquireResources(
@@ -369,7 +379,7 @@ export class CashDeliverySession {
     this.stopTakeObservation();
     let after: CashInventorySnapshot | undefined;
     try {
-      after = await captureSnapshot(
+      after = await captureCdmInventorySnapshot(
         this.options,
         this.options.operationId,
         this.options.cashSessionId,
@@ -558,47 +568,6 @@ function eventPosition(value: unknown): number | undefined {
   return typeof position === "number" ? position : undefined;
 }
 
-const captureSnapshot = async (
-  options: CashDeliveryPortOptions,
-  operationId: string,
-  cashSessionId: string,
-  boundary: CashInventorySnapshot["boundary"],
-  id: string,
-): Promise<CashInventorySnapshot> => {
-  const result = await readWithRetry(() => options.client.getCashUnitInfo({
-    sessionId: options.session.id,
-    timeoutMs: options.timeoutMs,
-  }), 2);
-  assertXfsOk(result, "cdm.getCashUnitInfo", { logicalName: options.logicalName });
-  const units = (result.cashUnits ?? []).map((unit) => ({
-    cashUnitRevision: undefined,
-    count: unit.count,
-    currency: unit.currencyId,
-    denominationMinorUnits: unit.values,
-    dispensedCount: unit.dispensedCount,
-    logicalSlot: unit.number,
-    physicalCassetteId: unit.unitId || undefined,
-    physicalPosition: unit.physical[0]?.physicalPositionName,
-    presentedCount: unit.presentedCount,
-    rejectCount: unit.rejectCount,
-    retractedCount: unit.retractedCount,
-    status: unit.status,
-    type: unit.cashUnitType,
-  })).map(({ cashUnitRevision: _, ...unit }) => unit);
-  return Object.freeze({
-    boundary,
-    capturedAt: (options.dependencies.now?.() ?? new Date()).toISOString(),
-    cashSessionId,
-    certainty: "observed",
-    id,
-    logicalService: options.logicalName,
-    operationId,
-    revision: revisionOf(options.policy.configurationRevision, units),
-    source: "device",
-    units,
-  });
-};
-
 const releaseResources = async (
   options: CashDeliveryPortOptions,
   resources: HeldCashSessionResources,
@@ -633,35 +602,6 @@ const safeSnapshotProjection = (snapshot: CashInventorySnapshot) => ({
   revision: snapshot.revision,
   unitCount: snapshot.units.length,
 });
-
-const revisionOf = (configurationRevision: string, units: readonly unknown[]): string => {
-  const identities = units.map((value) => {
-    const unit = value as Record<string, unknown>;
-    return [
-      unit.logicalSlot,
-      unit.physicalCassetteId,
-      unit.physicalPosition,
-      unit.type,
-      unit.currency,
-      unit.denominationMinorUnits,
-    ];
-  });
-  const input = JSON.stringify([configurationRevision, identities]);
-  let hash = 2_166_136_261;
-  for (let index = 0; index < input.length; index += 1) {
-    hash ^= input.charCodeAt(index);
-    hash = Math.imul(hash, 16_777_619);
-  }
-  return `${configurationRevision}:${(hash >>> 0).toString(16)}`;
-};
-
-const readWithRetry = async <T>(operation: () => Promise<T>, attempts: number): Promise<T> => {
-  let lastError: unknown;
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    try { return await operation(); } catch (error) { lastError = error; }
-  }
-  throw lastError;
-};
 
 const cashError = (code: string, message: string): FrameworkError =>
   new FrameworkError({ category: "dependency", code, message });
