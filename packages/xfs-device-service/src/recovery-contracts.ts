@@ -77,7 +77,11 @@ export interface CashRecoveryHostLease {
   readonly logicalService: string;
   readonly operationId: string;
   readonly fencingToken: number;
-  readonly authority: CashRecoveryAuthority | "observation" | "simulatorControl";
+  readonly authority:
+    | CashRecoveryAuthority
+    | "observation"
+    | "protection"
+    | "simulatorControl";
   readonly expiresInMs?: number | undefined;
 }
 
