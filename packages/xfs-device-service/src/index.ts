@@ -7,6 +7,8 @@ export * from "./client-factory";
 export * from "./command-lease-executor";
 export * from "./cash-contracts";
 export * from "./cash-delivery";
+export * from "./cash-recovery-device";
+export * from "./cash-recovery-worker";
 export * from "./cash-policy";
 export * from "./cash-acceptance-contracts";
 export * from "./cash-acceptance-policy";

@@ -132,6 +132,11 @@ export interface CashRecoveryDeviceRegistryPort {
   require(logicalService: string): CashRecoveryDevicePort;
 }
 
+export interface CashRecoveryDeviceRegistrationPort {
+  register(logicalService: string, device: CashRecoveryDevicePort): void;
+  unregister(logicalService: string, device: CashRecoveryDevicePort): void;
+}
+
 export interface CashRecoveryRunResult {
   readonly status: "ready" | "recovering" | "intervention";
   readonly recovered: number;

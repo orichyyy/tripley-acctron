@@ -27,6 +27,7 @@ import type {
 import type { DataClassification } from "@tripley-kit/web-container-device-core";
 import type { CashDeliveryDependencies } from "./cash-contracts";
 import type { XfsDeviceModuleAdapterRegistry } from "./module-adapters";
+import type { CashRecoveryDeviceRegistrationPort } from "./recovery-contracts";
 
 export const xfsDeviceServicePackageName = "@tripley-kit/web-container-xfs-device-service";
 
@@ -176,6 +177,7 @@ export interface XfsCdmClientLike {
 }
 
 export interface XfsCdmStatusLike extends XfsNativeEnvelopeLike {
+  readonly fwIntermediateStacker?: number | undefined;
   readonly positions?: readonly {
     readonly fwPosition: number;
     readonly fwPositionStatus: number;
@@ -242,6 +244,7 @@ export interface XfsDeviceServiceOptions {
   readonly clientFactory?: XfsRuntimeClientFactory | undefined;
   readonly moduleAdapters?: XfsDeviceModuleAdapterRegistry | undefined;
   readonly cash?: CashDeliveryDependencies | undefined;
+  readonly cashRecoveryDevices?: CashRecoveryDeviceRegistrationPort | undefined;
 }
 
 export interface XfsCardReadOptions {

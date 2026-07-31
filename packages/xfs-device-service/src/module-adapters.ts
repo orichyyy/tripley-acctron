@@ -6,6 +6,7 @@ import { FrameworkError } from "@tripley-kit/web-container-errors";
 
 import type { CashDeliveryDependencies } from "./cash-contracts";
 import type { XfsCommandLeaseExecutor } from "./command-lease-executor";
+import type { CashRecoveryDeviceRegistrationPort } from "./recovery-contracts";
 import type {
   XfsHealthCheck,
   XfsLogicalServiceConfig,
@@ -24,6 +25,7 @@ export interface XfsDeviceModuleContribution {
 
 export interface XfsDeviceModuleAdapterContext {
   readonly cash?: CashDeliveryDependencies | undefined;
+  readonly cashRecoveryDevices?: CashRecoveryDeviceRegistrationPort | undefined;
   readonly client: XfsRuntimeClientLike;
   readonly commandLeases: XfsCommandLeaseExecutor;
   readonly config: XfsLogicalServiceConfig;

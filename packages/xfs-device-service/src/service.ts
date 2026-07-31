@@ -77,6 +77,7 @@ export class XfsDeviceService {
       this.sessions.set(resolved.config.deviceId, session);
       const contribution = await resolved.adapter.create({
         cash: this.options.cash,
+        cashRecoveryDevices: this.options.cashRecoveryDevices,
         client: this.client,
         commandLeases: this.commandLeases,
         config: resolved.config,

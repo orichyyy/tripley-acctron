@@ -3,6 +3,7 @@ import { FrameworkError } from "@tripley-kit/web-container-errors";
 
 import { createStatusHealthCheck } from "./adapter-utils";
 import { XfsCashDeliveryPort } from "./cash-delivery";
+import { XfsCdmCashRecoveryDevice } from "./cash-recovery-device";
 import type { XfsDeviceModuleAdapter } from "./module-adapters";
 import { assertXfsOk } from "./utils";
 
@@ -14,7 +15,15 @@ export const xfsCdmDeviceModuleAdapter: XfsDeviceModuleAdapter = {
       throw configError("xfs.cdm.policy.missing", config.deviceId);
     }
   },
-  create: async ({ cash, client, config, session, sessionGeneration, timeoutMs }) => {
+  create: async ({
+    cash,
+    cashRecoveryDevices,
+    client,
+    config,
+    session,
+    sessionGeneration,
+    timeoutMs,
+  }) => {
     const cdm = client.cdm;
     const commandLeases = client.commandLeases;
     if (!cdm || !commandLeases || !cash || !config.cdm) {
@@ -44,6 +53,16 @@ export const xfsCdmDeviceModuleAdapter: XfsDeviceModuleAdapter = {
       sessionGeneration,
       timeoutMs,
     });
+    const recoveryDevice = new XfsCdmCashRecoveryDevice({
+      client: cdm,
+      logicalService: config.logicalName,
+      outputPosition: config.cdm.outputPosition ?? 2,
+      retractArea: config.cdm.retractArea ?? 1,
+      retractIndex: config.cdm.retractIndex ?? 0,
+      session,
+      timeoutMs,
+    });
+    cashRecoveryDevices?.register(config.logicalName, recoveryDevice);
     return {
       descriptor: {
         capabilities: config.capabilities,
@@ -60,6 +79,7 @@ export const xfsCdmDeviceModuleAdapter: XfsDeviceModuleAdapter = {
         status: () => cdm.getStatus(request),
       }),
       port,
+      dispose: () => cashRecoveryDevices?.unregister(config.logicalName, recoveryDevice),
     };
   },
 };
