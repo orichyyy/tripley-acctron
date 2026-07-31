@@ -7,7 +7,7 @@ import type {
 
 type CommandLeaseClient = Pick<
   NonNullable<TripleyXfsClient["commandLeases"]>,
-  "acquireNext" | "getHostEpoch" | "release" | "transition"
+  "acknowledgeProtection" | "acquireNext" | "getHostEpoch" | "release" | "transition"
 >;
 
 export interface XfsCardCustodyLeaseAdapterOptions {
@@ -54,6 +54,7 @@ export class XfsCardCustodyLeaseAdapter implements CardCustodyLeasePort {
 }
 
 class ActiveCardCustodyLease implements CardCustodyLeaseSession {
+  private protectionAcknowledged = false;
   private released = false;
 
   public constructor(
@@ -91,15 +92,26 @@ class ActiveCardCustodyLease implements CardCustodyLeaseSession {
     });
   }
 
-  public async release(): Promise<void> {
-    if (this.released) return;
-    await this.commandLeases.release({
-      fencingToken: this.lease.fencingToken,
-      hostEpoch: this.lease.hostEpoch,
-      logicalService: this.lease.logicalService,
-      operationId: this.lease.operationId,
-    });
-    this.released = true;
+  public async release(options?: {
+    readonly acknowledgeProtection?: boolean | undefined;
+  }): Promise<void> {
+    if (!this.released) {
+      await this.commandLeases.release({
+        fencingToken: this.lease.fencingToken,
+        hostEpoch: this.lease.hostEpoch,
+        logicalService: this.lease.logicalService,
+        operationId: this.lease.operationId,
+      });
+      this.released = true;
+    }
+    if (options?.acknowledgeProtection && !this.protectionAcknowledged) {
+      await this.commandLeases.acknowledgeProtection({
+        hostEpoch: this.lease.hostEpoch,
+        operationId: this.lease.operationId,
+        resourceGroup: this.lease.resourceGroup,
+      });
+      this.protectionAcknowledged = true;
+    }
   }
 }
 

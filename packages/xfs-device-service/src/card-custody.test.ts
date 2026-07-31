@@ -29,6 +29,7 @@ describe("CardCustodyService", () => {
     expect(fixture.card.ejectCalls).toBe(1);
     expect(fixture.lease.authorities).toEqual(["recovery"]);
     expect(fixture.lease.releases).toBe(1);
+    expect(fixture.lease.acknowledgements).toBe(1);
     expect(fixture.evidence.map((entry) => entry.action)).toEqual([
       "authority-acquired",
       "eject-requested",
@@ -48,6 +49,7 @@ describe("CardCustodyService", () => {
 
     expect(outcome).toMatchObject({ reason: "take-timeout", status: "retained" });
     expect(fixture.card.retainCalls).toBe(1);
+    expect(fixture.lease.acknowledgements).toBe(1);
     expect(cardCustodyAllowsCashPresentation(outcome)).toBe(false);
   });
 
@@ -100,6 +102,7 @@ describe("CardCustodyService", () => {
     });
     expect(JSON.stringify(outcome)).not.toContain("sensitive vendor detail");
     expect(cardCustodyAllowsCashPresentation(outcome)).toBe(false);
+    expect(fixture.lease.acknowledgements).toBe(0);
   });
 
   it("rejects stale authority before issuing a device command", async () => {
@@ -141,7 +144,13 @@ describe("CardCustodyService", () => {
 describe("XfsCardCustodyLeaseAdapter", () => {
   it("binds host epoch, fencing token, resource group, and owner", async () => {
     let acquisition: Record<string, unknown> | undefined;
+    const lifecycle: string[] = [];
+    let acknowledgement: Record<string, unknown> | undefined;
     const commandLeases = {
+      acknowledgeProtection: async (input: Record<string, unknown>) => {
+        lifecycle.push("acknowledge");
+        acknowledgement = input;
+      },
       acquireNext: async (
         input: Omit<XfsCommandLeaseRequest, "fencingToken">,
       ): Promise<XfsCommandLease> => {
@@ -162,7 +171,7 @@ describe("XfsCardCustodyLeaseAdapter", () => {
         };
       },
       getHostEpoch: async () => "epoch-9",
-      release: async () => undefined,
+      release: async () => { lifecycle.push("release"); },
       transition: async () => {
         throw new Error("unused");
       },
@@ -185,7 +194,13 @@ describe("XfsCardCustodyLeaseAdapter", () => {
       resourceGroup: "card:IDC1",
     });
     expect(lease.fencingToken).toBe(77);
-    await expect(lease.release()).resolves.toBeUndefined();
+    await expect(lease.release({ acknowledgeProtection: true })).resolves.toBeUndefined();
+    expect(lifecycle).toEqual(["release", "acknowledge"]);
+    expect(acknowledgement).toEqual({
+      hostEpoch: "epoch-9",
+      operationId: "operation-1",
+      resourceGroup: "card:IDC1",
+    });
   });
 });
 
@@ -253,6 +268,7 @@ class FakeCardPort implements XfsCardReaderPort {
 }
 
 class FakeLeasePort implements CardCustodyLeasePort {
+  public acknowledgements = 0;
   public acquisitions = 0;
   public authorities: string[] = [];
   public reject: unknown;
@@ -266,7 +282,10 @@ class FakeLeasePort implements CardCustodyLeasePort {
       authority: request.authority,
       fencingToken: 41,
       hostEpoch: "host-7",
-      release: async () => { this.releases += 1; },
+      release: async (options?: { readonly acknowledgeProtection?: boolean }) => {
+        this.releases += 1;
+        if (options?.acknowledgeProtection) this.acknowledgements += 1;
+      },
       transitionToRecovery: async () => undefined,
     };
   }

@@ -201,7 +201,9 @@ export class CardCustodyService {
       outcome = operation.result("intervention", "evidence-write-failed", "unknown", safeFailureCode(error));
     }
     try {
-      await lease.release();
+      await lease.release({
+        acknowledgeProtection: outcome.status === "returned" || outcome.status === "retained",
+      });
       await operation.recordBestEffort("authority-released");
       return { ...outcome, authorityReleased: true, safeSummary: { ...outcome.safeSummary, authorityReleased: true } };
     } catch (error) {
