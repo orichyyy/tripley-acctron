@@ -106,6 +106,7 @@ export class SubflowNodeExecutor
         devices: ctx.devices,
         evaluateCondition: ctx.evaluateCondition,
         logger: ctx.logger,
+        onUiFeedback: ctx.setUiFeedback,
         scopedStore: ctx.scopedStore,
         signal: ctx.signal,
         traceId: ctx.traceId,
