@@ -6,7 +6,11 @@ import {
   type DecisionFlowNodeDefinition,
   type TerminalFlowNodeDefinition,
 } from "./builtin-nodes";
-import { defineFlow } from "./dsl";
+import {
+  defineFlow,
+  defineSubflowContract,
+  defineSubflowNode,
+} from "./dsl";
 import { createFlowEngine } from "./engine";
 import { UiPortFlowProjectionAdapter } from "./projection";
 import type {
@@ -260,6 +264,71 @@ describe("ExecutableFlowEngine", () => {
     expect(result.status).toBe("completed");
     expect(result.output).toEqual({ accountId: "001", balance: 1200 });
     expect(accepted).toEqual([{ accountId: "001", balance: 1200 }]);
+  });
+
+  it("inherits execution services and records a safe subflow trace", async () => {
+    const engine = createFlowEngine();
+    const child = defineFlow<{ conditionId: string }, { allowed: boolean }>({
+      id: "test.inherited-child",
+      nodes: {
+        decide: {
+          decide: async (ctx) =>
+            (await ctx.evaluateCondition?.(
+              (ctx.input as { conditionId: string }).conditionId,
+            ))
+              ? "allowed"
+              : "denied",
+          id: "decide",
+          kind: "decision",
+        } satisfies DecisionFlowNodeDefinition,
+        denied: {
+          id: "denied",
+          kind: "terminal",
+          output: { allowed: false },
+        } satisfies TerminalFlowNodeDefinition,
+        allowed: {
+          id: "allowed",
+          kind: "terminal",
+          output: { allowed: true },
+        } satisfies TerminalFlowNodeDefinition,
+      },
+      edges: [
+        { branch: "allowed", from: "decide", to: "allowed" },
+        { branch: "denied", from: "decide", to: "denied" },
+      ],
+      startNodeId: "decide",
+      version: "1.0.0",
+    });
+    const contract = defineSubflowContract(child);
+    const parent = defineFlow({
+      id: "test.inherited-parent",
+      nodes: {
+        child: defineSubflowNode(contract, {
+          id: "child",
+          input: { conditionId: "customer.allowed" },
+          mode: "sync",
+        }),
+      },
+      startNodeId: "child",
+      version: "1.0.0",
+    });
+    engine.register(child);
+    engine.register(parent);
+
+    const instance = await engine.start(parent.id, {}, {
+      evaluateCondition: (conditionId) => conditionId === "customer.allowed",
+    });
+    const snapshot = await instance.completion;
+
+    expect(snapshot.output).toEqual({ allowed: true });
+    expect(snapshot.trace).toContainEqual(expect.objectContaining({
+      summary: expect.objectContaining({
+        childFlowId: child.id,
+        childFlowVersion: child.version,
+        status: "completed",
+      }),
+      type: "flow.subflow.completed",
+    }));
   });
 });
 

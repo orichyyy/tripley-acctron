@@ -102,16 +102,29 @@ export class SubflowNodeExecutor
       node.subflow.flowId,
       input,
       {
+        deviceLocks: ctx.deviceLocks,
+        devices: ctx.devices,
+        evaluateCondition: ctx.evaluateCondition,
+        logger: ctx.logger,
+        scopedStore: ctx.scopedStore,
         signal: ctx.signal,
         traceId: ctx.traceId,
         version: node.subflow.version,
       },
     );
+    recordSubflowTrace(ctx, node, "flow.subflow.started", {
+      childInstanceId: instance.instanceId,
+      mode: node.subflow.mode,
+    });
     if (node.subflow.mode === "async") {
       return nextOrEnd(node, { instanceId: instance.instanceId });
     }
 
     const snapshot = await instance.completion;
+    recordSubflowTrace(ctx, node, "flow.subflow.completed", {
+      childInstanceId: instance.instanceId,
+      status: snapshot.status,
+    });
     if (snapshot.status === "failed") {
       return {
         error:
@@ -138,6 +151,26 @@ export class SubflowNodeExecutor
     await node.subflow.acceptOutput?.(snapshot.output, ctx);
     return nextOrEnd(node, snapshot.output);
   }
+}
+
+function recordSubflowTrace(
+  ctx: FlowExecutionContext,
+  node: SubflowNodeDefinition,
+  type: string,
+  summary: Record<string, unknown>,
+): void {
+  ctx.trace.record({
+    flowId: ctx.flowId,
+    flowVersion: ctx.flowVersion,
+    instanceId: ctx.instanceId,
+    nodeId: node.id,
+    summary: {
+      childFlowId: node.subflow.flowId,
+      childFlowVersion: node.subflow.version,
+      ...summary,
+    },
+    type,
+  });
 }
 
 function nextOrEnd(

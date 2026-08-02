@@ -57,6 +57,14 @@ export interface FlowVersionBinding {
   readonly version: string;
 }
 
+export interface SubflowContract<TInput = unknown, TOutput = unknown>
+  extends FlowVersionBinding {
+  readonly __contract?: {
+    readonly input: TInput;
+    readonly output: TOutput;
+  } | undefined;
+}
+
 export interface FlowEdge {
   readonly from: string;
   readonly to: string;

@@ -3,6 +3,8 @@ import { FrameworkError } from "@tripley-kit/web-container-errors";
 import type {
   FlowDefinition,
   FlowNodeDefinition,
+  SubflowContract,
+  SubflowNodeDefinition,
   FlowVersionBinding,
   UserInputNodeDefinition,
 } from "./types";
@@ -45,3 +47,39 @@ export const bindFlowVersion = (definition: FlowDefinition): FlowVersionBinding 
   flowId: definition.id,
   version: definition.version,
 });
+
+export const defineSubflowContract = <TInput, TOutput>(
+  definition: FlowDefinition<TInput, TOutput>,
+): SubflowContract<TInput, TOutput> => ({
+  flowId: definition.id,
+  version: definition.version,
+});
+
+export type DefineSubflowNodeOptions<TInput, TOutput> =
+  Omit<SubflowNodeDefinition<TInput, TOutput>, "kind" | "subflow"> &
+  Omit<SubflowNodeDefinition<TInput, TOutput>["subflow"], "flowId" | "version">;
+
+export const defineSubflowNode = <TInput, TOutput>(
+  contract: SubflowContract<TInput, TOutput>,
+  options: DefineSubflowNodeOptions<TInput, TOutput>,
+): SubflowNodeDefinition<TInput, TOutput> => {
+  const {
+    acceptOutput,
+    input,
+    mode,
+    outputKey,
+    ...node
+  } = options;
+  return {
+    ...node,
+    kind: "subflow",
+    subflow: {
+      acceptOutput,
+      flowId: contract.flowId,
+      input,
+      mode,
+      outputKey,
+      version: contract.version,
+    },
+  };
+};

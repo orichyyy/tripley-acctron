@@ -186,6 +186,29 @@ kiosk.withdrawal
   -> subflow receipt.print
 ```
 
+Reusable business sequences should expose typed, version-bound contracts. The
+parent owns routing before and after the call; the child owns its internal
+interaction, timeout, device-session, and recovery lifecycle.
+
+```ts
+const contract = defineSubflowContract(cashAcceptanceFlow);
+
+const acceptCash = defineSubflowNode(contract, {
+  id: 'acceptCash',
+  mode: 'sync',
+  input: (ctx) => ({
+    operationId: ctx.input.operationId,
+    maxAdditionalCashInRounds: ctx.input.cashInPolicy.maxAdditionalCashInRounds,
+  }),
+  next: 'authorizeDeposit',
+});
+```
+
+Synchronous subflows inherit the active execution devices, device locks,
+scoped store, logger, condition evaluator, trace ID, and cancellation signal.
+Subflow trace events include only child flow identity, version, instance ID,
+mode, and completion status. Input and output values are not logged.
+
 ## Retry and idempotency
 
 Retries are explicit and default off.
