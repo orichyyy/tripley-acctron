@@ -1,14 +1,38 @@
-import { defineFlow, defineNode, defineUserInputNode } from "@tripley-kit/web-container-flow-engine";
+import {
+  type FlowExecutionContext,
+  defineFlow,
+  defineNode,
+  defineUserInputNode,
+} from "@tripley-kit/web-container-flow-engine";
 
-export const withdrawalFlow = defineFlow({
+export interface WithdrawalFlowInput {
+  readonly accountId: string;
+  readonly approve?: boolean | undefined;
+}
+
+export interface WithdrawalFlowOutput {
+  readonly status: "approved" | "rejected" | "timedOut";
+  readonly amount?: number | undefined;
+  readonly authorizationCode?: string | undefined;
+}
+
+interface AuthorizationResult {
+  readonly amount: number;
+  readonly approved: boolean;
+  readonly authorizationCode?: string | undefined;
+}
+
+export const withdrawalFlow = defineFlow<WithdrawalFlowInput, WithdrawalFlowOutput>({
   id: "kiosk.withdrawal",
   version: "1.0.0",
+  description: "Collect an amount and PIN, then route the authorization result.",
   startNodeId: "enterAmount",
-  concurrency: { mode: "reject", key: "kiosk.withdrawal" },
+  timeoutMs: 120_000,
+  retry: { maxAttempts: 2, backoffMs: 250 },
   policies: {
     userInputTimeout: {
       timeoutMs: 30_000,
-      onTimeout: { type: "next", nodeId: "returnToMainMenu" },
+      onTimeout: { type: "next", nodeId: "timedOut" },
     },
     interrupts: [
       {
@@ -17,21 +41,20 @@ export const withdrawalFlow = defineFlow({
         eventTopic: "device.card.removed",
         action: { type: "cancelFlow", reasonCode: "CARD.REMOVED" },
       },
-      {
-        id: "headphone.removed.blindMode",
-        priority: 90,
-        eventTopic: "device.siu.headphone.removed",
-        appliesTo: "accessibility.blindMode.enabled",
-        action: { type: "cancelFlow", reasonCode: "HEADPHONE.REMOVED" },
-      },
     ],
   },
   nodes: {
     enterAmount: defineUserInputNode({
       id: "enterAmount",
+      kind: "userInput",
       input: {
         semantic: "amount",
         security: "plain",
+        profile: {
+          id: "withdrawal.amount",
+          promptKey: "withdrawal.amount.prompt",
+          constraints: { inputMode: "decimal", minLength: 1, maxLength: 10 },
+        },
         ui: {
           path: "/withdrawal/amount",
           stateKey: "withdrawal.amountInput",
@@ -45,22 +68,25 @@ export const withdrawalFlow = defineFlow({
             options: { dataType: "numeric", minLength: 1, maxLength: 10 },
           },
           {
-            id: "mobileQr",
-            kind: "barcodeReader.qr",
-            required: false,
-            enabledWhen: "device.barcodeReader.available",
-            options: { formats: ["qr"], parseAs: "mobileAppInput" },
-          },
-          {
             id: "screenCommand",
             kind: "ui.command",
             required: false,
-            commandId: "withdrawal.amount.confirmed",
+            options: { commandId: "withdrawal.amount.confirmed" },
           },
         ],
         acceptance: { mode: "race", firstValidWins: true },
         validation: {
-          validatorId: "withdrawal.amount.valid",
+          local: (result) => {
+            const amount = Number(result.value);
+            return Number.isFinite(amount) && amount > 0
+              ? { valid: true, value: amount, safeSummary: { amount } }
+              : {
+                  valid: false,
+                  reasonCode: "AMOUNT.INVALID",
+                  messageKey: "withdrawal.amount.invalid",
+                  severity: "error",
+                };
+          },
           failure: { mode: "stayOnNode", maxAttempts: 3 },
         },
       },
@@ -69,15 +95,26 @@ export const withdrawalFlow = defineFlow({
 
     enterPin: defineUserInputNode({
       id: "enterPin",
+      kind: "userInput",
       input: {
         semantic: "pin",
         security: "secure",
-        ui: { path: "/auth/pin", stateKey: "auth.pinInput", promptKey: "auth.pin.prompt" },
+        profile: {
+          id: "withdrawal.pin",
+          promptKey: "withdrawal.pin.prompt",
+          constraints: { inputMode: "numeric", minLength: 4, maxLength: 12 },
+        },
+        ui: {
+          path: "/auth/pin",
+          stateKey: "auth.pinInput",
+          promptKey: "auth.pin.prompt",
+        },
         sources: [
           {
             id: "pinpad",
             kind: "pinpad.pin",
             required: true,
+            secure: true,
             options: {
               minLength: 4,
               maxLength: 12,
@@ -90,27 +127,73 @@ export const withdrawalFlow = defineFlow({
         cleanup: { cancelDevicesOnExit: true },
         trace: { safeToLog: false, summaryOnly: true },
       },
-      next: "sendHostRequest",
+      next: "authorize",
     }),
 
-    sendHostRequest: defineNode({
-      id: "sendHostRequest",
+    authorize: defineNode({
+      id: "authorize",
       kind: "action",
-      run: async (ctx) => {
-        const host = ctx.services.get("bank.host");
-        const result = await host.withdrawalAuthorize(ctx.shared.transaction);
-        return result.approved
-          ? { type: "next", nodeId: "dispenseCash", output: result }
-          : { type: "next", nodeId: "showRejected", output: result };
+      timeoutMs: 10_000,
+      next: "routeAuthorization",
+      run: async (ctx) => authorizeWithdrawal(ctx),
+    }),
+
+    routeAuthorization: defineNode({
+      id: "routeAuthorization",
+      kind: "decision",
+      decide: (ctx) =>
+        flowValue<AuthorizationResult>(ctx, "node.authorize.output").approved
+          ? "approved"
+          : "rejected",
+    }),
+
+    approved: defineNode({
+      id: "approved",
+      kind: "terminal",
+      output: (ctx: FlowExecutionContext): WithdrawalFlowOutput => {
+        const authorization = flowValue<AuthorizationResult>(ctx, "node.authorize.output");
+        return {
+          status: "approved",
+          amount: authorization.amount,
+          authorizationCode: authorization.authorizationCode,
+        };
       },
+    }),
+
+    rejected: defineNode({
+      id: "rejected",
+      kind: "terminal",
+      output: (ctx: FlowExecutionContext): WithdrawalFlowOutput => ({
+        status: "rejected",
+        amount: flowValue<AuthorizationResult>(ctx, "node.authorize.output").amount,
+      }),
+    }),
+
+    timedOut: defineNode({
+      id: "timedOut",
+      kind: "terminal",
+      output: { status: "timedOut" } satisfies WithdrawalFlowOutput,
     }),
   },
   edges: [
-    { from: "enterAmount", to: "enterPin" },
-    { from: "enterPin", to: "sendHostRequest" },
+    { from: "routeAuthorization", branch: "approved", to: "approved" },
+    { from: "routeAuthorization", branch: "rejected", to: "rejected" },
   ],
+  catch: (_ctx, error) => ({ type: "fail", error }),
   finally: async (ctx) => {
-    await ctx.tts.stop();
-    await ctx.scopedStore.resetTransaction("withdrawal.finished");
+    await ctx.scopedStore.clearScope("flow", ctx.instanceId, "withdrawal.finished");
   },
 });
+
+const authorizeWithdrawal = async (ctx: FlowExecutionContext): Promise<AuthorizationResult> => {
+  const amount = flowValue<number>(ctx, "node.enterAmount.output");
+  const input = ctx.input as WithdrawalFlowInput;
+
+  // Replace this deterministic example with an injected host-service call.
+  return input.approve === false
+    ? { amount, approved: false }
+    : { amount, approved: true, authorizationCode: `DEMO-${input.accountId}` };
+};
+
+const flowValue = <T>(ctx: FlowExecutionContext, key: string): T =>
+  ctx.scopedStore.scope("flow", ctx.instanceId).getOrThrow<T>(key);

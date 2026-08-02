@@ -26,6 +26,8 @@ This document set defines a TypeScript application framework for Web Container r
 | `docs/01-native-sdk-adapter.md` | Adapter over `@tripley-kit/native`, capabilities, reconnect. |
 | `docs/02-event-bus.md` | Typed event bus, envelope, request/response, trace, dead-letter. |
 | `docs/03-flow-engine.md` | Flow DSL, DAG, node types, policy, hooks, recovery, testing. |
+| `docs/flow-engine-user-guide.md` | Current Flow Engine behavior, integration, extension, examples, API reference, and Q&A (English). |
+| `docs/flow-engine-user-guide.zh-CN.md` | Flow Engine 使用、集成、扩展、示例、API 参考与 Q&A（简体中文）。 |
 | `docs/04-window-manager.md` | Native window manager, display layout, kiosk topology. |
 | `docs/05-plugin-system.md` | Plugin manifest, lifecycle, dependencies, contributions. |
 | `docs/06-ui-abstraction.md` | UI port, React/Zustand/React Router adapters, route/layout/menu. |
