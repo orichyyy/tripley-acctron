@@ -1,6 +1,6 @@
 {
   "name": "@tripley-kit/web-container-kiosk-runtime",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",
@@ -20,10 +20,14 @@
   },
   "dependencies": {
     "@tripley-kit/web-container-command-system": "workspace:*",
+    "@tripley-kit/web-container-condition-engine": "workspace:*",
+    "@tripley-kit/web-container-device-core": "workspace:*",
     "@tripley-kit/web-container-errors": "workspace:*",
+    "@tripley-kit/web-container-event-bus": "workspace:*",
     "@tripley-kit/web-container-flow-engine": "workspace:*",
     "@tripley-kit/web-container-kiosk-base": "workspace:*",
     "@tripley-kit/web-container-logging": "workspace:*",
+    "@tripley-kit/web-container-plugin-system": "workspace:*",
     "@tripley-kit/web-container-prompt-presentation": "workspace:*",
     "@tripley-kit/web-container-scoped-store": "workspace:*",
     "@tripley-kit/web-container-storage-core": "workspace:*",

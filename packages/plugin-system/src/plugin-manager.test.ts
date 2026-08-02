@@ -128,6 +128,129 @@ describe("PluginManager", () => {
       code: "plugin.dependency.missing",
     });
   });
+
+  it("injects runtime ports without allowing identity overrides", async () => {
+    let received: unknown;
+    const commands = { id: "commands" };
+    const manager = new PluginManager({
+      appId: "app",
+      projectId: "project",
+      runtimeContext: {
+        appId: "invalid",
+        commands,
+      },
+    });
+    const plugin: PluginModule = {
+      register: (context) => {
+        received = context;
+      },
+      manifest: {
+        id: "plugin.context",
+        name: "Context",
+        type: ["service"],
+        version: "1.0.0",
+      },
+    };
+
+    await manager.install(plugin);
+    await manager.register(plugin.manifest.id);
+
+    expect(received).toMatchObject({
+      appId: "app",
+      commands,
+      pluginId: "plugin.context",
+      projectId: "project",
+    });
+  });
+
+  it("removes contributions when an optional plugin cannot activate", async () => {
+    const manager = new PluginManager({ appId: "app", projectId: "project" });
+    const plugin: PluginModule = {
+      activate: () => {
+        throw new Error("optional unavailable");
+      },
+      manifest: {
+        contributes: {
+          commands: [{ command: { id: "optional.command" }, id: "optional.command" }],
+        },
+        id: "plugin.optional",
+        name: "Optional",
+        optional: true,
+        type: ["command"],
+        version: "1.0.0",
+      },
+    };
+
+    await manager.install(plugin);
+    await manager.register(plugin.manifest.id);
+    await manager.activate(plugin.manifest.id);
+
+    expect(manager.getState(plugin.manifest.id)).toBe("deactivated");
+    expect(manager.extensions.commands.has("optional.command")).toBe(false);
+  });
+
+  it("deactivates an active plugin before disposing it", async () => {
+    const calls: string[] = [];
+    const manager = new PluginManager({ appId: "app", projectId: "project" });
+    const plugin: PluginModule = {
+      activate: () => {
+        calls.push("activate");
+      },
+      deactivate: () => {
+        calls.push("deactivate");
+      },
+      dispose: () => {
+        calls.push("dispose");
+      },
+      manifest: {
+        id: "plugin.lifecycle",
+        name: "Lifecycle",
+        type: ["service"],
+        version: "1.0.0",
+      },
+    };
+
+    await manager.install(plugin);
+    await manager.register(plugin.manifest.id);
+    await manager.activate(plugin.manifest.id);
+    await manager.dispose();
+
+    expect(calls).toEqual(["activate", "deactivate", "dispose"]);
+  });
+
+  it("continues disposing plugins after a plugin cleanup failure", async () => {
+    const calls: string[] = [];
+    const manager = new PluginManager({ appId: "app", projectId: "project" });
+    const plugin = (id: string, fail = false): PluginModule => ({
+      activate: () => {
+        calls.push(`${id}.activate`);
+      },
+      deactivate: () => {
+        calls.push(`${id}.deactivate`);
+      },
+      dispose: () => {
+        calls.push(`${id}.dispose`);
+        if (fail) throw new Error(`${id}.failed`);
+      },
+      manifest: { id, name: id, type: ["service"], version: "1.0.0" },
+    });
+
+    await manager.installAll([plugin("plugin.first"), plugin("plugin.second", true)]);
+    await manager.registerAll();
+    await manager.activateAll();
+
+    await expect(manager.dispose()).rejects.toBeInstanceOf(AggregateError);
+    expect(calls).toEqual([
+      "plugin.first.activate",
+      "plugin.second.activate",
+      "plugin.second.deactivate",
+      "plugin.second.dispose",
+      "plugin.first.deactivate",
+      "plugin.first.dispose",
+    ]);
+    expect(manager.getState("plugin.first")).toBe("disposed");
+    expect(manager.getState("plugin.second")).toBe("disposed");
+  });
 });
 
 describe("GenericExtensionRegistry", () => {

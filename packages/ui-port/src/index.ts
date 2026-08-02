@@ -21,6 +21,11 @@ export interface UiPort {
   patchState<T extends object>(scope: UiStateScope, key: string, patch: Partial<T>): void;
 }
 
+export interface ObservableUiPort extends UiPort {
+  getRevision(): number;
+  subscribe(listener: () => void): () => void;
+}
+
 export interface UiNavigationAdapter {
   navigate(path: string, options?: NavigateOptions): Promise<void> | void;
 }
@@ -31,7 +36,10 @@ export interface UiStateAdapter {
   patch<T extends object>(scope: UiStateScope, key: string, patch: Partial<T>): void;
 }
 
-export class FrameworkUiPort implements UiPort {
+export class FrameworkUiPort implements ObservableUiPort {
+  private readonly listeners = new Set<() => void>();
+  private revision = 0;
+
   public constructor(
     private readonly navigation: UiNavigationAdapter,
     private readonly state: UiStateAdapter = new MemoryUiStateAdapter(),
@@ -47,10 +55,26 @@ export class FrameworkUiPort implements UiPort {
 
   public setState<T = unknown>(scope: UiStateScope, key: string, value: T): void {
     this.state.set(scope, key, value);
+    this.notify();
   }
 
   public patchState<T extends object>(scope: UiStateScope, key: string, patch: Partial<T>): void {
     this.state.patch(scope, key, patch);
+    this.notify();
+  }
+
+  public getRevision(): number {
+    return this.revision;
+  }
+
+  public subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  private notify(): void {
+    this.revision += 1;
+    for (const listener of this.listeners) listener();
   }
 }
 

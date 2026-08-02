@@ -1,4 +1,4 @@
-import { createRoot } from "react-dom/client";
+import { createReactWindowRoot } from "@tripley-kit/web-container-react-adapter";
 
 import { createExampleApplicationRuntime, runtimeModeFromLocation } from "./runtime/create-runtime";
 import { KioskApplication } from "./ui/app";
@@ -19,7 +19,9 @@ const bootstrap = async (): Promise<void> => {
     },
   });
 
-  createRoot(root).render(<KioskApplication application={application} />);
+  createReactWindowRoot(root, { windowKey: "kiosk.main" }).render(
+    <KioskApplication application={application} />,
+  );
 };
 
 void bootstrap();

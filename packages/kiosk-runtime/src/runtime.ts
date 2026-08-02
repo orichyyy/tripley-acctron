@@ -15,7 +15,7 @@ import type {
 } from "./types";
 
 export class KioskRuntime {
-  public readonly commands = new CommandRegistry();
+  public readonly commands: CommandRegistry;
   public readonly entryMethods = new EntryMethodRegistry();
   public readonly authenticationChallenges = new AuthenticationChallengeRegistry();
   private readonly capabilities: MutableCapabilitySnapshot;
@@ -25,6 +25,7 @@ export class KioskRuntime {
   private startupRecoveryStatus: "ready" | "recovering" | "intervention" = "ready";
 
   public constructor(private readonly options: KioskRuntimeOptions) {
+    this.commands = options.commands ?? new CommandRegistry();
     this.capabilities = createCapabilitySnapshot(options.capabilities ?? {});
     for (const entry of options.entryMethods ?? []) {
       this.entryMethods.register(entry);

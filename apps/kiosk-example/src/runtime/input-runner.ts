@@ -33,6 +33,12 @@ export interface InputRunnerDependencies {
   readonly programmaticInputKinds?: readonly string[] | undefined;
 }
 
+interface InputAttempt {
+  readonly flow: ReturnType<typeof defineFlow>;
+  readonly instanceId: string;
+  readonly safeViewData: Record<string, unknown>;
+}
+
 export const runUserInput = async (
   ctx: OperationExecutionContext,
   dependencies: InputRunnerDependencies,
@@ -41,6 +47,30 @@ export const runUserInput = async (
   const programmaticKinds = new Set(
     dependencies.programmaticInputKinds ?? ["ui.command"],
   );
+  while (true) {
+    const attempt = createInputAttempt(ctx, options, programmaticKinds);
+    const result = await executeInputAttempt(ctx, dependencies, options, attempt);
+    if (result.status === "completed") {
+      return result.output;
+    }
+    if (result.type === "stay" || result.type === "reenter") {
+      ctx.consumeAttempt(options.attemptPolicyId ?? options.id);
+      updateValidationFeedback(ctx, result.feedback);
+      continue;
+    }
+    throw new FrameworkError({
+      category: "dependency",
+      code: result.type === "cancel" ? result.reasonCode : "input.failed",
+      message: `Input stage failed: ${options.id}`,
+    });
+  }
+};
+
+const createInputAttempt = (
+  ctx: OperationExecutionContext,
+  options: RunInputOptions,
+  programmaticKinds: ReadonlySet<string>,
+): InputAttempt => {
   const instanceId = `kiosk-input-${crypto.randomUUID()}`;
   const identity: InputInteractionIdentity = {
     channelId: "customer",
@@ -61,7 +91,7 @@ export const runUserInput = async (
   const externalDevice = options.sources.every(
     (source) => source.kind !== "ui.command",
   );
-  const safeViewData = {
+  const safeViewData: Record<string, unknown> = {
     externalDevice,
     inputMode: options.profile.constraints?.inputMode ?? "text",
     maxLength: options.profile.constraints?.maxLength ?? null,
@@ -105,6 +135,16 @@ export const runUserInput = async (
     trace: { redactSecureInput: true, summaryOnly: true },
     version: "1.0.0",
   });
+  return { flow, instanceId, safeViewData };
+};
+
+const executeInputAttempt = async (
+  ctx: OperationExecutionContext,
+  dependencies: InputRunnerDependencies,
+  options: RunInputOptions,
+  attempt: InputAttempt,
+) => {
+  const { flow, instanceId, safeViewData } = attempt;
   dependencies.flowEngine.register(flow);
   try {
     const instance = await dependencies.flowEngine.start(
@@ -125,41 +165,41 @@ export const runUserInput = async (
           if (feedback.status !== "invalid") {
             return;
           }
-          ctx.consumeAttempt(options.attemptPolicyId ?? options.id);
-          ctx.updateView({
-            feedback: {
-              messageKey: feedback.messageKey ?? "input.invalid",
-              reasonCode: feedback.reasonCode,
-              severity: feedback.severity ?? "error",
-            },
-          });
+          updateValidationFeedback(ctx, feedback);
         },
         instanceId,
         signal: ctx.signal,
+        stopOn: ["stay", "reenter"],
       },
     );
     const snapshot = await instance.completion;
     if (snapshot.status === "completed") {
-      return snapshot.output;
+      return { output: snapshot.output, status: "completed" as const };
     }
     if (snapshot.result?.type === "stay" || snapshot.result?.type === "reenter") {
-      ctx.consumeAttempt(options.attemptPolicyId ?? options.id);
-      ctx.updateView({
-        feedback: {
-          messageKey: snapshot.result.feedback.messageKey ?? "input.invalid",
-          reasonCode: snapshot.result.feedback.reasonCode,
-          severity: snapshot.result.feedback.severity ?? "error",
-        },
-      });
+      return snapshot.result;
     }
-    throw new FrameworkError({
-      category: "dependency",
-      code: snapshot.result?.type === "cancel" ? snapshot.result.reasonCode : "input.failed",
-      message: `Input stage failed: ${options.id}`,
-    });
+    return snapshot.result ?? { error: new Error("Input flow ended without a result."), type: "fail" as const };
   } finally {
     dependencies.flowEngine.unregister(flow.id, flow.version);
   }
+};
+
+const updateValidationFeedback = (
+  ctx: OperationExecutionContext,
+  feedback: {
+    readonly messageKey?: string | undefined;
+    readonly reasonCode: string;
+    readonly severity?: "error" | "info" | "warning" | undefined;
+  },
+): void => {
+  ctx.updateView({
+    feedback: {
+      messageKey: feedback.messageKey ?? "input.invalid",
+      reasonCode: feedback.reasonCode,
+      severity: feedback.severity ?? "error",
+    },
+  });
 };
 
 const correlateProgrammaticSources = (

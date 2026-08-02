@@ -64,7 +64,7 @@ export const createTaiwanBspWithdrawalApplication = async (
     allowedEntryModes: ["contact-card", "cardless-reservation"],
     cardCustodyPolicyId: "card.standard",
     cardOrder: options.cardOrder ?? "return-before-cash-present",
-    cashPlanningOrder: "cash-planning-before-authorization",
+    cashPlanningOrder: "authorization-before-cash-planning",
     hostProtocol: {
       id: "taiwan.bsp",
       mode: options.hostFinancialCompletion

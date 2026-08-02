@@ -250,6 +250,7 @@ export interface KioskRuntimePorts {
 }
 
 export interface KioskRuntimeOptions {
+  readonly commands?: import("@tripley-kit/web-container-command-system").CommandRegistry | undefined;
   readonly mode: KioskRuntimeMode;
   readonly accessibilityInteraction?: AccessibilityInteractionPolicy | undefined;
   readonly capabilities?: Readonly<Record<string, CapabilityStatus>> | undefined;

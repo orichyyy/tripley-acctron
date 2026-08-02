@@ -6,10 +6,6 @@ import {
   type SecurePinInputResult,
 } from "@tripley-kit/web-container-device-core";
 import {
-  UiPortFlowProjectionAdapter,
-  createFlowEngine,
-} from "@tripley-kit/web-container-flow-engine";
-import {
   AuditJournalService,
   InMemoryAuditJournalRepository,
   InMemoryOperationLedger,
@@ -52,6 +48,7 @@ import {
 } from "./hostd";
 import type { ExampleWithdrawalBusiness } from "./operation-business";
 import { WithdrawalDiagnosticsStore } from "./operator-diagnostics";
+import { createExampleFrameworkApplication } from "./application-framework";
 import type { ExampleApplicationRuntime } from "./types";
 
 export interface CreateExampleRuntimeOptions {
@@ -92,13 +89,14 @@ export const createExampleApplicationRuntime = async (
   const locks = new DeviceLockManager();
   const broker = new CorrelatedInputSourceBroker();
   inputSources.register(broker.createAdapter({ kind: "ui.command" }));
-  const flowEngine = createFlowEngine({
+  const applicationRuntime = await createExampleFrameworkApplication({
     deviceLocks: locks,
     devices,
     inputSources,
-    projection: new UiPortFlowProjectionAdapter(ui),
     scopedStore,
+    ui,
   });
+  const flowEngine = applicationRuntime.flowEngine;
   let bootstrapError: string | undefined;
   let disposeDevices: (() => Promise<void>) | undefined;
   let hostdComposition: HostdDeviceComposition | undefined;
@@ -175,6 +173,7 @@ export const createExampleApplicationRuntime = async (
     ),
   ];
   const runtime = createKioskRuntime({
+    commands: applicationRuntime.commands,
     authenticationChallenges: [createOnlinePinChallenge(dependencies)],
     cashSafety: options.cashSafety,
     capabilities,
@@ -225,7 +224,7 @@ export const createExampleApplicationRuntime = async (
       clearInterval(healthTimer);
     }
     await runtime.dispose();
-    await flowEngine.dispose();
+    await applicationRuntime.dispose();
     await disposeDevices?.();
   };
   const rebootApplication = async (mode: KioskRuntimeMode): Promise<void> => {
@@ -263,6 +262,11 @@ export const createExampleApplicationRuntime = async (
     id: "kiosk.runtime.reboot",
   });
   await runtime.initialize();
+  await applicationRuntime.eventBus.publish(
+    "project.kiosk.runtime.ready",
+    { appId: applicationRuntime.appId, mode: options.mode },
+    { source: "project", sourceId: "kiosk-example" },
+  );
   if (hostdComposition) {
     let checking = false;
     healthTimer = setInterval(async () => {

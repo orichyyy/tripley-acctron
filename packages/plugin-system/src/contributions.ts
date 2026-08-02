@@ -15,6 +15,8 @@ export interface RouteContribution {
   readonly id: OpenExtensionKind;
   readonly path: string;
   readonly component?: unknown;
+  readonly layout?: OpenExtensionKind | undefined;
+  readonly guards?: readonly OpenExtensionKind[] | undefined;
 }
 
 export interface LayoutContribution {
@@ -26,6 +28,11 @@ export interface NavigationContribution {
   readonly id: OpenExtensionKind;
   readonly routeId: OpenExtensionKind;
   readonly label?: string;
+  readonly commandId?: OpenExtensionKind | undefined;
+  readonly area?: OpenExtensionKind | undefined;
+  readonly order?: number | undefined;
+  readonly visibleWhen?: OpenExtensionKind | readonly OpenExtensionKind[] | undefined;
+  readonly enabledWhen?: OpenExtensionKind | readonly OpenExtensionKind[] | undefined;
 }
 
 export interface FlowContribution {

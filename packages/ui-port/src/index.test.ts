@@ -46,4 +46,21 @@ describe("UiPort adapters", () => {
 
     expect(routes.require("customer.home").path).toBe("/customer/home");
   });
+
+  it("notifies observable consumers after UI state changes", () => {
+    const ui = new FrameworkUiPort({ navigate: () => undefined });
+    const revisions: number[] = [];
+    const unsubscribe = ui.subscribe(() => revisions.push(ui.getRevision()));
+
+    ui.setState({}, "screen", { id: "idle" });
+    ui.patchState<{ id: string; message?: string }>(
+      {},
+      "screen",
+      { message: "ready" },
+    );
+    unsubscribe();
+    ui.setState({}, "screen", { id: "menu" });
+
+    expect(revisions).toEqual([1, 2]);
+  });
 });

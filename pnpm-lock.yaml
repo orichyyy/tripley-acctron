@@ -35,6 +35,9 @@ importers:
       '@tripley-kit/web-container-command-system':
         specifier: workspace:*
         version: link:../../packages/command-system
+      '@tripley-kit/web-container-condition-engine':
+        specifier: workspace:*
+        version: link:../../packages/condition-engine
       '@tripley-kit/web-container-core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -77,9 +80,15 @@ importers:
       '@tripley-kit/web-container-logging':
         specifier: workspace:*
         version: link:../../packages/logging
+      '@tripley-kit/web-container-plugin-system':
+        specifier: workspace:*
+        version: link:../../packages/plugin-system
       '@tripley-kit/web-container-prompt-presentation':
         specifier: workspace:*
         version: link:../../packages/prompt-presentation
+      '@tripley-kit/web-container-react-adapter':
+        specifier: workspace:*
+        version: link:../../packages/react-adapter
       '@tripley-kit/web-container-scoped-store':
         specifier: workspace:*
         version: link:../../packages/scoped-store
@@ -501,9 +510,18 @@ importers:
       '@tripley-kit/web-container-command-system':
         specifier: workspace:*
         version: link:../command-system
+      '@tripley-kit/web-container-condition-engine':
+        specifier: workspace:*
+        version: link:../condition-engine
+      '@tripley-kit/web-container-device-core':
+        specifier: workspace:*
+        version: link:../device-core
       '@tripley-kit/web-container-errors':
         specifier: workspace:*
         version: link:../errors
+      '@tripley-kit/web-container-event-bus':
+        specifier: workspace:*
+        version: link:../event-bus
       '@tripley-kit/web-container-flow-engine':
         specifier: workspace:*
         version: link:../flow-engine
@@ -513,6 +531,9 @@ importers:
       '@tripley-kit/web-container-logging':
         specifier: workspace:*
         version: link:../logging
+      '@tripley-kit/web-container-plugin-system':
+        specifier: workspace:*
+        version: link:../plugin-system
       '@tripley-kit/web-container-prompt-presentation':
         specifier: workspace:*
         version: link:../prompt-presentation
@@ -668,13 +689,35 @@ importers:
         version: 2.1.9(@types/node@22.20.0)
 
   packages/react-adapter:
+    dependencies:
+      '@tripley-kit/web-container-errors':
+        specifier: workspace:*
+        version: link:../errors
+      '@tripley-kit/web-container-ui-port':
+        specifier: workspace:*
+        version: link:../ui-port
     devDependencies:
+      '@types/react':
+        specifier: ^19.1.0
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: ^19.1.0
+        version: 19.2.3(@types/react@19.2.17)
+      react:
+        specifier: ^19.1.0
+        version: 19.2.7
+      react-dom:
+        specifier: ^19.1.0
+        version: 19.2.7(react@19.2.7)
       tsup:
         specifier: ^8.3.5
         version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.0)
 
   packages/registry:
     dependencies:

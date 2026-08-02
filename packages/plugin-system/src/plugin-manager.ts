@@ -55,6 +55,9 @@ export interface PluginManagerOptions {
   readonly eventBus?: EventBus<PluginEventMap>;
   readonly logger?: LoggerPort;
   readonly permissionTrace?: (record: PermissionTraceRecord) => void | Promise<void>;
+  readonly runtimeContext?:
+    | Readonly<Record<string, unknown>>
+    | ((pluginId: string) => Readonly<Record<string, unknown>>);
 }
 
 export class PluginManager implements Disposable {
@@ -68,6 +71,7 @@ export class PluginManager implements Disposable {
     | undefined;
   private readonly plugins = new Map<string, PluginRecord>();
   private readonly projectId: string;
+  private readonly runtimeContext: PluginManagerOptions["runtimeContext"];
 
   public constructor(options: PluginManagerOptions) {
     this.appId = options.appId;
@@ -77,6 +81,7 @@ export class PluginManager implements Disposable {
     this.eventBus = options.eventBus;
     this.logger = options.logger;
     this.permissionTrace = options.permissionTrace;
+    this.runtimeContext = options.runtimeContext;
   }
 
   public async install(plugin: PluginModule): Promise<void> {
@@ -110,6 +115,8 @@ export class PluginManager implements Disposable {
       record.state = "activated";
     } catch (error) {
       if (record.module.manifest.optional) {
+        record.state = "deactivated";
+        await this.extensions.disposeOwner(pluginId);
         this.logger?.warn("Optional plugin activation failed", {
           eventId: "plugin.activate.failed",
           module: "plugin-system",
@@ -138,9 +145,31 @@ export class PluginManager implements Disposable {
 
   public async disposePlugin(pluginId: string): Promise<void> {
     const record = this.requireRecord(pluginId);
-    await record.module.dispose?.(this.contextFor(pluginId));
-    await this.extensions.disposeOwner(pluginId);
+    if (record.state === "disposed") {
+      return;
+    }
+    const errors: unknown[] = [];
+    if (record.state === "activated") {
+      try {
+        await this.deactivate(pluginId);
+      } catch (error) {
+        errors.push(error);
+      }
+    }
+    try {
+      await record.module.dispose?.(this.contextFor(pluginId));
+    } catch (error) {
+      errors.push(error);
+    }
+    try {
+      await this.extensions.disposeOwner(pluginId);
+    } catch (error) {
+      errors.push(error);
+    }
     record.state = "disposed";
+    if (errors.length > 0) {
+      throw new AggregateError(errors, `Plugin disposal failed: ${pluginId}`);
+    }
   }
 
   public async installAll(plugins: readonly PluginModule[]): Promise<void> {
@@ -170,8 +199,16 @@ export class PluginManager implements Disposable {
   }
 
   public async dispose(): Promise<void> {
+    const errors: unknown[] = [];
     for (const pluginId of [...this.plugins.keys()].reverse()) {
-      await this.disposePlugin(pluginId);
+      try {
+        await this.disposePlugin(pluginId);
+      } catch (error) {
+        errors.push(error);
+      }
+    }
+    if (errors.length > 0) {
+      throw new AggregateError(errors, "One or more plugins failed to dispose.");
     }
   }
 
@@ -362,7 +399,12 @@ export class PluginManager implements Disposable {
   }
 
   private contextFor(pluginId: string): PluginRuntimeContext {
+    const runtimeContext =
+      typeof this.runtimeContext === "function"
+        ? this.runtimeContext(pluginId)
+        : this.runtimeContext;
     return {
+      ...runtimeContext,
       appId: this.appId,
       eventBus: this.eventBus,
       extensions: this.extensions,
