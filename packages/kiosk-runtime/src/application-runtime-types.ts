@@ -13,11 +13,16 @@ import type {
 } from "@tripley-kit/web-container-kiosk-base";
 import type { LoggerPort } from "@tripley-kit/web-container-logging";
 import type {
+  PromptDefinitionCatalog,
+  PromptPresenterPort,
+} from "@tripley-kit/web-container-prompt-presentation";
+import type {
   FrameworkExtensionRegistry,
   PluginManager,
   PluginModule,
 } from "@tripley-kit/web-container-plugin-system";
 import type { ScopedStore } from "@tripley-kit/web-container-scoped-store";
+import type { TtsPort } from "@tripley-kit/web-container-tts";
 import type {
   LayoutContributionRegistry,
   MenuContributionRegistry,
@@ -25,6 +30,10 @@ import type {
   RouteGuardRegistry,
   UiPort,
 } from "@tripley-kit/web-container-ui-port";
+import type {
+  DisplayPort,
+  WindowPort,
+} from "@tripley-kit/web-container-window-manager";
 
 import type { CapabilityStatus } from "./types";
 
@@ -59,6 +68,11 @@ export interface KioskApplicationPlatformPorts<
   readonly deviceLocks?: DeviceLockManager | undefined;
   readonly scopedStore?: ScopedStore | undefined;
   readonly pluginContext?: Readonly<Record<string, unknown>> | undefined;
+  readonly display?: DisplayPort | undefined;
+  readonly prompt?: PromptPresenterPort | undefined;
+  readonly prompts?: PromptDefinitionCatalog | undefined;
+  readonly tts?: TtsPort | undefined;
+  readonly window?: WindowPort | undefined;
 }
 
 export interface CreateKioskApplicationRuntimeOptions<
@@ -94,5 +108,10 @@ export interface KioskApplicationRuntime<
   readonly layouts: LayoutContributionRegistry;
   readonly navigation: MenuContributionRegistry;
   readonly routeGuards: RouteGuardRegistry;
+  readonly display?: DisplayPort | undefined;
+  readonly prompt?: PromptPresenterPort | undefined;
+  readonly prompts: PromptDefinitionCatalog;
+  readonly tts?: TtsPort | undefined;
+  readonly window?: WindowPort | undefined;
   dispose(): Promise<void>;
 }

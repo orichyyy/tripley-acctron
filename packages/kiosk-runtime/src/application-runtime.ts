@@ -6,6 +6,7 @@ import {
   InputSourceRegistry,
 } from "@tripley-kit/web-container-device-core";
 import { FrameworkError } from "@tripley-kit/web-container-errors";
+import { PromptDefinitionCatalog } from "@tripley-kit/web-container-prompt-presentation";
 import {
   LocalEventBus,
   type EventBus,
@@ -51,6 +52,7 @@ export const createKioskApplicationRuntime = async <
   const navigation = new MenuContributionRegistry();
   const routeGuards = new RouteGuardRegistry();
   const healthChecks = new HealthCheckCenter();
+  const prompts = options.ports?.prompts ?? new PromptDefinitionCatalog();
   const flowEngine = createFlowEngine({
     defaultPolicies: options.preset.flowPolicies,
     deviceLocks,
@@ -78,10 +80,15 @@ export const createKioskApplicationRuntime = async <
       layouts,
       navigation,
       preset: options.preset,
+      display: options.ports?.display,
+      prompt: options.ports?.prompt,
+      prompts,
       routeGuards,
       routes,
       scopedStore,
+      tts: options.ports?.tts,
       ui,
+      window: options.ports?.window,
     },
   });
 
@@ -106,6 +113,7 @@ export const createKioskApplicationRuntime = async <
       inputSources,
       layouts,
       navigation,
+      prompts,
       routes,
     });
     await eventBus.publish("core.app.ready", lifecycle, { source: "core" });
@@ -116,6 +124,7 @@ export const createKioskApplicationRuntime = async <
       { source: "core" },
     ).catch(() => undefined);
     await pluginManager.dispose().catch(() => undefined);
+    await options.ports?.prompt?.dispose().catch(() => undefined);
     await flowEngine.dispose().catch(() => undefined);
     await Promise.resolve(eventBus.dispose()).catch(() => undefined);
     throw error;
@@ -135,13 +144,18 @@ export const createKioskApplicationRuntime = async <
     inputSources,
     layouts,
     navigation,
+    prompts,
+    display: options.ports?.display,
+    prompt: options.ports?.prompt,
     pluginManager,
     preset: options.preset,
     projectId: options.projectId,
     routeGuards,
     routes,
     scopedStore,
+    tts: options.ports?.tts,
     ui,
+    window: options.ports?.window,
     dispose: async () => {
       if (disposed) return;
       disposed = true;
@@ -150,6 +164,7 @@ export const createKioskApplicationRuntime = async <
         flowEngine,
         eventBus,
         lifecycle,
+        options.ports?.prompt,
       );
     },
   };
@@ -162,10 +177,12 @@ const disposeApplicationRuntime = async <
   flowEngine: ReturnType<typeof createFlowEngine>,
   eventBus: EventBus<EventMap>,
   lifecycle: KioskApplicationLifecyclePayload,
+  prompt: import("@tripley-kit/web-container-prompt-presentation").PromptPresenterPort | undefined,
 ): Promise<void> => {
   const errors: unknown[] = [];
   for (const operation of [
     () => pluginManager.dispose(),
+    ...(prompt ? [() => prompt.dispose()] : []),
     () => flowEngine.dispose(),
     () => eventBus.publish("core.app.disposed", lifecycle, { source: "core" }),
     () => eventBus.dispose(),

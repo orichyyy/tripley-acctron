@@ -543,12 +543,18 @@ importers:
       '@tripley-kit/web-container-storage-core':
         specifier: workspace:*
         version: link:../storage-core
+      '@tripley-kit/web-container-tts':
+        specifier: workspace:*
+        version: link:../tts
       '@tripley-kit/web-container-types':
         specifier: workspace:*
         version: link:../types
       '@tripley-kit/web-container-ui-port':
         specifier: workspace:*
         version: link:../ui-port
+      '@tripley-kit/web-container-window-manager':
+        specifier: workspace:*
+        version: link:../window-manager
     devDependencies:
       tsup:
         specifier: ^8.3.5

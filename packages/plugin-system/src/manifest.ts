@@ -15,6 +15,7 @@ import type {
   MigrationContribution,
   NativeExtensionContribution,
   NavigationContribution,
+  PromptContribution,
   RepositoryContribution,
   RouteContribution,
   ServiceContribution,
@@ -90,5 +91,6 @@ export interface PluginContributions {
   readonly migrations?: readonly MigrationContribution[] | undefined;
   readonly repositories?: readonly RepositoryContribution[] | undefined;
   readonly healthChecks?: readonly HealthCheckContribution[] | undefined;
+  readonly prompts?: readonly PromptContribution[] | undefined;
   readonly nativeExtensions?: readonly NativeExtensionContribution[] | undefined;
 }

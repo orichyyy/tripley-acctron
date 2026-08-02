@@ -354,6 +354,13 @@ export class PluginManager implements Disposable {
       (item) => item.id,
     );
     registerAll(
+      this.extensions.prompts,
+      contributes.prompts,
+      ownerPluginId,
+      version,
+      (item) => item.id,
+    );
+    registerAll(
       this.extensions.nativeExtensions,
       contributes.nativeExtensions,
       ownerPluginId,

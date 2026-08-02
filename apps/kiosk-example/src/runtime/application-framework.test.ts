@@ -45,6 +45,10 @@ describe("kiosk example framework application", () => {
       id: "kiosk-example.application",
       status: "pass",
     });
+    expect(application.prompts.require("kiosk-example.ready", "en")).toMatchObject({
+      playbackPolicy: "visualOnly",
+      text: "Kiosk is ready",
+    });
 
     await application.dispose();
   });

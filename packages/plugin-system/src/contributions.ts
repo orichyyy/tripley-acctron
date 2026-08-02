@@ -111,6 +111,11 @@ export interface HealthCheckContribution {
   readonly check?: unknown;
 }
 
+export interface PromptContribution {
+  readonly id: OpenExtensionKind;
+  readonly definition?: unknown;
+}
+
 export interface NativeExtensionContribution {
   readonly id: OpenExtensionKind;
   readonly adapter?: NativeExtensionAdapter;
@@ -141,6 +146,7 @@ export interface FrameworkExtensionRegistry {
   readonly navigation: GenericExtensionRegistry<NavigationContribution>;
   readonly services: GenericExtensionRegistry<ServiceContribution>;
   readonly healthChecks: GenericExtensionRegistry<HealthCheckContribution>;
+  readonly prompts: GenericExtensionRegistry<PromptContribution>;
   readonly nativeExtensions: GenericExtensionRegistry<NativeExtensionContribution>;
   readonly flows: GenericExtensionRegistry<FlowContribution>;
   disposeOwner(ownerPluginId: string): Promise<void>;
@@ -171,6 +177,7 @@ export const createFrameworkExtensionRegistry = (): FrameworkExtensionRegistry =
     migrations: new GenericExtensionRegistry<MigrationContribution>("migrations"),
     nativeExtensions: new GenericExtensionRegistry<NativeExtensionContribution>("nativeExtensions"),
     navigation: new GenericExtensionRegistry<NavigationContribution>("navigation"),
+    prompts: new GenericExtensionRegistry<PromptContribution>("prompts"),
     repositories: new GenericExtensionRegistry<RepositoryContribution>("repositories"),
     routes: new GenericExtensionRegistry<RouteContribution>("routes"),
     services: new GenericExtensionRegistry<ServiceContribution>("services"),

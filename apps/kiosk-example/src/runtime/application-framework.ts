@@ -50,6 +50,19 @@ const requirePort = <T>(context: PluginRuntimeContext, name: string): T => {
 
 export const exampleFoundationPlugin: PluginModule = {
   manifest: {
+    contributes: {
+      prompts: [
+        {
+          definition: {
+            id: "kiosk-example.ready",
+            locale: "en",
+            playbackPolicy: "visualOnly",
+            text: "Kiosk is ready",
+          },
+          id: "kiosk-example.ready",
+        },
+      ],
+    },
     id: EXAMPLE_FOUNDATION_PLUGIN_ID,
     name: "Kiosk Example Foundation",
     type: ["project-preset", "command", "condition"],

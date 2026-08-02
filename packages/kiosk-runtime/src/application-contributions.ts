@@ -24,6 +24,10 @@ import type {
 } from "@tripley-kit/web-container-kiosk-base";
 import type { FrameworkExtensionRegistry } from "@tripley-kit/web-container-plugin-system";
 import type {
+  PromptDefinition,
+  PromptDefinitionCatalog,
+} from "@tripley-kit/web-container-prompt-presentation";
+import type {
   LayoutContribution,
   LayoutContributionRegistry,
   MenuContributionRegistry,
@@ -40,6 +44,7 @@ export interface ApplicationContributionTargets {
   readonly inputSources: InputSourceRegistry;
   readonly layouts: LayoutContributionRegistry;
   readonly navigation: MenuContributionRegistry;
+  readonly prompts: PromptDefinitionCatalog;
   readonly routes: RouteContributionRegistry;
 }
 
@@ -52,7 +57,23 @@ export const bindApplicationContributions = (
   bindFlows(extensions, targets);
   bindInputSources(extensions, targets);
   bindHealthChecks(extensions, targets);
+  bindPrompts(extensions, targets);
   bindUi(extensions, targets);
+};
+
+const bindPrompts = (
+  extensions: FrameworkExtensionRegistry,
+  targets: ApplicationContributionTargets,
+): void => {
+  for (const registration of extensions.prompts.list()) {
+    const definition = requireIdentity<PromptDefinition>(
+      registration.value.definition,
+      "id",
+      registration.id,
+      "prompt",
+    );
+    targets.prompts.register(definition);
+  }
 };
 
 const bindCommands = (
