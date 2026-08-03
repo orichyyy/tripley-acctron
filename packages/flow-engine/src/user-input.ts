@@ -36,7 +36,7 @@ export class UserInputNodeExecutor implements FlowNodeExecutor<UserInputNodeDefi
     node: UserInputNodeDefinition,
   ): Promise<FlowNodeResult> {
     const profile = await resolveProfile(ctx, node);
-    const ui = await resolveUi(ctx, node, profile);
+    let ui: UiRouteState | undefined;
     const validation = await resolveValidation(ctx, node, profile);
     const sources = await resolveSources(ctx, node, profile);
     const enabledSources = await resolveEnabledSources(ctx, sources);
@@ -47,11 +47,6 @@ export class UserInputNodeExecutor implements FlowNodeExecutor<UserInputNodeDefi
     const sessions: InputSourceSession[] = [];
     const settledSessionIds = new Set<string>();
     let exitReason = "node.exit";
-
-    ctx.setUiFeedback({
-      stateKey: ui?.stateKey,
-      status: "waiting",
-    });
 
     try {
       lease = await ctx.deviceLocks.acquire(deviceIds, {
@@ -80,6 +75,12 @@ export class UserInputNodeExecutor implements FlowNodeExecutor<UserInputNodeDefi
           error: new Error(`No input source could start for node: ${node.id}`),
         };
       }
+
+      ui = await resolveUi(ctx, node, profile);
+      ctx.setUiFeedback({
+        stateKey: ui?.stateKey,
+        status: "waiting",
+      });
 
       const race = await waitForInput(
         ctx,
