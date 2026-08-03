@@ -100,12 +100,23 @@ export class ProtectionRecoveryStartupBarrier {
     if (status.resourceGroup !== group.id) {
       throw configurationError("Host protection status returned the wrong resource group.");
     }
-    const open = await this.options.store.getOpenCase(group.id);
+    let open = await this.options.store.getOpenCase(group.id);
     if (status.state === "idle") return this.reconcileIdle(open, hostEpoch);
     if (!status.operationId)
       return { acknowledged: false, classification: "intervention", importedRecords: 0 };
     if (open && open.hostEpoch !== hostEpoch) {
       await this.options.store.markIntervention(open.id, "hostEpochChanged", this.now());
+      return { acknowledged: false, classification: "intervention", importedRecords: 0 };
+    }
+    if (
+      open?.state === "ackPending" &&
+      open.operationId !== status.operationId
+    ) {
+      await this.options.store.markAcknowledged(open.id, this.now());
+      open = null;
+    }
+    if (open && open.operationId !== status.operationId) {
+      await this.options.store.markIntervention(open.id, "hostOperationChanged", this.now());
       return { acknowledged: false, classification: "intervention", importedRecords: 0 };
     }
 
