@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 2,
+  "journalPath": "data/xfs-protection-dev-simulator.db",
+  "resourceGroups": [
+    {
+      "id": "cash-transport-1",
+      "members": [
+        { "logicalService": "CDM", "module": "cdm" },
+        { "logicalService": "CIM", "module": "cim" }
+      ],
+      "protectionProfileIds": ["dev-simulator"]
+    },
+    {
+      "id": "card-transport-1",
+      "members": [
+        { "logicalService": "IDC", "module": "idc" }
+      ],
+      "protectionProfileIds": ["dev-simulator"]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "dev-simulator",
+      "version": "1",
+      "suspectGraceMs": 50,
+      "customerAccessTimeoutMs": 100,
+      "commandSettlementTimeoutMs": 10000,
+      "actions": {
+        "cdm.cashHeld": { "kind": "cdmRetract", "logicalService": "CDM", "outputPosition": 2, "retractArea": 1, "index": 1, "timeoutMs": 10000 },
+        "cdm.customerAccessible": { "kind": "waitUntilDeadlineThenCdmRetract", "logicalService": "CDM", "outputPosition": 2, "retractArea": 1, "index": 1, "timeoutMs": 10000 },
+        "cim.cashInActive": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM", "timeoutMs": 10000 },
+        "cim.accepting": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM", "timeoutMs": 10000 },
+        "cim.escrowHeld": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM", "timeoutMs": 10000 },
+        "cim.customerAccessible": { "kind": "waitUntilDeadlineThenCimRetract", "logicalService": "CIM", "outputPosition": 512, "retractArea": 2, "index": 1, "timeoutMs": 10000 },
+        "idc.cardInside": { "kind": "idcRetain", "logicalService": "IDC", "timeoutMs": 10000 },
+        "idc.customerAccessible": { "kind": "waitUntilDeadlineThenIdcRetain", "logicalService": "IDC", "timeoutMs": 10000 }
+      }
+    }
+  ]
+}

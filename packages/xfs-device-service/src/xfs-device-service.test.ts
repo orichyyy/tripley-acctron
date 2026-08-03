@@ -329,6 +329,20 @@ describe("XfsDeviceService", () => {
     ]);
     expect(fake.disposed).toBe(true);
   });
+
+  it("disconnects the client when a protected session close is rejected", async () => {
+    const fake = createFakeXfsClient();
+    fake.manager.close = async () => {
+      throw new Error("protected session must remain owner-bound");
+    };
+    const service = createXfsDeviceService(config(), { client: fake });
+    await service.connect();
+
+    await expect(service.dispose()).rejects.toThrow(
+      "Failed to close XFS session for device",
+    );
+    expect(fake.disposed).toBe(true);
+  });
 });
 
 const config = () => ({

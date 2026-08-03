@@ -108,16 +108,19 @@ export class XfsDeviceService {
   }
 
   public async dispose(): Promise<void> {
-    for (const contribution of [...this.contributions.values()].reverse()) {
-      await contribution.dispose?.();
+    try {
+      for (const contribution of [...this.contributions.values()].reverse()) {
+        await contribution.dispose?.();
+      }
+      this.contributions.clear();
+      for (const [deviceId, session] of this.sessions) {
+        await this.close(deviceId, session);
+      }
+      this.sessions.clear();
+      this.connected = false;
+    } finally {
+      await this.client.dispose();
     }
-    this.contributions.clear();
-    for (const [deviceId, session] of this.sessions) {
-      await this.close(deviceId, session);
-    }
-    this.sessions.clear();
-    this.connected = false;
-    await this.client.dispose();
   }
 
   private async startup(): Promise<void> {

@@ -13,12 +13,17 @@ import type {
   ProtectionRecoveryStorePort,
 } from "./protection-recovery-contracts";
 
+export type ProtectionRecoveryIdleHostCasePolicy =
+  | "requireIntervention"
+  | "acknowledgeAfterApplicationReconciliation";
+
 export interface ProtectionRecoveryStartupBarrierOptions {
   readonly host: ProtectionRecoveryHostPort;
   readonly store: ProtectionRecoveryStorePort;
   readonly resourceGroups: readonly ProtectionRecoveryResourceGroup[];
   readonly projections: readonly ProtectionRecoveryProjectionPort[];
   readonly application: ProtectionRecoveryApplicationPort;
+  readonly idleHostCasePolicy?: ProtectionRecoveryIdleHostCasePolicy;
   readonly now?: () => Date;
 }
 
@@ -161,6 +166,18 @@ export class ProtectionRecoveryStartupBarrier {
   ): Promise<GroupResult> {
     if (!open) return { acknowledged: false, classification: "ready", importedRecords: 0 };
     if (open.hostEpoch === hostEpoch && open.state === "ackPending") {
+      await this.options.store.markAcknowledged(open.id, this.now());
+      return { acknowledged: true, classification: "ready", importedRecords: 0 };
+    }
+    if (
+      this.options.idleHostCasePolicy ===
+      "acknowledgeAfterApplicationReconciliation"
+    ) {
+      await this.reconcileApplication(
+        "intervention",
+        open,
+        await this.options.store.listImported(open.id),
+      );
       await this.options.store.markAcknowledged(open.id, this.now());
       return { acknowledged: true, classification: "ready", importedRecords: 0 };
     }

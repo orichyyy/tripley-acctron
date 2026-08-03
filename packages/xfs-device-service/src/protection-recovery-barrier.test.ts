@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ProtectionRecoveryStartupBarrier } from "./protection-recovery-barrier";
+import type { ProtectionRecoveryIdleHostCasePolicy } from "./protection-recovery-barrier";
 import type {
   HostProtectionJournalRecord,
   HostProtectionStatus,
@@ -116,6 +117,34 @@ describe("ProtectionRecoveryStartupBarrier", () => {
     expect(fixture.events).not.toContain("host:ack");
   });
 
+  it("keeps an unresolved local case in intervention when the host is idle by default", async () => {
+    const fixture = createFixture({ custodyOutcome: "", phase: "customerAccessible" });
+    await fixture.barrier.recover();
+    fixture.host.hostEpoch = "epoch-2";
+    fixture.host.forceIdle();
+
+    const result = await fixture.barrier.recover();
+
+    expect(result.status).toBe("intervention");
+  });
+
+  it("allows simulator policy to archive an unresolved case after host-authoritative idle", async () => {
+    const fixture = createFixture({
+      custodyOutcome: "",
+      idleHostCasePolicy: "acknowledgeAfterApplicationReconciliation",
+      phase: "customerAccessible",
+    });
+    await fixture.barrier.recover();
+    fixture.host.hostEpoch = "epoch-2";
+    fixture.host.forceIdle();
+
+    const result = await fixture.barrier.recover();
+
+    expect(result.status).toBe("ready");
+    expect(fixture.events).toContain("application:intervention");
+    expect(fixture.events).not.toContain("host:ack");
+  });
+
   it("provides a durable schema with unique imports and projection checkpoints", async () => {
     let sql = "";
     await xfsProtectionRecoveryMigrations[0]?.up({
@@ -147,6 +176,7 @@ interface FixtureOptions {
   readonly throwAfterAck?: boolean;
   readonly projectionFailure?: () => boolean;
   readonly mixedJournalScope?: boolean;
+  readonly idleHostCasePolicy?: ProtectionRecoveryIdleHostCasePolicy;
 }
 
 const createFixture = (options: FixtureOptions = {}) => {
@@ -184,6 +214,7 @@ const createFixture = (options: FixtureOptions = {}) => {
       },
     },
     host,
+    idleHostCasePolicy: options.idleHostCasePolicy,
     now: () => new Date("2026-07-20T00:00:00.000Z"),
     projections,
     resourceGroups: [{ id: "cash-transport-1" }],
@@ -221,6 +252,10 @@ class FakeHost implements ProtectionRecoveryHostPort {
     this.events.push("host:ack");
     this.acknowledged = true;
     if (this.throwAfterAck) throw new Error("connection lost after acknowledgement");
+  }
+
+  public forceIdle(): void {
+    this.acknowledged = true;
   }
 }
 
