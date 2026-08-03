@@ -330,6 +330,33 @@ describe("ExecutableFlowEngine", () => {
       type: "flow.subflow.completed",
     }));
   });
+  it("assigns a unique execution id each time a flow revisits a node", async () => {
+    const executionIds: string[] = [];
+    const engine = createFlowEngine();
+    engine.register(defineFlow({
+      id: "test.node-revisit",
+      nodes: {
+        loop: {
+          id: "loop",
+          kind: "action",
+          run: (ctx) => {
+            executionIds.push(ctx.nodeExecutionId);
+            return executionIds.length === 1
+              ? { nodeId: "loop", type: "next" }
+              : { output: "completed", type: "end" };
+          },
+        } satisfies ActionFlowNodeDefinition,
+      },
+      startNodeId: "loop",
+      version: "1.0.0",
+    }));
+
+    const instance = await engine.start("test.node-revisit", {});
+    await instance.completion;
+
+    expect(executionIds).toHaveLength(2);
+    expect(new Set(executionIds).size).toBe(2);
+  });
 });
 
 async function waitUntil(predicate: () => boolean): Promise<void> {

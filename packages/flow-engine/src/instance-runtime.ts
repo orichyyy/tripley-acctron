@@ -63,6 +63,7 @@ export class FlowInstanceRuntime<Output = unknown>
   private readonly trace: FlowTraceEvent[] = [];
   private readonly uiFeedback: UiFeedbackState[] = [];
   private readonly retries = new Map<string, number>();
+  private nodeExecutionSequence = 0;
   private currentNodeId: string | undefined;
   private status: FlowInstanceSnapshot["status"] = "running";
   private result: FlowNodeResult | undefined;
@@ -204,7 +205,11 @@ export class FlowInstanceRuntime<Output = unknown>
       const node = this.requireCurrentNode();
       this.path.push(node.id);
       await this.publish();
-      const ctx = this.context(node.id, this.controller.signal);
+      const ctx = this.context(
+        node.id,
+        this.controller.signal,
+        `${this.instanceId}.${node.id}.${++this.nodeExecutionSequence}`,
+      );
       let result: FlowNodeResult;
       try {
         const outcome = await this.options.nodeRuntime.execute({
@@ -364,6 +369,7 @@ export class FlowInstanceRuntime<Output = unknown>
   private context(
     nodeId: string,
     signal: AbortSignal,
+    nodeExecutionId = `${this.instanceId}.lifecycle`,
   ): FlowExecutionContext {
     return {
       definition: this.options.definition,
@@ -379,6 +385,7 @@ export class FlowInstanceRuntime<Output = unknown>
         : this.options.interrupt,
       logger: this.options.logger,
       nodeId,
+      nodeExecutionId,
       policies: this.options.policies,
       scopedStore: this.options.scopedStore,
       setUiFeedback: (feedback) => {

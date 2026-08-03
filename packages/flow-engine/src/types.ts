@@ -239,6 +239,7 @@ export interface FlowPolicy<TPolicy = unknown> {
 export interface FlowExecutionContext extends InputSourceExecutionContext {
   readonly definition: FlowDefinition;
   readonly input: unknown;
+  readonly nodeExecutionId: string;
   readonly scopedStore: ScopedStore;
   readonly logger?: LoggerPort | undefined;
   readonly policies: FlowPolicies;
