@@ -24,6 +24,7 @@ export interface ProtectionRecoveryStartupBarrierOptions {
   readonly projections: readonly ProtectionRecoveryProjectionPort[];
   readonly application: ProtectionRecoveryApplicationPort;
   readonly idleHostCasePolicy?: ProtectionRecoveryIdleHostCasePolicy;
+  readonly supersededHostCasePolicy?: ProtectionRecoveryIdleHostCasePolicy;
   readonly now?: () => Date;
 }
 
@@ -107,6 +108,20 @@ export class ProtectionRecoveryStartupBarrier {
     if (open && open.hostEpoch !== hostEpoch) {
       await this.options.store.markIntervention(open.id, "hostEpochChanged", this.now());
       return { acknowledged: false, classification: "intervention", importedRecords: 0 };
+    }
+    if (
+      open &&
+      open.operationId !== status.operationId &&
+      this.options.supersededHostCasePolicy ===
+        "acknowledgeAfterApplicationReconciliation"
+    ) {
+      await this.reconcileApplication(
+        "intervention",
+        open,
+        await this.options.store.listImported(open.id),
+      );
+      await this.options.store.markAcknowledged(open.id, this.now());
+      open = null;
     }
     if (
       open?.state === "ackPending" &&
