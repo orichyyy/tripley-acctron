@@ -27,6 +27,7 @@ import {
   hResultFromXfsCommandFailure,
   hResultOf,
 } from "./utils";
+import { releaseCashProtection } from "./cash-protection-release";
 
 export interface StartCashDeliveryRequest {
   readonly operationId: string;
@@ -412,7 +413,8 @@ export class CashDeliverySession {
     }
     this.currentPhase = "terminal";
     await this.recordSafely("cash.custody.terminal", "device", "observed", outcome);
-    await releaseResources(this.options, this.options.resources, outcome);
+    const release = await releaseResources(this.options, this.options.resources, outcome);
+    this.reconciliationRequired ||= release.reconciliationRequired;
     this.terminal = {
       after,
       outcome,
@@ -591,13 +593,13 @@ const releaseResources = async (
   options: CashDeliveryPortOptions,
   resources: HeldCashSessionResources,
   outcome: CashCustodyOutcome,
-): Promise<void> => {
-  await Promise.allSettled([
-    options.dependencies.recoveryLeases.close(resources.recoveryLease, outcome),
-    options.commandLeases.release(resources.hostCommandLease),
-    resources.deviceLease.release(),
-  ]);
-};
+) => releaseCashProtection({
+  commandLeases: options.commandLeases,
+  outcome,
+  recoveryLeases: options.dependencies.recoveryLeases,
+  resourceGroup: options.policy.resourceGroup ?? options.logicalName,
+  resources,
+});
 
 const evidenceRecord = (
   dependencies: CashDeliveryDependencies,

@@ -207,6 +207,16 @@ export interface XfsCommandLeaseClientLike {
   release(request: XfsCommandLeaseReleaseRequest): Promise<void>;
   status(logicalService: string): Promise<XfsCommandLease | null>;
   transition(request: XfsCommandLeaseTransitionRequest): Promise<XfsCommandLease>;
+  protectionStatus?(resourceGroup: string): Promise<{
+    readonly state: string;
+    readonly operationId?: string | undefined;
+    readonly custodyOutcome?: string | undefined;
+  }>;
+  acknowledgeProtection?(request: {
+    readonly hostEpoch: string;
+    readonly operationId: string;
+    readonly resourceGroup: string;
+  }): Promise<void>;
 }
 
 export interface XfsRuntimeClientLike {

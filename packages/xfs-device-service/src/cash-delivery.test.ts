@@ -112,6 +112,7 @@ describe("XfsCashDeliveryPort", () => {
 
     expect(result.outcome).toBe("taken");
     expect(fixture.calls.present).toBe(1);
+    expect(fixture.calls.acknowledgeProtection).toBe(1);
     expect(result.safeSummary).not.toHaveProperty("cashUnits");
   });
 
@@ -223,7 +224,14 @@ const createFixture = (options: {
   readonly outputPositionStatus?: number;
   readonly recoveryTransfer?: CashDeliveryDependencies["recoveryTransfer"];
 } = {}) => {
-  const calls = { denominate: 0, dispense: 0, present: 0, retract: 0, releaseLease: 0 };
+  const calls = {
+    acknowledgeProtection: 0,
+    denominate: 0,
+    dispense: 0,
+    present: 0,
+    retract: 0,
+    releaseLease: 0,
+  };
   const evidence: CashOperationEvidence[] = [];
   let nextId = 0;
   let eventHandler:
@@ -311,8 +319,18 @@ const createFixture = (options: {
     },
   };
   const commandLeases = {
+    acknowledgeProtection: async () => { calls.acknowledgeProtection += 1; },
     acquire: async (input: Record<string, unknown>) => ({ ...input, expiresAt: Date.now() + 10_000 }),
     getHostEpoch: async () => "epoch-1",
+    protectionStatus: async () => ({
+      custodyOutcome: calls.retract > 0
+        ? "retracted"
+        : calls.present > 0 && (options.emitItemsTaken || (options.outputPositionStatus ?? 0) === 0)
+          ? "taken"
+          : "notMoved",
+      operationId: "operation-1",
+      state: "terminal",
+    }),
     release: async () => { calls.releaseLease += 1; },
   };
   const port = new XfsCashDeliveryPort({
