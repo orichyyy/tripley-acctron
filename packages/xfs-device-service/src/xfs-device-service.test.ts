@@ -148,12 +148,6 @@ describe("XfsDeviceService", () => {
       kind: "pinpad.data",
       required: true,
     });
-    const pinSession = await inputSources.require("pinpad.pin").start(ctx, {
-      id: "pin",
-      kind: "pinpad.pin",
-      required: true,
-      secure: true,
-    });
     const qrSession = await inputSources.require("barcodeReader.qr").start(ctx, {
       id: "qr",
       kind: "barcodeReader.qr",
@@ -167,6 +161,12 @@ describe("XfsDeviceService", () => {
     await expect(dataSession.result).resolves.toMatchObject({
       safeSummary: { sourceKind: "pinpad.data" },
       value: "123",
+    });
+    const pinSession = await inputSources.require("pinpad.pin").start(ctx, {
+      id: "pin",
+      kind: "pinpad.pin",
+      required: true,
+      secure: true,
     });
     await expect(pinSession.result).resolves.toMatchObject({
       encryptedPinBlock: "010203",

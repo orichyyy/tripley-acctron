@@ -25,6 +25,7 @@ export interface InputSourceExecutionContext {
   readonly flowVersion: string;
   readonly instanceId: string;
   readonly nodeId: string;
+  readonly nodeExecutionId?: string | undefined;
   readonly traceId?: string | undefined;
   readonly devices: DeviceRegistry;
   readonly deviceLocks: DeviceLockManager;
@@ -81,6 +82,7 @@ export interface InputSourceSession<TResult extends UserInputSourceResult = User
   readonly sourceKind: string;
   readonly result: Promise<TResult>;
   readonly progress?: InputSourceProgressStream | undefined;
+  complete?(reason?: string): Promise<void>;
   cancel(reason?: string): Promise<void>;
 }
 
@@ -183,6 +185,7 @@ export interface PinpadDataPort {
     options: unknown,
     context?: { readonly operationId: string; readonly signal?: AbortSignal | undefined },
   ): Promise<UserInputSourceResult>;
+  complete?(operationId?: string, reason?: string): Promise<void>;
   cancel(operationId?: string, reason?: string): Promise<void>;
 }
 
@@ -191,6 +194,7 @@ export interface PinpadPinPort {
     options: unknown,
     context?: { readonly operationId: string; readonly signal?: AbortSignal | undefined },
   ): Promise<SecurePinInputResult>;
+  complete?(operationId?: string, reason?: string): Promise<void>;
   cancel(operationId?: string, reason?: string): Promise<void>;
 }
 
@@ -225,6 +229,9 @@ export const createPinpadDataInputSourceAdapter = (
         }),
         progress,
       ),
+      ...(port.complete
+        ? { complete: (reason?: string) => port.complete!(operationId, reason) }
+        : {}),
       cancel: async (reason) => {
         progress.close();
         await port.cancel(operationId, reason);
@@ -256,6 +263,9 @@ export const createPinpadPinInputSourceAdapter = (
         }),
         progress,
       ),
+      ...(port.complete
+        ? { complete: (reason?: string) => port.complete!(operationId, reason) }
+        : {}),
       cancel: async (reason) => {
         progress.close();
         await port.cancel(operationId, reason);

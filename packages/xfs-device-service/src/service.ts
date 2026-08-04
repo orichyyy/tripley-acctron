@@ -1,5 +1,10 @@
 import type { XfsStartupRequest } from "@tripley-kit/xfs-client";
-import type { DeviceRegistry, InputSourceRegistry } from "@tripley-kit/web-container-device-core";
+import {
+  type CorrelatedInputCompletionBroker,
+  type DeviceRegistry,
+  type InputSourceRegistry,
+  withInputCompletionBroker,
+} from "@tripley-kit/web-container-device-core";
 import { FrameworkError } from "@tripley-kit/web-container-errors";
 
 import { createTripleyKitXfsRuntimeClient } from "./client-factory";
@@ -97,9 +102,16 @@ export class XfsDeviceService {
     }
   }
 
-  public registerInputSources(registry: InputSourceRegistry): void {
+  public registerInputSources(
+    registry: InputSourceRegistry,
+    completionBroker?: CorrelatedInputCompletionBroker,
+  ): void {
     for (const contribution of this.contributions.values()) {
-      for (const adapter of contribution.inputSources ?? []) registry.register(adapter);
+      for (const adapter of contribution.inputSources ?? []) {
+        registry.register(
+          completionBroker ? withInputCompletionBroker(adapter, completionBroker) : adapter,
+        );
+      }
     }
   }
 
