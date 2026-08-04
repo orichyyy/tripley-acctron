@@ -22,6 +22,11 @@ import type {
   XfsPinEventLike,
 } from "./types";
 import { assertXfsOk, bytesToHex, hResultOf, plainValueFromKeys } from "./utils";
+import {
+  importXfsWrappedKeySet,
+  type XfsWrappedKeySetImportRequest,
+  type XfsWrappedKeySetImportResult,
+} from "./wrapped-key-set";
 
 export type { XfsPinInputFeedback } from "./pinpad-input-control";
 
@@ -137,6 +142,33 @@ export class XfsPinpadDevicePort implements PinpadDataPort, PinpadPinPort {
     );
     assertXfsOk(result, "pin.getStatus", this.metadata());
     return result;
+  }
+
+  public async importWrappedKeySet(
+    request: XfsWrappedKeySetImportRequest,
+    context?: XfsDeviceOperationContext,
+  ): Promise<XfsWrappedKeySetImportResult> {
+    const importKey = this.options.client.importKey;
+    if (!importKey) {
+      throw new FrameworkError({
+        category: "dependency",
+        code: "xfs.pin.importKey.unavailable",
+        message: "The XFS PIN service does not expose wrapped key import.",
+        metadata: this.metadata(),
+      });
+    }
+    return runLeasedCommand(
+      this.options,
+      context,
+      "import-wrapped-key-set",
+      "maintenance",
+      () => importXfsWrappedKeySet(
+        { importKey: (input) => importKey.call(this.options.client, input) },
+        this.options.session.id,
+        this.options.timeoutMs,
+        request,
+      ),
+    );
   }
 
   public async cancel(): Promise<void> {

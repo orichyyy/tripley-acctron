@@ -22,6 +22,7 @@ import type {
   XfsPinBlockRequest,
   XfsPinGetDataRequest,
   XfsPinGetPinRequest,
+  XfsPinImportKeyRequest,
   XfsStartupRequest,
 } from "@tripley-kit/xfs-client";
 import type { DataClassification } from "@tripley-kit/web-container-device-core";
@@ -144,6 +145,7 @@ export interface XfsPinClientLike {
   getData(request: XfsPinGetDataRequest): Promise<XfsNativeEnvelopeLike>;
   getPin(request: XfsPinGetPinRequest): Promise<XfsNativeEnvelopeLike>;
   getPinblock(request: XfsPinBlockRequest): Promise<XfsNativeEnvelopeLike>;
+  importKey?(request: XfsPinImportKeyRequest): Promise<XfsNativeEnvelopeLike>;
   reset?(request: XfsSessionRequestLike): Promise<XfsNativeEnvelopeLike>;
   subscribeEvent?(
     handler: (event: XfsPinEventLike) => void | Promise<void>,

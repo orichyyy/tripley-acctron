@@ -33,3 +33,4 @@ export * from "./protection-recovery-host-adapter";
 export * from "./protection-recovery-store";
 export * from "./protection-recovery-barrier";
 export * from "./types";
+export * from "./wrapped-key-set";

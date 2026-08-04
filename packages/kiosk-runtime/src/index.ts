@@ -8,6 +8,7 @@ export * from "./transaction-startup";
 export * from "./finalization-runner";
 export * from "./finalization-recovery";
 export * from "./runtime";
+export * from "./service-availability";
 export * from "./types";
 export * from "./application-runtime-types";
 export * from "./application-runtime";
