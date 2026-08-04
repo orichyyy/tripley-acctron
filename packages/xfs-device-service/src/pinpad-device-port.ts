@@ -27,6 +27,11 @@ import {
   type XfsWrappedKeySetImportRequest,
   type XfsWrappedKeySetImportResult,
 } from "./wrapped-key-set";
+import {
+  runXfsPinDataCrypt,
+  type XfsPinDataCryptRequest,
+  type XfsPinDataCryptResult,
+} from "./pinpad-crypt";
 
 export type { XfsPinInputFeedback } from "./pinpad-input-control";
 
@@ -164,6 +169,33 @@ export class XfsPinpadDevicePort implements PinpadDataPort, PinpadPinPort {
       "maintenance",
       () => importXfsWrappedKeySet(
         { importKey: (input) => importKey.call(this.options.client, input) },
+        this.options.session.id,
+        this.options.timeoutMs,
+        request,
+      ),
+    );
+  }
+
+  public async cryptData(
+    request: XfsPinDataCryptRequest,
+    context?: XfsDeviceOperationContext,
+  ): Promise<XfsPinDataCryptResult> {
+    const crypt = this.options.client.crypt;
+    if (!crypt) {
+      throw new FrameworkError({
+        category: "dependency",
+        code: "xfs.pin.crypt.unavailable",
+        message: "The XFS PIN service does not expose data encryption.",
+        metadata: this.metadata(),
+      });
+    }
+    return runLeasedCommand(
+      this.options,
+      context,
+      "crypt-data",
+      "transaction",
+      () => runXfsPinDataCrypt(
+        { crypt: (input) => crypt.call(this.options.client, input) },
         this.options.session.id,
         this.options.timeoutMs,
         request,

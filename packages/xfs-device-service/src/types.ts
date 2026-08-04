@@ -20,6 +20,7 @@ import type {
   XfsOpenRequest,
   XfsRegisterRequest,
   XfsPinBlockRequest,
+  XfsPinCryptRequest,
   XfsPinGetDataRequest,
   XfsPinGetPinRequest,
   XfsPinImportKeyRequest,
@@ -141,6 +142,7 @@ export interface XfsIdcEventLike {
 }
 
 export interface XfsPinClientLike {
+  crypt?(request: XfsPinCryptRequest): Promise<XfsNativeEnvelopeLike>;
   getStatus(request: XfsSessionRequestLike): Promise<XfsNativeEnvelopeLike>;
   getData(request: XfsPinGetDataRequest): Promise<XfsNativeEnvelopeLike>;
   getPin(request: XfsPinGetPinRequest): Promise<XfsNativeEnvelopeLike>;

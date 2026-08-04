@@ -23,6 +23,7 @@ export * from "./investigation";
 export * from "./intervention";
 export * from "./module-adapters";
 export * from "./ports";
+export * from "./pinpad-crypt";
 export * from "./service";
 export * from "./standard-adapters";
 export * from "./recovery-contracts";
