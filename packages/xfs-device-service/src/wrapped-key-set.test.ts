@@ -30,7 +30,15 @@ describe("importXfsWrappedKeySet", () => {
       keys,
     ).catch((error: unknown) => error);
 
-    expect(failure).toMatchObject({ code: "xfs.pin.keySetImport.failed" });
+    expect(failure).toMatchObject({
+      code: "xfs.pin.keySetImport.failed",
+      metadata: {
+        failedKeyIndex: 1,
+        hResult: -1,
+        importedKeyCount: 1,
+        keyCount: 2,
+      },
+    });
     const serialized = JSON.stringify(failure);
     expect(serialized).not.toContain(Buffer.from(keys.keys[0]!.value).toString("hex"));
     expect(serialized).not.toContain("PINKEY");

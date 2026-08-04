@@ -5,7 +5,7 @@ import {
 import { FrameworkError } from "@tripley-kit/web-container-errors";
 
 import type { XfsNativeEnvelopeLike } from "./types";
-import { assertXfsOk } from "./utils";
+import { assertXfsOk, hResultFromXfsCommandFailure } from "./utils";
 
 export interface XfsWrappedKeyMaterial {
   readonly encryptionKeyName: string;
@@ -54,12 +54,18 @@ export const importXfsWrappedKeySet = async (
       });
       importedKeyCount += 1;
     }
-  } catch {
+  } catch (error) {
+    const hResult = hResultFromXfsCommandFailure(error);
     throw new FrameworkError({
       category: "native",
       code: "xfs.pin.keySetImport.failed",
       message: "The wrapped PIN key set was not fully imported.",
-      metadata: { importedKeyCount, keyCount: request.keys.length },
+      metadata: {
+        failedKeyIndex: importedKeyCount,
+        importedKeyCount,
+        keyCount: request.keys.length,
+        ...(hResult === undefined ? {} : { hResult }),
+      },
     });
   }
   return {
