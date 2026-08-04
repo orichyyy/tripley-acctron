@@ -332,6 +332,12 @@ const createFixture = (options: {
       state: "terminal",
     }),
     release: async () => { calls.releaseLease += 1; },
+    transition: async (input: Record<string, unknown>) => ({
+      ...input,
+      authority: "recovery",
+      expiresAt: Date.now() + 10_000,
+      fencingToken: input.nextFencingToken,
+    }),
   };
   const port = new XfsCashDeliveryPort({
     client: cdm as never,

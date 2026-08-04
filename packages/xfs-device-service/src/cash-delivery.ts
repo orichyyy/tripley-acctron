@@ -599,6 +599,7 @@ const releaseResources = async (
   recoveryLeases: options.dependencies.recoveryLeases,
   resourceGroup: options.policy.resourceGroup ?? options.logicalName,
   resources,
+  ttlMs: options.policy.commandLeaseTtlMs ?? options.timeoutMs * 2,
 });
 
 const evidenceRecord = (

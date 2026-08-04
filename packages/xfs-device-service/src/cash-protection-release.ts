@@ -11,6 +11,7 @@ export interface CashProtectionReleaseInput {
   readonly recoveryLeases: CashRecoveryLeasePort;
   readonly resourceGroup: string;
   readonly resources: HeldCashSessionResources;
+  readonly ttlMs: number;
 }
 
 export interface CashProtectionReleaseResult {
@@ -29,6 +30,7 @@ export const releaseCashProtection = async (
   let reconciliationRequired = false;
   let recoveryPersisted = false;
   let hostReleased = false;
+  let hostLease = input.resources.hostCommandLease;
 
   try {
     await input.recoveryLeases.close(input.resources.recoveryLease, input.outcome);
@@ -37,11 +39,23 @@ export const releaseCashProtection = async (
     reconciliationRequired = true;
   }
 
-  try {
-    await input.commandLeases.release(input.resources.hostCommandLease);
-    hostReleased = true;
-  } catch {
-    reconciliationRequired = true;
+  if (recoveryPersisted) {
+    try {
+      hostLease = await input.commandLeases.transition({
+        fencingToken: hostLease.fencingToken,
+        fromAuthority: "transaction",
+        hostEpoch: hostLease.hostEpoch,
+        logicalService: hostLease.logicalService,
+        nextFencingToken: hostLease.fencingToken + 1,
+        operationId: hostLease.operationId,
+        toAuthority: "recovery",
+        ttlMs: input.ttlMs,
+      });
+      await input.commandLeases.release(hostLease);
+      hostReleased = true;
+    } catch {
+      reconciliationRequired = true;
+    }
   }
 
   const expected = expectedCustodyOutcome[input.outcome];
@@ -57,8 +71,8 @@ export const releaseCashProtection = async (
         input.commandLeases.acknowledgeProtection
       ) {
         await input.commandLeases.acknowledgeProtection({
-          hostEpoch: input.resources.hostCommandLease.hostEpoch,
-          operationId: input.resources.hostCommandLease.operationId,
+          hostEpoch: hostLease.hostEpoch,
+          operationId: hostLease.operationId,
           resourceGroup: input.resourceGroup,
         });
       } else {
