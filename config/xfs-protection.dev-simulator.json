@@ -26,8 +26,8 @@
       "customerAccessTimeoutMs": 100,
       "commandSettlementTimeoutMs": 10000,
       "actions": {
-        "cdm.cashHeld": { "kind": "cdmRetract", "logicalService": "CDM", "outputPosition": 2, "retractArea": 1, "index": 1, "timeoutMs": 10000 },
-        "cdm.customerAccessible": { "kind": "waitUntilDeadlineThenCdmRetract", "logicalService": "CDM", "outputPosition": 2, "retractArea": 1, "index": 1, "timeoutMs": 10000 },
+        "cdm.cashHeld": { "kind": "cdmRetract", "logicalService": "CDM", "outputPosition": 4, "retractArea": 1, "index": 1, "timeoutMs": 10000 },
+        "cdm.customerAccessible": { "kind": "waitUntilDeadlineThenCdmRetract", "logicalService": "CDM", "outputPosition": 4, "retractArea": 1, "index": 1, "timeoutMs": 10000 },
         "cim.cashInActive": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM", "timeoutMs": 10000 },
         "cim.accepting": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM", "timeoutMs": 10000 },
         "cim.escrowHeld": { "kind": "cimRollbackThenAwaitTake", "logicalService": "CIM", "timeoutMs": 10000 },
