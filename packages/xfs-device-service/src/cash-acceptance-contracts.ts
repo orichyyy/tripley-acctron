@@ -28,7 +28,8 @@ export interface CashAcceptanceResult {
   readonly operationId: string;
   readonly phase: CashAcceptancePhase;
   readonly reason: "committed" | "cancelled" | "timeout" | "authorization-declined"
-    | "authorization-stale" | "returned" | "retracted" | "device-error" | "fenced" | "recovery-required";
+    | "authorization-stale" | "returned" | "retracted" | "refused-media-retracted"
+    | "refused-media-intervention" | "device-error" | "fenced" | "recovery-required";
   readonly committed: boolean;
   readonly snapshot?: CashAcceptanceSnapshot | undefined;
   readonly portions: readonly {
@@ -38,6 +39,37 @@ export interface CashAcceptanceResult {
     readonly reason?: string | undefined;
   }[];
   readonly safeSummary: Readonly<Record<string, unknown>>;
+  readonly destinationEvidence?: readonly CashUnitDestinationEvidence[] | undefined;
+}
+
+export interface CashAcceptanceRefusedMediaResolution {
+  readonly status: "not-present" | "taken" | "retracted" | "intervention";
+  readonly refusedCount: number;
+  readonly terminalResult?: CashAcceptanceResult | undefined;
+}
+
+export interface CimCashUnitObservation {
+  readonly logicalUnit: number;
+  readonly physicalPosition: string;
+  readonly physicalUnitId: string;
+  readonly currency: string;
+  readonly denominationMinorUnits: number;
+  readonly count: number;
+  readonly cashInCount: number;
+  readonly rejectCount: number;
+  readonly retractedCount: number;
+  readonly status: number;
+}
+
+export interface CashUnitDestinationEvidence extends CimCashUnitObservation {
+  readonly depositedCount: number;
+}
+
+export interface CimCashInCapabilities {
+  readonly maxCashInItems: number;
+  readonly positions: number;
+  readonly retractAreas: number;
+  readonly shutterControl: "application" | "service-provider";
 }
 
 export interface CashAcceptancePolicy {
@@ -50,6 +82,7 @@ export interface CashAcceptancePolicy {
   readonly notTakenAction: "retract" | "intervention";
   readonly retractArea?: number | undefined;
   readonly retractIndex?: number | undefined;
+  readonly useRecycleUnits?: boolean | undefined;
 }
 
 export interface CashAcceptanceStartRequest {
@@ -114,10 +147,14 @@ export interface CashAcceptanceStore {
 }
 
 export interface CimCashInClient {
-  cashInStart(request: { inputPosition: number; outputPosition: number; timeoutMs: number }): Promise<void>;
+  getCapabilities(): Promise<CimCashInCapabilities>;
+  captureCashUnits(): Promise<readonly CimCashUnitObservation[]>;
+  cashInStart(request: { inputPosition: number; outputPosition: number; timeoutMs: number; useRecycleUnits: boolean }): Promise<void>;
+  openShutter(request: { position: number; timeoutMs: number }): Promise<void>;
+  closeShutter(request: { position: number; timeoutMs: number }): Promise<void>;
   cashIn(request: { timeoutMs: number }): Promise<{ status: string; refusedCount?: number | undefined; notes?: readonly CashNoteCount[] | undefined }>;
   getCashInStatus(): Promise<{ status: string; refusedCount?: number | undefined; notes?: readonly CashNoteCount[] | undefined }>;
-  cashInEnd(request: { timeoutMs: number }): Promise<void>;
+  cashInEnd(request: { timeoutMs: number }): Promise<readonly CimCashUnitObservation[]>;
   cashInRollback(request: { timeoutMs: number }): Promise<void>;
   waitForCashTaken(request: { timeoutMs: number; signal?: AbortSignal | undefined }): Promise<boolean>;
   retract(request: { outputPosition: number; retractArea?: number | undefined; index?: number | undefined; timeoutMs: number }): Promise<void>;
@@ -127,6 +164,9 @@ export interface CashAcceptanceSession {
   readonly operationId: string;
   readonly phase: CashAcceptancePhase;
   acceptBatch(): Promise<CashAcceptanceSnapshot>;
+  resolveRefusedMedia(request?: {
+    readonly signal?: AbortSignal | undefined;
+  }): Promise<CashAcceptanceRefusedMediaResolution>;
   authorize(authorizer: CashAcceptanceAuthorizer): Promise<CashAcceptanceAuthorization>;
   commit(authorization: CashAcceptanceAuthorization): Promise<CashAcceptanceResult>;
   abort(reason: "cancelled" | "timeout"): Promise<CashAcceptanceResult>;

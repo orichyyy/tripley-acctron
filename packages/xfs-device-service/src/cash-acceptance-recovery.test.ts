@@ -10,10 +10,18 @@ async function inspect(physicalCommitDispatched: boolean) {
     physicalCommitDispatched, updatedAt: "2026-07-19T00:00:00.000Z",
   };
   await store.create(record);
-  const cashInEnd = vi.fn(async () => undefined);
+  const cashInEnd = vi.fn(async () => []);
   const client: CimCashInClient = {
+    getCapabilities: vi.fn(async () => ({
+      maxCashInItems: 200,
+      positions: 1,
+      retractAreas: 1,
+      shutterControl: "service-provider" as const,
+    })),
+    captureCashUnits: vi.fn(async () => []),
     cashInStart: vi.fn(), cashIn: vi.fn(), getCashInStatus: vi.fn(async () => ({ status: "escrow" })),
     cashInEnd, cashInRollback: vi.fn(async () => undefined), waitForCashTaken: vi.fn(async () => false),
+    openShutter: vi.fn(async () => undefined), closeShutter: vi.fn(async () => undefined),
     retract: vi.fn(async () => undefined),
   };
   const observations = await new CashAcceptanceRecoverySupervisor(store, client).inspect();

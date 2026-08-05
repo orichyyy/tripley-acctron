@@ -214,7 +214,9 @@ const createFixture = (options: FixtureOptions = {}) => {
       },
     },
     host,
-    idleHostCasePolicy: options.idleHostCasePolicy,
+    ...(options.idleHostCasePolicy === undefined
+      ? {}
+      : { idleHostCasePolicy: options.idleHostCasePolicy }),
     now: () => new Date("2026-07-20T00:00:00.000Z"),
     projections,
     resourceGroups: [{ id: "cash-transport-1" }],

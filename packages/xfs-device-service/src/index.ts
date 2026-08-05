@@ -11,6 +11,7 @@ export * from "./cash-recovery-device";
 export * from "./cash-recovery-worker";
 export * from "./cash-policy";
 export * from "./cash-acceptance-contracts";
+export * from "./cim-cash-unit-evidence";
 export * from "./cash-acceptance-policy";
 export * from "./cash-acceptance-store";
 export * from "./cash-acceptance";

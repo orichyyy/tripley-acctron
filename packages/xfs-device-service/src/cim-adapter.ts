@@ -2,6 +2,7 @@ import { CashAcceptanceService, type CashAcceptanceServiceDependencies } from ".
 import type { CashNoteCount, CimCashInClient } from "./cash-acceptance-contracts";
 import type { XfsDeviceModuleAdapter } from "./module-adapters";
 import type { TripleyXfsClient } from "@tripley-kit/xfs-client";
+import { normalizeCimCashUnits } from "./cim-cash-unit-evidence";
 
 declare module "./types" {
   interface XfsRuntimeClientLike {
@@ -15,7 +16,7 @@ export interface CimModuleClientFacade {
 
 export type XfsCimRpcClient = Pick<TripleyXfsClient["cim"],
   "cashInStart" | "cashIn" | "getCashInStatus" | "cashInEnd" | "cashInRollback" |
-  "getCashUnitInfo" | "retract">;
+  "getCapabilities" | "getCashUnitInfo" | "openShutter" | "closeShutter" | "retract">;
 
 export interface CimInventoryCapture {
   readonly revision: string;
@@ -103,12 +104,32 @@ export function createCimDepositDevicePort(
 
 export function createCimCashInClient(client: XfsCimRpcClient, sessionId: string): CimCashInClient {
   return {
+    getCapabilities: async () => {
+      const capabilities = await client.getCapabilities({ sessionId, timeoutMs: 5_000 });
+      return {
+        maxCashInItems: capabilities.maxCashInItems,
+        positions: capabilities.positions,
+        retractAreas: capabilities.retractAreas,
+        shutterControl: capabilities.shutterControl ? "service-provider" : "application",
+      };
+    },
+    captureCashUnits: async () => normalizeCimCashUnits(
+      await client.getCashUnitInfo({ sessionId, timeoutMs: 5_000 }),
+    ),
     cashInStart: async (request) => {
-      await client.cashInStart({ sessionId, tellerId: 0, useRecycleUnits: true, ...request });
+      await client.cashInStart({ sessionId, tellerId: 0, ...request });
+    },
+    openShutter: async (request) => {
+      await client.openShutter({ sessionId, position: request.position, timeoutMs: request.timeoutMs });
+    },
+    closeShutter: async (request) => {
+      await client.closeShutter({ sessionId, position: request.position, timeoutMs: request.timeoutMs });
     },
     cashIn: async (request) => normalizeStatus(await client.cashIn({ sessionId, ...request })),
     getCashInStatus: async () => normalizeStatus(await client.getCashInStatus({ sessionId, timeoutMs: 5_000 })),
-    cashInEnd: async (request) => { await client.cashInEnd({ sessionId, ...request }); },
+    cashInEnd: async (request) => normalizeCimCashUnits(
+      await client.cashInEnd({ sessionId, ...request }),
+    ),
     cashInRollback: async (request) => { await client.cashInRollback({ sessionId, ...request }); },
     waitForCashTaken: async (request) => {
       const deadline = Date.now() + request.timeoutMs;
@@ -170,14 +191,7 @@ async function captureInventory(
   now: () => Date,
 ): Promise<CimInventoryCapture> {
   const response = await client.getCashUnitInfo({ sessionId, timeoutMs });
-  const units = array(object(response).cashUnits).map(object).map((unit) => ({
-    cashInCount: finiteNumber(unit.cashInCount),
-    count: finiteNumber(unit.count),
-    number: finiteNumber(unit.number),
-    rejectCount: finiteNumber(unit.rejectCount),
-    retractedCount: finiteNumber(unit.retractedCount),
-    status: finiteNumber(unit.status),
-  }));
+  const units = normalizeCimCashUnits(response);
   const content = JSON.stringify(units);
   return {
     capturedAt: now().toISOString(),
@@ -217,17 +231,15 @@ const refusedResult = (status: CimRefusedMediaResult["status"]): CimRefusedMedia
   status,
 });
 
-const array = (value: unknown): readonly unknown[] => Array.isArray(value) ? value : [];
-
 const finiteNumber = (value: unknown): number => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
 const sum = (
-  units: readonly Record<string, number>[],
+  units: readonly object[],
   key: string,
-): number => units.reduce((total, unit) => total + (unit[key] ?? 0), 0);
+): number => units.reduce((total, unit) => total + finiteNumber((unit as Record<string, unknown>)[key]), 0);
 
 const fnv1a = (value: string): string => {
   let hash = 0x811c9dc5;
